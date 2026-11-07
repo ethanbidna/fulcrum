@@ -10,7 +10,7 @@ Steps done since last audit: 0
 
 | Step | Item | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|
-| 1 | S1 workspace sync harness | todo | [ ] | | |
+| 1 | S1 workspace sync harness | todo | [ ] | #36 | Agent work open in PR #36 (started before this file existed). When it merges, set `waiting-owner` and add owner instructions from `docs/spikes/S1-procedure.md`. |
 | 2 | C1 monorepo scaffold | todo | n/a | | |
 | 3 | S2 Llama benchmark | todo | [ ] | | |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
