@@ -20,4 +20,4 @@ Start with the [product spec](PRODUCT_SPEC.md) (authoritative), then [architectu
 | [0007](decisions/0007-local-mcp-security.md) | Local stdio MCP, off by default, scoped | Accepted; client behavior provisional |
 | [0008](decisions/0008-schema-source-of-truth.md) | JSON Schema is the contract | Accepted |
 | [0009](decisions/0009-core-process-and-language.md) | Single TypeScript core process per Mac | Accepted; packaging provisional |
-| [0010](decisions/0010-license.md) | MIT | Needs owner approval |
+| [0010](decisions/0010-license.md) | MIT | Accepted |

@@ -191,7 +191,7 @@ interface ContextIndex {
 | Temporal context | Native SQLite `ContextIndex` first; Graphiti adapter if S3 passes | *(provisional — S3)* | [0004](decisions/0004-context-layer.md) |
 | Ingestion host | One designated device per workspace | decided | [0006](decisions/0006-single-ingestion-device.md) |
 | MCP | Local stdio shim, off by default, scoped and logged | decided | [0007](decisions/0007-local-mcp-security.md) |
-| License | MIT | **needs owner approval** | [0010](decisions/0010-license.md) |
+| License | MIT | decided | [0010](decisions/0010-license.md) |
 
 ## Related documents
 

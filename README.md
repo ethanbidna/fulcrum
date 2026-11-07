@@ -72,4 +72,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). AI coding agents: read [AGENTS.md](AGENT
 
 ## License
 
-MIT (proposed, see [ADR-0010](docs/decisions/0010-license.md)). Meta Llama model weights are under Meta's own license, are downloaded by the user, and are never included in this repository or the app. See [docs/LICENSING.md](docs/LICENSING.md).
+MIT (see [ADR-0010](docs/decisions/0010-license.md)). Meta Llama model weights are under Meta's own license, are downloaded by the user, and are never included in this repository or the app. See [docs/LICENSING.md](docs/LICENSING.md).

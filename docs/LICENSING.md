@@ -4,7 +4,7 @@
 
 ## This repository
 
-Proposed: **MIT** ([ADR-0010](decisions/0010-license.md)) — pending owner approval. Rationale: the repo contains only original code, docs, schemas, synthetic fixtures and an original logo; no planned dependency is copyleft-linked into distributed code in a way MIT conflicts with (see EPL note).
+License: **MIT** ([ADR-0010](decisions/0010-license.md)). Rationale: the repo contains only original code, docs, schemas, synthetic fixtures and an original logo; no planned dependency is copyleft-linked into distributed code in a way MIT conflicts with (see EPL note).
 
 ## Planned dependencies
 

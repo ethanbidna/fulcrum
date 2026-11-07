@@ -1,6 +1,6 @@
 # ADR-0010: MIT license for repository code, docs and original assets
 
-- **Status:** **Proposed — needs owner approval**
+- **Status:** Accepted (approved by the owner, 2026-11-07)
 - **Date:** 2026-11-07
 
 ## Context
