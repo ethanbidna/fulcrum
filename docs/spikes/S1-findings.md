@@ -46,7 +46,7 @@ is alive. Locks and identity data never belong in the workspace.
 
 This is a throwaway Node ESM spike, matching the existing `.mjs` reference tools;
 it does not establish the future TypeScript core. Existing Ajv dev dependencies
-validate emitted events/checkpoints at runtime, so install with `npm ci` including
+validate emitted events/checkpoints at runtime, so install with `corepack enable` and `pnpm install --frozen-lockfile` including
 dev dependencies. No dependencies were added. All event mutations pass through
 the spike's `Domain.execute`; no UI, connectors, network or telemetry are added.
 Runtime IDs are UUIDv7; literal fixture IDs use the repository's synthetic pattern.

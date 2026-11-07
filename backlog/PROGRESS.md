@@ -4,15 +4,15 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 0
+Steps done since last audit: 1
 
 ## Steps
 
 | Step | Item | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
-| 2 | C1 monorepo scaffold | todo | n/a | | |
-| 3 | S2 Llama benchmark | todo | [ ] | | |
+| 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
+| 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
@@ -63,10 +63,23 @@ Wait for the S2 benchmark to finish before live API/runtime measurements. Use on
 5. Review count-only reports under `spikes/s4/out/`; commit reviewed copies under `docs/spikes/S4-results/` with observations in a PR referencing #4. Never commit continuation files, tokens, IDs, links, addresses, paths or raw provider responses.
 6. Tick the Owner box for step 6 above.
 
+### Step 3 — S2 local Llama benchmark
+
+1. Install Node 22 LTS and the official Ollama app on the 2019 Intel MacBook Pro; repeat on Apple Silicon if available. Check out this PR's branch (or `main` after merge). Run `npm ci` and `npm test`. If the C1 scaffold has merged, use `corepack enable` and `pnpm install --frozen-lockfile` instead of `npm ci`.
+2. Follow [docs/spikes/S2.md](../docs/spikes/S2.md) in full: accept the Llama licenses, pull the three Q4 models, launch Ollama with background QoS, compile/run the thermal probe, then run:
+
+   ```sh
+   /usr/sbin/taskpolicy -b /usr/bin/nice -n 10 node spikes/s2/benchmark.mjs --output spikes/s2/out/intel.json
+   ```
+
+3. Repeat unplugged as `intel-battery.json`; run each model's interrupted pause trial and record actual CPU-idle timing. Follow the procedure's responsiveness check. On Apple Silicon, use the corresponding `apple-silicon` filenames. Record missing/failed checks honestly.
+4. Review and commit the synthetic JSON reports, thermal logs and `observations.md` under `docs/spikes/S2-results/` as described in the procedure. Leave recommendations pending until measured results are reviewed at the decision checkpoint; never infer a hardware pass from the mock tests.
+5. Tick the Owner box for step 3 above.
+
 ### Step 1 — S1 two-Mac sync test
 You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox account, and later the same Google account in Google Drive for desktop. Use only the synthetic labels the procedure gives; no real work content.
 
-1. On both Macs: clone the repo, install Node 22+, then run `npm ci` and `npm test` from the repo root.
+1. On both Macs: clone the repo, install Node 22.13+ (22 LTS), then run `corepack enable` and `pnpm install --frozen-lockfile` and `npm test` from the repo root.
 2. Follow [docs/spikes/S1-procedure.md](../docs/spikes/S1-procedure.md) top to bottom for each provider row: local folder, Dropbox, Google Drive (mirror mode), Google Drive (stream mode).
 3. Fill in the results table at the end of that procedure (or attach sanitized results to issue #1). Check for personal paths or account names before committing.
 4. Tick the Owner box for step 1 above.

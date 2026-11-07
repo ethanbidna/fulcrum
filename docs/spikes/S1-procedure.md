@@ -7,8 +7,8 @@ for personal paths/account details before sharing. Do not commit raw captures.
 
 ## Prepare
 
-1. On both Macs, check out the same harness revision, install Node 22+, then
-   run `npm ci` and `npm test` from the repository root. One known reference
+1. On both Macs, check out the same harness revision, install Node 22.13+ (22 LTS), then
+   run `corepack enable` and `pnpm install --frozen-lockfile` and `npm test` from the repository root. One known reference
    reader regression is marked TODO; see [findings](S1-findings.md).
 2. Record revision, macOS version, Node version, sync-client version, provider
    mode, and whether files are available offline. Synchronize both system
