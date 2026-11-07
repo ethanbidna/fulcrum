@@ -23,4 +23,9 @@ The user chose Meta Llama, run locally. The baseline device is a circa-2019 Inte
 - Extraction quality is the dominant product risk (R1, R2); everything AI writes is evidence-linked and undoable.
 
 ## Validation (S2)
+The [benchmark harness and procedure](../spikes/S2.md) record initial and
+after-repair extraction scores, model digests, timing and sampled resources.
+Target hardware runs and manual pause/responsiveness checks are pending. This
+ADR remains Provisional; no model tier is accepted from mock tests.
+
 On the real Intel Mac and one Apple Silicon Mac: tokens/s, RSS, swap, thermal state, battery draw, JSON validity rate and candidate precision/recall on a synthetic eval set built from `fixtures/`.
