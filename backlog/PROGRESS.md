@@ -12,7 +12,7 @@ Steps done since last audit: 0
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | todo | n/a | | |
-| 3 | S2 Llama benchmark | waiting-owner | [ ] | | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
+| 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
 | 6 | S4 connector capability matrix | todo | [ ] | | |
