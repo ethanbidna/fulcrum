@@ -50,7 +50,7 @@ One TypeScript core process per Mac owns all writes. The workspace is append-onl
 | [MCP](docs/MCP.md) · [Security model](docs/SECURITY_MODEL.md) | Tool contract, threat model, trust boundaries |
 | [Onboarding](docs/ONBOARDING.md) | Install plan for non-technical Mac users |
 | [Decisions](docs/decisions) · [Risks](docs/RISKS.md) | ADRs and the risk register |
-| [Scenarios](docs/SCENARIOS.md) · [Backlog](backlog/BACKLOG.md) · [Progress](backlog/PROGRESS.md) | Golden tests, the work plan and where it stands |
+| [Scenarios](docs/SCENARIOS.md) · [Backlog](backlog/BACKLOG.md) | Golden tests and the ordered work plan |
 
 ## Try the reference tests
 

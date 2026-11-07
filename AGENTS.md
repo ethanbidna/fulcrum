@@ -9,21 +9,6 @@ Read this before every task. Then read the docs your task touches.
 4. [docs/decisions/](docs/decisions) — why things are the way they are. Changing a decision = new or superseding ADR in the same PR.
 5. [backlog/BACKLOG.md](backlog/BACKLOG.md) — what to build next and its acceptance criteria.
 
-## Continuing the plan
-
-When the owner says **"Continue the Fulcrum plan"** (or similar), do exactly one unit of work:
-
-1. Read [backlog/PROGRESS.md](backlog/PROGRESS.md) and [backlog/PLAYBOOK.md](backlog/PLAYBOOK.md).
-2. **Promote owner-completed steps:** any step with status `waiting-owner` whose Owner box is ticked `[x]` becomes `done` (do this in your PR, and increment "Steps done since last audit").
-3. **Check for unmerged work:** if you can see the remote (`git branch -r`, `gh pr list`), and a branch or open PR named `plan/step-<N>-…` exists for a step, do not redo that step. If nothing else is runnable, stop and tell the owner to review and merge it.
-4. **Audit due?** If "Steps done since last audit" is 5 or more, do the audit described at the end of PLAYBOOK.md instead of a step, reset the counter to 0, and add an entry to the Audit log.
-5. **Pick the step:** the lowest-numbered step with status `todo` whose **Needs** steps are all `done`. If none qualifies, stop: summarize what is waiting on the owner (from the Owner to-do section) and change nothing.
-6. **Do the step:** read its GitHub issue, the matching section of [backlog/BACKLOG.md](backlog/BACKLOG.md), every doc/ADR it links, and any `docs/spikes/*` it depends on (their outcomes are binding unless an ADR says otherwise). Follow the step's extra instructions. Do only this step.
-7. **Update PROGRESS.md in the same branch:** set the step's status to `done` if it has no owner action, otherwise `waiting-owner`; fill in the PR column once known; for `waiting-owner`, add exact, copy-pasteable owner instructions to the Owner to-do section (what to install, what to run, where to record results, then "tick the Owner box for step N"). If the step is blocked, set `blocked` with the reason and stop.
-8. **Open one PR** on a branch named `plan/step-<N>-<short-name>` that references the issue, lists the acceptance criteria as checkboxes with how each was verified, states anything not verified, and repeats the owner instructions.
-
-The owner merges each PR before asking you to continue again. Never mark an owner action as done yourself. Never claim hardware, connector, model, sync or packaging behavior was validated unless you ran it.
-
 ## Product invariants you must not break
 - Tasks are **only the user's** work. Never add an owner/assignee to a Task. Others' work is a Dependency.
 - Initiatives are top-level cards and the canvas of **exactly one** graph. The initiative is not a node.
