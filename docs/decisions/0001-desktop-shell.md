@@ -21,4 +21,9 @@ Tauri 2 for distribution. The React UI talks to the core through a `CoreTranspor
 - The dev WebSocket bridge never ships in release builds.
 
 ## Validation (S7)
+The [S7 harness and report](../spikes/S7.md) include a Tauri 2 launcher, separate
+Node SEA/Bun builds and measurement commands. The Intel Node SEA sidecar runs;
+the Rust/Tauri app has not been compiled here, and GUI, universal, Apple Silicon
+and notarization validation remain pending. Packaging stays provisional.
+
 Bundle size, cold start, idle RAM on Intel and Apple Silicon; universal binary; notarization dry run.

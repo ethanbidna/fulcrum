@@ -18,3 +18,10 @@ Option 2. `fulcrum-core` is a TypeScript process holding an exclusive lock per M
 - Adds a ~50–90 MB executable to the bundle (to be measured).
 - SQLite access from the core: prefer built-in `node:sqlite` (or `bun:sqlite`) to avoid native-module packaging; FTS5 availability must be confirmed in S7.
 - If S7 fails (size, startup, signing), fall back to Rust for the store/index drivers while keeping the TypeScript domain in the webview + a headless mode — revisit via a new ADR.
+
+## Validation (S7)
+The [S7 report](../spikes/S7.md) records an Intel Node SEA executable that passes
+an embedded SQLite FTS5 query and Unix-socket handshake. Its smoke size is about
+110 MiB, above the earlier unmeasured estimate. Bun, the Tauri shell, complete
+RSS, universal execution and signing remain unverified; no packaging runtime
+selection or fallback decision is accepted from this sample.

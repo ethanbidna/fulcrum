@@ -1,0 +1,43 @@
+{
+  "formatVersion": 1,
+  "measuredAt": "2026-11-07T22:37:02.964Z",
+  "kind": "sidecar",
+  "runtime": "node",
+  "hardware": {
+    "platform": "darwin",
+    "architecture": "x64",
+    "memoryBytes": 34359738368
+  },
+  "sqliteVersion": "3.53.4",
+  "fts5": true,
+  "artifactApparentBytes": 115253600,
+  "firstSuccessfulHealthRpcMs": 350.82925,
+  "samples": [
+    {
+      "processTreeRssBytes": 33013760,
+      "sidecarRssBytes": 33013760
+    },
+    {
+      "processTreeRssBytes": 33013760,
+      "sidecarRssBytes": 33013760
+    },
+    {
+      "processTreeRssBytes": 33013760,
+      "sidecarRssBytes": 33013760
+    },
+    {
+      "processTreeRssBytes": 33013760,
+      "sidecarRssBytes": 33013760
+    },
+    {
+      "processTreeRssBytes": 33013760,
+      "sidecarRssBytes": 33013760
+    }
+  ],
+  "visibleWindowFirstPaintMs": null,
+  "webkitProcessesOutsideTreeMeasured": false,
+  "notarization": "blocked_no_developer_id",
+  "measurementContext": "Smoke measurement while S2 Llama inference was running; not a controlled packaging comparison",
+  "runtimeVersion": "v22.23.4",
+  "signing": "ad-hoc, not Developer ID"
+}
