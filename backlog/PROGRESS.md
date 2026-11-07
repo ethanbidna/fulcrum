@@ -13,7 +13,7 @@ Steps done since last audit: 1
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
-| 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | | Node SEA FTS5/socket smoke passed; Rust/Bun/app/universal measurements pending; no Developer ID |
+| 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node SEA FTS5/socket smoke passed; Rust/Bun/app/universal measurements pending; no Developer ID |
 | 5 | S6 MCP shim | todo | [ ] | | |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | todo | n/a | | |
