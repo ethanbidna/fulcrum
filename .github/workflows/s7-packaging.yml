@@ -17,11 +17,12 @@ concurrency:
 
 jobs:
   macos:
-    runs-on: macos-14
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         runtime: [node, bun]
+        runner: [macos-15, macos-15-intel]
     env:
       S7_RUNTIME: ${{ matrix.runtime }}
     steps:
@@ -44,7 +45,7 @@ jobs:
       - name: Upload measurements and dependency lock
         uses: actions/upload-artifact@v4
         with:
-          name: s7-${{ matrix.runtime }}-measurements
+          name: s7-${{ matrix.runner }}-${{ matrix.runtime }}-measurements
           path: |
             spikes/s7/out/*/sidecar-*.json
             spikes/s7/src-tauri/Cargo.lock
