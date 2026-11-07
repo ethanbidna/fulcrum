@@ -1,0 +1,10 @@
+{
+  "name": "@fulcrum/index",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./interfaces": "./src/interfaces.ts"
+  }
+}
