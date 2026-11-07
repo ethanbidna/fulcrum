@@ -11,7 +11,7 @@ Steps done since last audit: 1
 | Step | Item | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
-| 2 | C1 monorepo scaffold | done | n/a | | Workspace, generated types, layer lint, and CI checks |
+| 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | todo | [ ] | | |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
