@@ -37,6 +37,10 @@ All modes are local-only: no hosted inference, no telemetry, no app backend. The
 
 S2 must record CPU %, RSS, swap, fan/thermal state, tokens/s and JSON-validity rate per model tier and update this table.
 
+The [S2 benchmark procedure](spikes/S2.md) supplies the synthetic extraction
+runner and manual hardware checks. Recommendations remain pending until real
+results are committed; the values here are not measured thresholds.
+
 ## Model tiers
 
 Candidates only — the Llama models are under the Meta Llama Community License, downloaded through Ollama on the user's request, never bundled ([LICENSING.md](LICENSING.md)).

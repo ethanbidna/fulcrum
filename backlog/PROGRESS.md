@@ -12,7 +12,7 @@ Steps done since last audit: 1
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
-| 3 | S2 Llama benchmark | todo | [ ] | | |
+| 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
 | 6 | S4 connector capability matrix | todo | [ ] | | |
@@ -51,6 +51,19 @@ Steps done since last audit: 1
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 3 — S2 local Llama benchmark
+
+1. Install Node 22 LTS and the official Ollama app on the 2019 Intel MacBook Pro; repeat on Apple Silicon if available. Check out this PR's branch (or `main` after merge). Run `npm ci` and `npm test`. If the C1 scaffold has merged, use `corepack enable` and `pnpm install --frozen-lockfile` instead of `npm ci`.
+2. Follow [docs/spikes/S2.md](../docs/spikes/S2.md) in full: accept the Llama licenses, pull the three Q4 models, launch Ollama with background QoS, compile/run the thermal probe, then run:
+
+   ```sh
+   /usr/sbin/taskpolicy -b /usr/bin/nice -n 10 node spikes/s2/benchmark.mjs --output spikes/s2/out/intel.json
+   ```
+
+3. Repeat unplugged as `intel-battery.json`; run each model's interrupted pause trial and record actual CPU-idle timing. Follow the procedure's responsiveness check. On Apple Silicon, use the corresponding `apple-silicon` filenames. Record missing/failed checks honestly.
+4. Review and commit the synthetic JSON reports, thermal logs and `observations.md` under `docs/spikes/S2-results/` as described in the procedure. Leave recommendations pending until measured results are reviewed at the decision checkpoint; never infer a hardware pass from the mock tests.
+5. Tick the Owner box for step 3 above.
 
 ### Step 1 — S1 two-Mac sync test
 You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox account, and later the same Google account in Google Drive for desktop. Use only the synthetic labels the procedure gives; no real work content.
