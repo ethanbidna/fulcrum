@@ -58,7 +58,7 @@ Agents list the exact instructions for each `waiting-owner` step here, newest fi
 2. Follow [docs/spikes/S2.md](../docs/spikes/S2.md) in full: accept the Llama licenses, pull the three Q4 models, launch Ollama with background QoS, compile/run the thermal probe, then run:
 
    ```sh
-   /usr/bin/taskpolicy -b /usr/bin/nice -n 10 node spikes/s2/benchmark.mjs --output spikes/s2/out/intel.json
+   /usr/sbin/taskpolicy -b /usr/bin/nice -n 10 node spikes/s2/benchmark.mjs --output spikes/s2/out/intel.json
    ```
 
 3. Repeat unplugged as `intel-battery.json`; run each model's interrupted pause trial and record actual CPU-idle timing. Follow the procedure's responsiveness check. On Apple Silicon, use the corresponding `apple-silicon` filenames. Record missing/failed checks honestly.

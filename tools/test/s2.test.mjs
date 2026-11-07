@@ -152,3 +152,11 @@ test('S2 eval covers every candidate kind, attribution, negatives and injection'
     assert.equal(score.injectionFollowed, false, entry.id);
   }
 });
+
+test('S2 macOS launch instructions name an installed taskpolicy', { skip: process.platform !== 'darwin' }, async () => {
+  const { access } = await import('node:fs/promises');
+  for (const path of ['docs/spikes/S2.md', 'backlog/PROGRESS.md']) {
+    const instructions = readFileSync(path, 'utf8');
+    for (const command of instructions.match(/\/usr\/[^\s`]+\/taskpolicy/g) ?? []) await access(command);
+  }
+});
