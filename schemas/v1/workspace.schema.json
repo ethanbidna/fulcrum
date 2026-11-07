@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/workspace.schema.json",
+  "title": "workspace.json manifest",
+  "description": "Written once at creation and on schema migration only. Never holds categories, preferences that change often, credentials or device paths.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "workspaceId", "createdAt"],
+  "properties": {
+    "format": { "const": "fulcrum-workspace" },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "workspaceId": { "$ref": "common.schema.json#/$defs/id" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "minReaderVersion": {
+      "description": "Oldest app schemaVersion that may open this workspace read-only.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "encryption": {
+      "description": "Reserved. Absent = plaintext workspace.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme", "keyId"],
+      "properties": {
+        "scheme": { "type": "string" },
+        "keyId": { "type": "string" }
+      }
+    }
+  }
+}

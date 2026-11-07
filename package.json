@@ -1,0 +1,15 @@
+{
+  "name": "fulcrum",
+  "private": true,
+  "description": "Local-first initiative organizer for macOS (Phase 0: architecture and contracts)",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test \"tools/test/*.test.mjs\""
+  },
+  "devDependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1"
+  }
+}

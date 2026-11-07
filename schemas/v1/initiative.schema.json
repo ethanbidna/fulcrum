@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/initiative.schema.json",
+  "title": "Initiative",
+  "description": "Top-level portfolio card. Not a flow node: the initiative is the canvas, not a node inside it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "lifecycle", "moscow", "categoryIds", "protectedFields", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "description": { "type": "string", "maxLength": 4000 },
+    "lifecycle": {
+      "description": "proposed = AI suggestion awaiting approval; never shown as active until approved.",
+      "type": "string",
+      "enum": ["proposed", "active", "paused", "completed", "archived", "rejected"]
+    },
+    "moscow": {
+      "anyOf": [{ "$ref": "common.schema.json#/$defs/moscow" }, { "type": "null" }]
+    },
+    "manualRank": {
+      "description": "Fractional index string for manual ordering (e.g. 'a0', 'a0V').",
+      "type": "string"
+    },
+    "categoryIds": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/id" }, "uniqueItems": true },
+    "teamEntityId": { "$ref": "common.schema.json#/$defs/id" },
+    "objectiveLinks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["objectiveId", "alignment", "setBy"],
+        "properties": {
+          "objectiveId": { "$ref": "common.schema.json#/$defs/id" },
+          "alignment": { "description": "1 (weak) to 5 (direct).", "type": "integer", "minimum": 1, "maximum": 5 },
+          "setBy": { "$ref": "common.schema.json#/$defs/actor" },
+          "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" }
+        }
+      }
+    },
+    "targetDate": { "$ref": "common.schema.json#/$defs/date" },
+    "protectedFields": {
+      "description": "Fields AI may not change silently. moscow is protected by default; any manual user edit adds the field.",
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/fieldName" },
+      "uniqueItems": true
+    },
+    "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/timestamp" }
+  }
+}

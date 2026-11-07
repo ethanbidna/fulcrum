@@ -1,0 +1,59 @@
+{
+  "$comment": "Language-neutral golden expectations. tools/test/*.test.mjs checks them against the reference model; the core package must pass the same file.",
+  "portfolio": {
+    "fixture": "fixtures/states/portfolio.state.json",
+    "invariantViolations": [],
+    "boardInitiativeIds": [
+      "01000000-0000-7000-8000-000000000001",
+      "01000000-0000-7000-8000-000000000003",
+      "01000000-0000-7000-8000-000000000004",
+      "01000000-0000-7000-8000-000000000005"
+    ],
+    "proposedInitiativeIds": ["01000000-0000-7000-8000-000000000002"],
+    "cardStates": {
+      "01000000-0000-7000-8000-000000000001": { "kind": "next_action", "nodeId": "02000000-0000-7000-8000-000000000003" },
+      "01000000-0000-7000-8000-000000000003": { "kind": "waiting", "nodeId": "02000000-0000-7000-8000-000000000011" },
+      "01000000-0000-7000-8000-000000000004": { "kind": "unclear" },
+      "01000000-0000-7000-8000-000000000005": { "kind": "blocked", "nodeId": "02000000-0000-7000-8000-000000000013" }
+    },
+    "openQuestionCount": 3,
+    "protectedMoscowUnchanged": {
+      "initiativeId": "01000000-0000-7000-8000-000000000003",
+      "moscow": "must_do",
+      "pendingSuggestionAssertionId": "05000000-0000-7000-8000-000000000003"
+    }
+  },
+  "decisionOutcome": {
+    "description": "Deciding 'stop' on Select vendor skips the milestone route and reaches the wind-down task.",
+    "fixture": "fixtures/states/portfolio.state.json",
+    "apply": { "nodeId": "02000000-0000-7000-8000-000000000008", "state": "decided", "outcome": "stop" },
+    "skippedNodeIds": ["02000000-0000-7000-8000-000000000009"],
+    "reachedNodeIds": ["02000000-0000-7000-8000-000000000010"]
+  },
+  "crossDeviceCollision": {
+    "workspace": "fixtures/workspace-example",
+    "diagnosticsInclude": ["TORN_TAIL_IGNORED", "DUPLICATE_EVENT_IGNORED"],
+    "eventCount": 9,
+    "frontier": {
+      "0d000000-0000-7000-8000-000000000001": 5,
+      "0d000000-0000-7000-8000-000000000002": 4
+    },
+    "finalInitiative": {
+      "id": "01000000-0000-7000-8000-000000000101",
+      "title": "Q1 planning prep",
+      "moscow": "could_do"
+    },
+    "conflicts": [
+      {
+        "type": "concurrent_write",
+        "kind": "initiative",
+        "id": "01000000-0000-7000-8000-000000000101",
+        "field": "moscow",
+        "values": ["must_do", "could_do"],
+        "material": true
+      }
+    ],
+    "expectedQuestionDedupeKey": "sync:initiative:01000000-0000-7000-8000-000000000101:moscow",
+    "checkpointUsable": true
+  }
+}

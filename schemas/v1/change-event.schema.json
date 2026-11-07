@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/change-event.schema.json",
+  "title": "Change event",
+  "description": "One line in log/<deviceId>/*.jsonl. Immutable. The result of exactly one domain command (or one atomic batch). Events are the authority; checkpoints and indexes are derived.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "eventId", "deviceId", "seq", "hlc", "at", "actor", "command", "ops"],
+  "properties": {
+    "v": { "description": "Event schema version; old versions are upcast on read, never rewritten.", "type": "integer", "minimum": 1 },
+    "eventId": { "$ref": "common.schema.json#/$defs/id" },
+    "deviceId": { "$ref": "common.schema.json#/$defs/id" },
+    "seq": { "description": "Contiguous per-device sequence starting at 1.", "type": "integer", "minimum": 1 },
+    "hlc": { "$ref": "common.schema.json#/$defs/hlc" },
+    "at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "actor": { "$ref": "common.schema.json#/$defs/actor" },
+    "command": { "$ref": "#/$defs/commandInvocation" },
+    "idempotencyKey": {
+      "description": "Caller-supplied key; a repeated key is a no-op. Connectors use connector:remoteId.",
+      "type": "string"
+    },
+    "runId": { "description": "Groups AI/connector events from one reconciliation run so they can be undone together.", "type": "string" },
+    "undoOf": { "$ref": "common.schema.json#/$defs/id" },
+    "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" },
+    "ops": {
+      "description": "Resolved, field-level mutations the command produced. Replay applies ops; it never re-executes command logic.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/op" }
+    }
+  },
+  "$defs": {
+    "commandInvocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "args"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z]+(\\.[a-zA-Z]+)+$" },
+        "args": { "type": "object" }
+      }
+    },
+    "recordKind": {
+      "type": "string",
+      "enum": ["initiative", "category", "node", "edge", "group", "objective", "entity", "source", "assertion", "question", "rejection", "device", "settings"]
+    },
+    "op": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "kind", "id"],
+      "properties": {
+        "op": { "type": "string", "enum": ["create", "set", "tombstone"] },
+        "kind": { "$ref": "#/$defs/recordKind" },
+        "id": { "description": "Record id (or 'singleton' for settings).", "type": "string" },
+        "record": { "description": "create only: full record.", "type": "object" },
+        "field": { "description": "set only.", "type": "string" },
+        "value": { "description": "set only: new value (null clears)." },
+        "baseEventId": {
+          "description": "set only: eventId of the last write to this field that the author had seen (null if none). Used for concurrent-edit detection.",
+          "anyOf": [{ "$ref": "common.schema.json#/$defs/id" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        { "if": { "properties": { "op": { "const": "create" } } }, "then": { "required": ["record"] } },
+        { "if": { "properties": { "op": { "const": "set" } } }, "then": { "required": ["field", "value", "baseEventId"] } }
+      ]
+    }
+  }
+}

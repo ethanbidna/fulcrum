@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/flow-object.schema.json",
+  "title": "Flow object (graph node)",
+  "description": "First-class node in exactly one initiative's canonical graph. There is no nested graph: child Tasks are ordinary nodes linked by 'contains' edges.",
+  "type": "object",
+  "required": ["id", "initiativeId", "type", "title", "state", "protectedFields", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "initiativeId": { "$ref": "common.schema.json#/$defs/id" },
+    "type": { "type": "string", "enum": ["task", "dependency", "decision", "milestone"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "details": { "type": "string", "maxLength": 8000 },
+    "groupId": {
+      "description": "Optional visual group (presentation only; never a parent Task, never a nested graph).",
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "targetDate": { "$ref": "common.schema.json#/$defs/date" },
+    "certainty": { "$ref": "common.schema.json#/$defs/certainty" },
+    "prerequisiteGroups": {
+      "description": "AND/OR prerequisites. Incoming depends_on edges reference a group id; edges with no group are ANDed. Groups are ANDed with each other.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "mode"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "mode": { "type": "string", "enum": ["all", "any"] }
+        }
+      }
+    },
+    "supersededBy": { "$ref": "common.schema.json#/$defs/id" },
+    "manualRank": { "type": "string" },
+    "protectedFields": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/fieldName" },
+      "uniqueItems": true
+    },
+    "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/timestamp" }
+  },
+  "oneOf": [
+    {
+      "title": "Task — only the user's own work",
+      "description": "No responsibleEntityId/assignee/owner: unevaluatedProperties rejects any such field on a Task.",
+      "properties": {
+        "type": { "const": "task" },
+        "state": { "enum": ["open", "done", "cancelled"] }
+      }
+    },
+    {
+      "title": "Dependency — anything outside the user's direct execution",
+      "properties": {
+        "type": { "const": "dependency" },
+        "state": { "enum": ["waiting", "satisfied", "blocked", "expired", "unverified", "cancelled"] },
+        "kind": { "enum": ["person", "approval", "access", "delivery", "event", "technical", "other"] },
+        "responsibleEntityId": { "$ref": "common.schema.json#/$defs/id" },
+        "lastCheckedAt": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    {
+      "title": "Decision — explicit choice; outcome selects conditional leads_to edges",
+      "required": ["options", "decider"],
+      "properties": {
+        "type": { "const": "decision" },
+        "state": { "enum": ["open", "decided", "cancelled"] },
+        "decider": {
+          "description": "'user' or an entity id when someone else decides (then it behaves as a Dependency for actionability).",
+          "anyOf": [{ "const": "user" }, { "$ref": "common.schema.json#/$defs/id" }]
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "maxLength": 40 },
+              "label": { "type": "string", "minLength": 1, "maxLength": 120 }
+            }
+          }
+        },
+        "outcome": { "type": "string" }
+      }
+    },
+    {
+      "title": "Milestone — checkpoint, never a percentage",
+      "properties": {
+        "type": { "const": "milestone" },
+        "state": { "enum": ["pending", "achieved", "missed", "cancelled"] }
+      }
+    }
+  ],
+  "unevaluatedProperties": false
+}

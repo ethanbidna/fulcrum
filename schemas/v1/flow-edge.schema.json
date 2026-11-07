@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/flow-edge.schema.json",
+  "title": "Flow edge",
+  "description": "Edges read as sentences: <fromId> <type> <toId>. 'A depends_on B' means B is a prerequisite of A. 'A contains B' means B is organizationally inside Task A (never a prerequisite). 'A leads_to B' is sequence / conditional route. Renderers draw depends_on arrows prerequisite -> dependent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "initiativeId", "fromId", "toId", "type", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "$ref": "common.schema.json#/$defs/id" },
+    "initiativeId": {
+      "description": "Home initiative = initiative of fromId. Cross-initiative edges are allowed only for depends_on and related_to.",
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "fromId": { "$ref": "common.schema.json#/$defs/id" },
+    "toId": { "$ref": "common.schema.json#/$defs/id" },
+    "type": { "type": "string", "enum": ["contains", "depends_on", "leads_to", "related_to"] },
+    "prerequisiteGroupId": {
+      "description": "depends_on only: id of a prerequisiteGroups entry on the fromId node.",
+      "type": "string"
+    },
+    "condition": {
+      "description": "leads_to only, and only from a Decision: route is live when the decision outcome equals optionId.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optionId"],
+      "properties": {
+        "optionId": { "type": "string" }
+      }
+    },
+    "label": { "type": "string", "maxLength": 80 },
+    "certainty": { "$ref": "common.schema.json#/$defs/certainty" },
+    "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" },
+    "createdAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "updatedAt": { "$ref": "common.schema.json#/$defs/timestamp" }
+  }
+}

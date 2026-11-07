@@ -1,0 +1,26 @@
+# ADR-0007: Local MCP server — stdio shim to the core, off by default, scoped and logged
+
+- **Status:** Accepted · Client behavior **provisional** (S6)
+- **Date:** 2026-11-07
+
+## Context
+MCP is the only conversational interface. MCP clients like Claude Desktop forward tool results to a hosted model, so "local MCP server" does not mean "data stays local". UI and MCP must use the same domain commands.
+
+## Decision
+- `fulcrum-mcp` speaks MCP over **stdio** to the client and forwards to the core over a `0600` Unix socket authenticated with a Keychain-held secret. No network listener.
+- MCP tools call the same `Domain.execute`/`query` as the UI; actor is `mcp`. No separate policy engine.
+- **Disabled by default.** Enabling shows a disclosure that returned data may be sent to the client's AI provider.
+- Defaults when enabled: **read-only**, all initiatives, **no source excerpts**. User can widen per category/initiative, enable writes, enable excerpts.
+- Every call is logged locally; MCP writes appear in History and Meaningful changes; all undoable.
+- Source excerpts are returned in an `untrustedExcerpt` field; never in tool descriptions or error strings.
+
+## Alternatives
+- Streamable HTTP on localhost — any local process or browser page could probe it; more auth work. Revisit only for clients that cannot use stdio.
+- MCP as a separate process writing the workspace directly — rejected: two writers per device, duplicated validation.
+
+## Consequences
+- The core must be running (the shim starts it).
+- Contract tests assert that an MCP write and the equivalent UI command produce identical ops (scenario 11).
+
+## Validation (S6)
+Claude Desktop (and one other client) end to end with synthetic data; read-only enforcement; scope filtering; elicitation support for protected-field confirmation.

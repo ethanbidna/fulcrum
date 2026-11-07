@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/workspace-state.schema.json",
+  "title": "Workspace state (checkpoint body)",
+  "description": "Materialized state after folding a set of events. Written as checkpoints/<deviceId>/<hlc>.json. Also the shape of synthetic state fixtures.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "workspaceId", "frontier", "state"],
+  "properties": {
+    "v": { "type": "integer", "minimum": 1 },
+    "workspaceId": { "$ref": "common.schema.json#/$defs/id" },
+    "frontier": {
+      "description": "deviceId -> highest contiguous seq included. Empty for hand-written fixtures.",
+      "type": "object",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "maxHlc": { "$ref": "common.schema.json#/$defs/hlc" },
+    "fieldWriters": {
+      "description": "\"kind:id:field\" -> eventId of the last write folded into this checkpoint. Required for concurrent-edit detection when replaying on top of a checkpoint.",
+      "type": "object",
+      "additionalProperties": { "$ref": "common.schema.json#/$defs/id" }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["initiatives", "categories", "nodes", "edges", "groups", "objectives", "entities", "sources", "assertions", "questions", "rejections", "settings"],
+      "properties": {
+        "initiatives": { "type": "array", "items": { "$ref": "initiative.schema.json" } },
+        "categories": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/category" } },
+        "nodes": { "type": "array", "items": { "$ref": "flow-object.schema.json" } },
+        "edges": { "type": "array", "items": { "$ref": "flow-edge.schema.json" } },
+        "groups": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/group" } },
+        "objectives": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/objective" } },
+        "entities": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/entity" } },
+        "sources": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/source" } },
+        "assertions": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/assertion" } },
+        "questions": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/question" } },
+        "rejections": { "type": "array", "items": { "$ref": "records.schema.json#/$defs/rejection" } },
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label"],
+            "properties": {
+              "id": { "$ref": "common.schema.json#/$defs/id" },
+              "label": { "description": "User-chosen name. No serial numbers or paths.", "type": "string" }
+            }
+          }
+        },
+        "settings": {
+          "description": "Synced workspace settings only. Machine-local settings live outside the workspace.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ingestionDeviceId": { "anyOf": [{ "$ref": "common.schema.json#/$defs/id" }, { "type": "null" }] },
+            "defaultCachePolicy": { "type": "string", "enum": ["none", "excerpt"] }
+          }
+        }
+      }
+    }
+  }
+}

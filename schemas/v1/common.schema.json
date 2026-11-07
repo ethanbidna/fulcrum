@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/common.schema.json",
+  "title": "Fulcrum common definitions (v1)",
+  "$defs": {
+    "id": {
+      "description": "Stable UUID. UUIDv7 recommended so IDs sort by creation time.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "description": "RFC 3339 UTC timestamp.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "hlc": {
+      "description": "Hybrid logical clock: 13-digit epoch ms, 4-digit counter. Lexicographic order = causal-compatible total order (ties broken by deviceId, then seq).",
+      "type": "string",
+      "pattern": "^[0-9]{13}-[0-9]{4}$"
+    },
+    "moscow": {
+      "type": "string",
+      "enum": ["must_do", "should_do", "could_do", "wont_do"]
+    },
+    "actor": {
+      "type": "string",
+      "enum": ["user", "ai", "connector", "mcp", "system"]
+    },
+    "certainty": {
+      "description": "explicit = stated in the source; inferred = model interpretation.",
+      "type": "string",
+      "enum": ["explicit", "inferred"]
+    },
+    "materiality": {
+      "description": "Questions are only raised for medium or high materiality; low-materiality ambiguity is dropped.",
+      "type": "string",
+      "enum": ["medium", "high"]
+    },
+    "target": {
+      "description": "Attachment point for evidence and questions: the initiative, one node, or one edge; optionally a single field.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["initiative", "node", "edge"] },
+        "id": { "$ref": "#/$defs/id" },
+        "field": { "type": "string" }
+      }
+    },
+    "evidenceRef": {
+      "description": "Points from a claim/object/edge to the source that supports it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId"],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/id" },
+        "assertionId": { "$ref": "#/$defs/id" },
+        "range": {
+          "description": "Optional character range within the cached excerpt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start", "end"],
+          "properties": {
+            "start": { "type": "integer", "minimum": 0 },
+            "end": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceRef" }
+    },
+    "fieldName": {
+      "type": "string",
+      "pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+    }
+  }
+}

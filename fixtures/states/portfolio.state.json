@@ -1,0 +1,320 @@
+{
+  "v": 1,
+  "workspaceId": "00000000-0000-7000-8000-000000000001",
+  "frontier": {},
+  "state": {
+    "settings": {
+      "ingestionDeviceId": "0d000000-0000-7000-8000-000000000001",
+      "defaultCachePolicy": "excerpt"
+    },
+    "devices": [
+      { "id": "0d000000-0000-7000-8000-000000000001", "label": "Desk Mac" },
+      { "id": "0d000000-0000-7000-8000-000000000002", "label": "Laptop" }
+    ],
+    "categories": [
+      { "id": "0c000000-0000-7000-8000-000000000001", "label": "Tooling", "manualRank": "a0" },
+      { "id": "0c000000-0000-7000-8000-000000000002", "label": "Governance", "manualRank": "a1" },
+      { "id": "0c000000-0000-7000-8000-000000000003", "label": "Research", "manualRank": "a2" }
+    ],
+    "objectives": [
+      { "id": "07000000-0000-7000-8000-000000000001", "label": "Reduce operational risk", "rank": 1, "weight": 5 },
+      { "id": "07000000-0000-7000-8000-000000000002", "label": "Improve team efficiency", "rank": 2, "weight": 3,
+        "kpi": { "name": "Hours saved per week", "unit": "hours", "target": 10 } },
+      { "id": "07000000-0000-7000-8000-000000000003", "label": "Grow research capacity", "rank": 2, "weight": 3 }
+    ],
+    "entities": [
+      { "id": "08000000-0000-7000-8000-000000000001", "type": "team", "label": "Security team", "aliases": ["Security", "SecOps"] },
+      { "id": "08000000-0000-7000-8000-000000000002", "type": "person", "label": "Taylor Reed", "aliases": ["Taylor", "T. Reed"],
+        "externalIds": [{ "connector": "synthetic", "remoteId": "user:taylor" }] },
+      { "id": "08000000-0000-7000-8000-000000000003", "type": "person", "label": "Morgan Diaz", "aliases": ["Morgan"] },
+      { "id": "08000000-0000-7000-8000-000000000004", "type": "org", "label": "Northwind Example Co", "aliases": ["Northwind"] },
+      { "id": "08000000-0000-7000-8000-000000000005", "type": "team", "label": "Platform team", "aliases": ["Platform"] },
+      { "id": "08000000-0000-7000-8000-000000000006", "type": "team", "label": "Legal", "aliases": [] }
+    ],
+    "initiatives": [
+      {
+        "id": "01000000-0000-7000-8000-000000000001",
+        "title": "Vendor evaluation",
+        "description": "Evaluate replacement design-tool vendors and recommend one.",
+        "lifecycle": "active",
+        "moscow": "should_do",
+        "manualRank": "a0",
+        "categoryIds": ["0c000000-0000-7000-8000-000000000001"],
+        "objectiveLinks": [
+          { "objectiveId": "07000000-0000-7000-8000-000000000002", "alignment": 3, "setBy": "ai",
+            "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000001" }] }
+        ],
+        "targetDate": "2026-12-15",
+        "protectedFields": ["moscow"],
+        "createdAt": "2026-11-02T15:00:00Z",
+        "updatedAt": "2026-11-05T10:12:00Z"
+      },
+      {
+        "id": "01000000-0000-7000-8000-000000000002",
+        "title": "Onboarding survey refresh",
+        "description": "Proposed from a meeting note; not tracked until approved.",
+        "lifecycle": "proposed",
+        "moscow": null,
+        "categoryIds": [],
+        "protectedFields": ["moscow"],
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000005" }],
+        "createdAt": "2026-11-06T09:00:00Z",
+        "updatedAt": "2026-11-06T09:00:00Z"
+      },
+      {
+        "id": "01000000-0000-7000-8000-000000000003",
+        "title": "Data retention policy",
+        "lifecycle": "active",
+        "moscow": "must_do",
+        "manualRank": "a1",
+        "categoryIds": ["0c000000-0000-7000-8000-000000000002"],
+        "objectiveLinks": [
+          { "objectiveId": "07000000-0000-7000-8000-000000000001", "alignment": 5, "setBy": "user" }
+        ],
+        "protectedFields": ["moscow"],
+        "createdAt": "2026-10-20T12:00:00Z",
+        "updatedAt": "2026-11-04T16:30:00Z"
+      },
+      {
+        "id": "01000000-0000-7000-8000-000000000004",
+        "title": "Analytics dashboard migration",
+        "lifecycle": "active",
+        "moscow": "could_do",
+        "manualRank": "a2",
+        "categoryIds": ["0c000000-0000-7000-8000-000000000001"],
+        "protectedFields": ["moscow"],
+        "createdAt": "2026-10-28T12:00:00Z",
+        "updatedAt": "2026-10-28T12:00:00Z"
+      },
+      {
+        "id": "01000000-0000-7000-8000-000000000005",
+        "title": "Customer data export tool",
+        "lifecycle": "active",
+        "moscow": "should_do",
+        "manualRank": "a3",
+        "categoryIds": ["0c000000-0000-7000-8000-000000000003"],
+        "protectedFields": ["moscow"],
+        "createdAt": "2026-10-15T12:00:00Z",
+        "updatedAt": "2026-11-03T08:00:00Z"
+      }
+    ],
+    "groups": [
+      { "id": "09000000-0000-7000-8000-000000000001", "initiativeId": "01000000-0000-7000-8000-000000000001", "label": "Hands-on testing" }
+    ],
+    "nodes": [
+      {
+        "id": "02000000-0000-7000-8000-000000000001", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Draft evaluation criteria", "state": "done", "protectedFields": [],
+        "createdAt": "2026-11-02T15:00:00Z", "updatedAt": "2026-11-03T11:00:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000002", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Test design capabilities", "state": "open", "certainty": "explicit",
+        "groupId": "09000000-0000-7000-8000-000000000001", "protectedFields": [],
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000001", "assertionId": "05000000-0000-7000-8000-000000000001" }],
+        "createdAt": "2026-11-03T11:05:00Z", "updatedAt": "2026-11-03T11:05:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000003", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Run sample design export", "state": "open",
+        "groupId": "09000000-0000-7000-8000-000000000001", "protectedFields": [],
+        "createdAt": "2026-11-03T11:06:00Z", "updatedAt": "2026-11-03T11:06:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000004", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Compare output to baseline", "state": "open",
+        "groupId": "09000000-0000-7000-8000-000000000001", "protectedFields": [],
+        "createdAt": "2026-11-03T11:07:00Z", "updatedAt": "2026-11-03T11:07:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000005", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "dependency", "title": "Security approval", "kind": "approval", "state": "waiting",
+        "responsibleEntityId": "08000000-0000-7000-8000-000000000001", "certainty": "explicit", "protectedFields": [],
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000002" }],
+        "createdAt": "2026-11-04T09:00:00Z", "updatedAt": "2026-11-04T09:00:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000006", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Run pilot with design team", "state": "open", "protectedFields": [],
+        "createdAt": "2026-11-04T09:01:00Z", "updatedAt": "2026-11-04T09:01:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000007", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "dependency", "title": "Reference call with existing customer", "kind": "event", "state": "waiting",
+        "responsibleEntityId": "08000000-0000-7000-8000-000000000003", "certainty": "explicit", "protectedFields": [],
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000004" }],
+        "createdAt": "2026-11-05T10:00:00Z", "updatedAt": "2026-11-05T10:00:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000008", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "decision", "title": "Select vendor", "state": "open", "decider": "user",
+        "options": [ { "id": "proceed", "label": "Proceed with a vendor" }, { "id": "stop", "label": "Stay with current tool" } ],
+        "prerequisiteGroups": [ { "id": "field-evidence", "mode": "any" } ],
+        "protectedFields": [],
+        "createdAt": "2026-11-03T11:10:00Z", "updatedAt": "2026-11-05T10:01:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000009", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "milestone", "title": "Recommendation delivered", "state": "pending", "targetDate": "2026-12-15",
+        "protectedFields": [],
+        "createdAt": "2026-11-03T11:11:00Z", "updatedAt": "2026-11-03T11:11:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000010", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "type": "task", "title": "Write wind-down note", "state": "open", "protectedFields": [],
+        "createdAt": "2026-11-03T11:12:00Z", "updatedAt": "2026-11-03T11:12:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000011", "initiativeId": "01000000-0000-7000-8000-000000000003",
+        "type": "dependency", "title": "Legal review of draft policy", "kind": "approval", "state": "waiting",
+        "responsibleEntityId": "08000000-0000-7000-8000-000000000006", "protectedFields": [],
+        "createdAt": "2026-11-01T12:00:00Z", "updatedAt": "2026-11-01T12:00:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000012", "initiativeId": "01000000-0000-7000-8000-000000000003",
+        "type": "task", "title": "Publish retention policy", "state": "open", "protectedFields": [],
+        "createdAt": "2026-11-01T12:01:00Z", "updatedAt": "2026-11-01T12:01:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000013", "initiativeId": "01000000-0000-7000-8000-000000000005",
+        "type": "dependency", "title": "API credentials from platform team", "kind": "access", "state": "blocked",
+        "responsibleEntityId": "08000000-0000-7000-8000-000000000005", "protectedFields": [],
+        "createdAt": "2026-10-20T12:00:00Z", "updatedAt": "2026-11-03T08:00:00Z"
+      },
+      {
+        "id": "02000000-0000-7000-8000-000000000014", "initiativeId": "01000000-0000-7000-8000-000000000005",
+        "type": "task", "title": "Build export prototype", "state": "open", "protectedFields": [],
+        "createdAt": "2026-10-20T12:01:00Z", "updatedAt": "2026-10-20T12:01:00Z"
+      }
+    ],
+    "edges": [
+      { "id": "03000000-0000-7000-8000-000000000001", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000002", "toId": "02000000-0000-7000-8000-000000000001", "type": "depends_on",
+        "createdAt": "2026-11-03T11:05:00Z", "updatedAt": "2026-11-03T11:05:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000002", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000002", "toId": "02000000-0000-7000-8000-000000000003", "type": "contains",
+        "createdAt": "2026-11-03T11:06:00Z", "updatedAt": "2026-11-03T11:06:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000003", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000002", "toId": "02000000-0000-7000-8000-000000000004", "type": "contains",
+        "createdAt": "2026-11-03T11:07:00Z", "updatedAt": "2026-11-03T11:07:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000004", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000004", "toId": "02000000-0000-7000-8000-000000000003", "type": "depends_on",
+        "createdAt": "2026-11-03T11:07:00Z", "updatedAt": "2026-11-03T11:07:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000005", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000006", "toId": "02000000-0000-7000-8000-000000000005", "type": "depends_on",
+        "certainty": "explicit",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000002", "assertionId": "05000000-0000-7000-8000-000000000002" }],
+        "createdAt": "2026-11-04T09:01:00Z", "updatedAt": "2026-11-04T09:01:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000006", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000008", "toId": "02000000-0000-7000-8000-000000000002", "type": "depends_on",
+        "createdAt": "2026-11-03T11:10:00Z", "updatedAt": "2026-11-03T11:10:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000007", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000008", "toId": "02000000-0000-7000-8000-000000000006", "type": "depends_on",
+        "prerequisiteGroupId": "field-evidence",
+        "createdAt": "2026-11-04T09:02:00Z", "updatedAt": "2026-11-04T09:02:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000008", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000008", "toId": "02000000-0000-7000-8000-000000000007", "type": "depends_on",
+        "prerequisiteGroupId": "field-evidence", "certainty": "inferred",
+        "createdAt": "2026-11-05T10:01:00Z", "updatedAt": "2026-11-05T10:01:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000009", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000008", "toId": "02000000-0000-7000-8000-000000000009", "type": "leads_to",
+        "condition": { "optionId": "proceed" }, "label": "Proceed",
+        "createdAt": "2026-11-03T11:11:00Z", "updatedAt": "2026-11-03T11:11:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000010", "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "fromId": "02000000-0000-7000-8000-000000000008", "toId": "02000000-0000-7000-8000-000000000010", "type": "leads_to",
+        "condition": { "optionId": "stop" }, "label": "Stay",
+        "createdAt": "2026-11-03T11:12:00Z", "updatedAt": "2026-11-03T11:12:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000011", "initiativeId": "01000000-0000-7000-8000-000000000003",
+        "fromId": "02000000-0000-7000-8000-000000000012", "toId": "02000000-0000-7000-8000-000000000011", "type": "depends_on",
+        "createdAt": "2026-11-01T12:01:00Z", "updatedAt": "2026-11-01T12:01:00Z" },
+      { "id": "03000000-0000-7000-8000-000000000012", "initiativeId": "01000000-0000-7000-8000-000000000005",
+        "fromId": "02000000-0000-7000-8000-000000000014", "toId": "02000000-0000-7000-8000-000000000013", "type": "depends_on",
+        "createdAt": "2026-10-20T12:01:00Z", "updatedAt": "2026-10-20T12:01:00Z" }
+    ],
+    "sources": [
+      { "id": "04000000-0000-7000-8000-000000000001", "connector": "synthetic", "remoteId": "meeting:weekly-sync-2026-11-03",
+        "title": "Weekly sync (synthetic notes)", "happenedAt": "2026-11-03T10:30:00Z", "ingestedAt": "2026-11-03T11:04:00Z",
+        "cachePolicy": "excerpt", "excerpt": "Me: I'll test the design capabilities of both vendors this week.",
+        "contentHash": "sha256:458bafd48ebcbf448d243dce99abd3b48c9f22e51f3a824cd801a9e83824a47b" },
+      { "id": "04000000-0000-7000-8000-000000000002", "connector": "synthetic", "remoteId": "email:security-review-1",
+        "title": "Re: vendor pilot (synthetic email)", "senderEntityId": "08000000-0000-7000-8000-000000000001",
+        "happenedAt": "2026-11-04T08:40:00Z", "ingestedAt": "2026-11-04T08:58:00Z",
+        "cachePolicy": "excerpt", "excerpt": "We need to review any vendor before pilot data is shared with them.",
+        "contentHash": "sha256:90a6c62d40bafbdbeb700967ccb7272bb8fb83766cba9f49bee84d9103a9b821" },
+      { "id": "04000000-0000-7000-8000-000000000003", "connector": "synthetic", "remoteId": "chat:taylor-retention",
+        "title": "Direct message (synthetic)", "senderEntityId": "08000000-0000-7000-8000-000000000002",
+        "happenedAt": "2026-11-04T16:20:00Z", "ingestedAt": "2026-11-04T16:29:00Z",
+        "cachePolicy": "excerpt", "excerpt": "Honestly the retention policy feels like a could-do this quarter.",
+        "contentHash": "sha256:5461adaa66d130b33c9b5d2b0eb608ca8a563b3b8083c3aa86c2c30de61ef890" },
+      { "id": "04000000-0000-7000-8000-000000000004", "connector": "synthetic", "remoteId": "email:northwind-reference",
+        "title": "Reference call (synthetic email)", "senderEntityId": "08000000-0000-7000-8000-000000000003",
+        "happenedAt": "2026-11-05T09:45:00Z", "ingestedAt": "2026-11-05T09:59:00Z",
+        "cachePolicy": "excerpt", "excerpt": "Happy to do a reference call next week; I'll send times.",
+        "contentHash": "sha256:c52a46f636ef19fe4b1d81f12a564c33a3414d57cc357396197e4621b718ce87" },
+      { "id": "04000000-0000-7000-8000-000000000005", "connector": "synthetic", "remoteId": "meeting:planning-2026-11-06",
+        "title": "Planning meeting (synthetic notes)", "happenedAt": "2026-11-06T08:30:00Z", "ingestedAt": "2026-11-06T08:59:00Z",
+        "cachePolicy": "none", "contentHash": "sha256:cd276d82f20b3bc13ba113db7770f2d8e7e0884302ee36effee984bb7e9a3c79" }
+    ],
+    "assertions": [
+      { "id": "05000000-0000-7000-8000-000000000001",
+        "target": { "kind": "node", "id": "02000000-0000-7000-8000-000000000002" },
+        "predicate": "user_commitment", "value": "Test the design capabilities of both vendors",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000001" }],
+        "observedAt": "2026-11-03T11:04:00Z", "validFrom": "2026-11-03T10:30:00Z", "certainty": "explicit", "status": "applied" },
+      { "id": "05000000-0000-7000-8000-000000000002",
+        "target": { "kind": "edge", "id": "03000000-0000-7000-8000-000000000005" },
+        "predicate": "prerequisite", "value": true,
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000002" }],
+        "observedAt": "2026-11-04T08:58:00Z", "validFrom": "2026-11-04T08:40:00Z", "certainty": "explicit", "status": "applied" },
+      { "id": "05000000-0000-7000-8000-000000000003",
+        "target": { "kind": "initiative", "id": "01000000-0000-7000-8000-000000000003", "field": "moscow" },
+        "predicate": "suggested_value", "value": "could_do",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000003" }],
+        "observedAt": "2026-11-04T16:29:00Z", "certainty": "explicit", "status": "suggested" }
+    ],
+    "questions": [
+      { "id": "06000000-0000-7000-8000-000000000001",
+        "initiativeId": "01000000-0000-7000-8000-000000000001",
+        "target": { "kind": "edge", "id": "03000000-0000-7000-8000-000000000005" },
+        "prompt": "Does the pilot itself need security approval, or only a production rollout?",
+        "reason": "ambiguous_evidence",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000002" }],
+        "resolutions": [
+          { "id": "keep", "label": "Pilot waits for approval", "commands": [] },
+          { "id": "remove", "label": "Pilot can start now",
+            "commands": [{ "name": "edge.delete", "args": { "edgeId": "03000000-0000-7000-8000-000000000005" } }] }
+        ],
+        "state": "open", "materiality": "medium", "dedupeKey": "edge:03000000-0000-7000-8000-000000000005:prerequisite",
+        "createdAt": "2026-11-04T09:01:00Z" },
+      { "id": "06000000-0000-7000-8000-000000000002",
+        "initiativeId": "01000000-0000-7000-8000-000000000003",
+        "target": { "kind": "initiative", "id": "01000000-0000-7000-8000-000000000003", "field": "moscow" },
+        "prompt": "Taylor Reed called this a Could Do. Keep it as Must Do?",
+        "reason": "protected_field_challenge",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000003", "assertionId": "05000000-0000-7000-8000-000000000003" }],
+        "resolutions": [
+          { "id": "keep", "label": "Keep Must Do",
+            "commands": [{ "name": "assertion.reject", "args": { "assertionId": "05000000-0000-7000-8000-000000000003" } }] },
+          { "id": "change", "label": "Change to Could Do",
+            "commands": [{ "name": "initiative.setMoscow", "args": { "initiativeId": "01000000-0000-7000-8000-000000000003", "moscow": "could_do" } }] }
+        ],
+        "state": "open", "materiality": "medium", "dedupeKey": "initiative:01000000-0000-7000-8000-000000000003:moscow",
+        "createdAt": "2026-11-04T16:30:00Z" },
+      { "id": "06000000-0000-7000-8000-000000000003",
+        "initiativeId": "01000000-0000-7000-8000-000000000002",
+        "target": { "kind": "initiative", "id": "01000000-0000-7000-8000-000000000002" },
+        "prompt": "Start tracking \"Onboarding survey refresh\" as an initiative?",
+        "reason": "proposed_initiative",
+        "evidenceRefs": [{ "sourceId": "04000000-0000-7000-8000-000000000005" }],
+        "resolutions": [
+          { "id": "approve", "label": "Track it",
+            "commands": [{ "name": "initiative.approve", "args": { "initiativeId": "01000000-0000-7000-8000-000000000002" } }] },
+          { "id": "reject", "label": "Not an initiative",
+            "commands": [{ "name": "initiative.reject", "args": { "initiativeId": "01000000-0000-7000-8000-000000000002" } }] }
+        ],
+        "state": "open", "materiality": "medium", "dedupeKey": "proposal:onboarding-survey-refresh",
+        "createdAt": "2026-11-06T09:00:00Z" }
+    ],
+    "rejections": []
+  }
+}

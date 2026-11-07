@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v1/records.schema.json",
+  "title": "Supporting records: category, group, objective, entity, source, assertion, question, rejection",
+  "$defs": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "manualRank": { "type": "string" }
+      }
+    },
+    "group": {
+      "description": "Visual grouping on the canvas. Presentation construct only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "initiativeId", "label"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "initiativeId": { "$ref": "common.schema.json#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 }
+      }
+    },
+    "objective": {
+      "description": "Portfolio-level strategic objective. Ranked independently of MoSCoW; equal rank = tie.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "rank"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "rank": { "type": "integer", "minimum": 1 },
+        "weight": { "description": "Optional relative emphasis 1-5.", "type": "integer", "minimum": 1, "maximum": 5 },
+        "kpi": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" },
+            "unit": { "type": "string" },
+            "target": { "type": "number" },
+            "current": { "type": "number" },
+            "asOf": { "$ref": "common.schema.json#/$defs/date" }
+          }
+        },
+        "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" }
+      }
+    },
+    "entity": {
+      "description": "Persistent identity for people, teams, orgs, systems. Merge/split history lives in the change log.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "aliases"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "type": { "type": "string", "enum": ["person", "team", "org", "system", "initiative_alias", "other"] },
+        "label": { "type": "string", "minLength": 1 },
+        "aliases": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "externalIds": {
+          "description": "Connector-scoped identifiers, e.g. {connector:'slack', remoteId:'U123'}.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["connector", "remoteId"],
+            "properties": {
+              "connector": { "type": "string" },
+              "remoteId": { "type": "string" }
+            }
+          }
+        },
+        "mergedInto": { "$ref": "common.schema.json#/$defs/id" }
+      }
+    },
+    "source": {
+      "description": "Pointer to an external item plus optional retained excerpt. happenedAt = event time; ingestedAt = when Fulcrum learned of it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "connector", "remoteId", "ingestedAt", "cachePolicy", "contentHash"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "connector": { "type": "string", "examples": ["slack", "gmail", "granola", "gdrive", "dropbox", "gcal", "file", "web", "manual", "synthetic"] },
+        "remoteId": { "description": "Dedup key with connector.", "type": "string" },
+        "threadRemoteId": { "type": "string" },
+        "permalink": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "senderEntityId": { "$ref": "common.schema.json#/$defs/id" },
+        "happenedAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "ingestedAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "cachePolicy": {
+          "description": "none = pointer + hash only; excerpt = short excerpt stored in workspace.",
+          "type": "string",
+          "enum": ["none", "excerpt"]
+        },
+        "excerpt": { "type": "string", "maxLength": 4000 },
+        "contentHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "assertion": {
+      "description": "Evidence-backed temporal claim. Not authoritative state until reconciled by the domain engine.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "target", "predicate", "value", "evidenceRefs", "observedAt", "certainty", "status"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "target": { "$ref": "common.schema.json#/$defs/target" },
+        "predicate": { "type": "string" },
+        "value": {},
+        "evidenceRefs": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/evidenceRef" }, "minItems": 1 },
+        "observedAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "validFrom": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "validTo": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "certainty": { "$ref": "common.schema.json#/$defs/certainty" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "applied", "suggested", "rejected", "superseded", "conflicting"]
+        },
+        "supersededBy": { "$ref": "common.schema.json#/$defs/id" }
+      }
+    },
+    "question": {
+      "description": "Quiet contextual clarification attached to an initiative, node or edge. Not a flow object.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "initiativeId", "target", "prompt", "resolutions", "state", "materiality", "dedupeKey", "createdAt"],
+      "properties": {
+        "id": { "$ref": "common.schema.json#/$defs/id" },
+        "initiativeId": { "$ref": "common.schema.json#/$defs/id" },
+        "target": { "$ref": "common.schema.json#/$defs/target" },
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 300 },
+        "reason": { "type": "string", "enum": ["ambiguous_evidence", "conflicting_sources", "protected_field_challenge", "identity_ambiguity", "sync_conflict", "proposed_initiative"] },
+        "evidenceRefs": { "$ref": "common.schema.json#/$defs/evidenceRefs" },
+        "resolutions": {
+          "description": "2-3 concrete choices; each carries the domain commands to run if chosen. Defer is always implicit.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "commands"],
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string", "maxLength": 120 },
+              "commands": { "type": "array", "items": { "$ref": "change-event.schema.json#/$defs/commandInvocation" } }
+            }
+          }
+        },
+        "state": { "type": "string", "enum": ["open", "deferred", "resolved", "obsolete"] },
+        "materiality": { "$ref": "common.schema.json#/$defs/materiality" },
+        "dedupeKey": { "description": "Same key = same question; new evidence updates rather than duplicates.", "type": "string" },
+        "deferredUntil": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "resolvedWith": { "type": "string" },
+        "createdAt": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "rejection": {
+      "description": "Remembered user rejection so the same AI suggestion is not reintroduced.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature", "rejectedAt"],
+      "properties": {
+        "signature": { "type": "string" },
+        "rejectedAt": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "untilNewEvidence": { "type": "boolean" }
+      }
+    }
+  }
+}

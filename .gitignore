@@ -1,0 +1,44 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+target/
+*.tsbuildinfo
+coverage/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+*.mobileprovision
+
+# Real workspaces, exports and local data (fixtures/ is the only allowed sample data)
+*.fulcrum/
+Fulcrum Workspace/
+workspaces/
+exports/
+!fixtures/**/exports/
+*.sqlite
+*.sqlite-*
+*.db
+backups/
+
+# Model weights
+*.gguf
+*.safetensors
+*.bin
+models/
+
+# Spike scratch output (reports go in docs/spikes/)
+spikes/**/out/
+spikes/**/data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
