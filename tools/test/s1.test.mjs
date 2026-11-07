@@ -182,7 +182,11 @@ test('S1 future workspace versions refuse writes', t => {
 
 test('S1 watch reports another device append with a timestamp', { timeout: 10000 }, async t => {
   const { spawn } = await import('node:child_process');
+  const { once } = await import('node:events');
   const { root, directory, b } = setup(t);
+  // Read before spawning: setup's cleanup deletes b's device file, and the
+  // watcher can still emit while that cleanup runs.
+  const bDeviceId = b.identity().deviceId;
   const child = spawn(process.execPath, ['spikes/s1/cli.mjs', 'watch', directory], { env: { ...process.env, FULCRUM_SPIKE_HOME: path.join(root, 'a') } });
   t.after(() => child.kill());
   let buffer = '';
@@ -203,11 +207,16 @@ test('S1 watch reports another device append with a timestamp', { timeout: 10000
           t.after(() => clearTimeout(timer));
           continue;
         }
-        if (report.frontier?.[b.identity().deviceId] === 2) {
+        if (report.frontier?.[bDeviceId] === 2) {
           assert.ok(Number.isFinite(Date.parse(report.observedAt)));
           resolve();
         }
       }
     });
   });
+  // Stop the watcher before cleanup deletes the workspace it is watching.
+  child.stdout.removeAllListeners('data');
+  child.stderr.removeAllListeners('data');
+  child.kill();
+  await once(child, 'exit');
 });

@@ -10,7 +10,7 @@ Steps done since last audit: 0
 
 | Step | Item | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|
-| 1 | S1 workspace sync harness | todo | [ ] | #36 | Agent work open in PR #36 (started before this file existed). When it merges, set `waiting-owner` and add owner instructions from `docs/spikes/S1-procedure.md`. |
+| 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | todo | n/a | | |
 | 3 | S2 Llama benchmark | todo | [ ] | | |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
@@ -52,7 +52,15 @@ Steps done since last audit: 0
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
 
-_Nothing yet._
+### Step 1 — S1 two-Mac sync test
+You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox account, and later the same Google account in Google Drive for desktop. Use only the synthetic labels the procedure gives; no real work content.
+
+1. On both Macs: clone the repo, install Node 22+, then run `npm ci` and `npm test` from the repo root.
+2. Follow [docs/spikes/S1-procedure.md](../docs/spikes/S1-procedure.md) top to bottom for each provider row: local folder, Dropbox, Google Drive (mirror mode), Google Drive (stream mode).
+3. Fill in the results table at the end of that procedure (or attach sanitized results to issue #1). Check for personal paths or account names before committing.
+4. Tick the Owner box for step 1 above.
+
+Codex can keep working on steps that don't depend on this (2–7) in the meantime.
 
 ## Audit log
 
