@@ -1,15 +1,31 @@
 {
   "name": "fulcrum",
   "private": true,
-  "description": "Local-first initiative organizer for macOS (Phase 0: architecture and contracts)",
+  "description": "Local-first initiative organizer for macOS",
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
+  },
   "scripts": {
-    "test": "node --test \"tools/test/*.test.mjs\""
+    "test": "npm run test:reference && vitest run",
+    "test:reference": "node --test \"tools/test/*.test.mjs\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint apps packages tools/workspace",
+    "schema:generate": "node tools/workspace/generate-schema.mjs",
+    "schema:check": "node tools/workspace/generate-schema.mjs --check",
+    "check": "npm run schema:check && npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {
-    "ajv": "8.17.1",
-    "ajv-formats": "3.0.1"
-  }
+    "@types/node": "22.15.29",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "eslint": "10.14.0",
+    "json-schema-to-typescript": "16.0.0",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.1.0",
+    "@fulcrum/schema": "workspace:*"
+  },
+  "packageManager": "pnpm@10.11.0"
 }

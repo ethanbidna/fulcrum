@@ -52,19 +52,22 @@ One TypeScript core process per Mac owns all writes. The workspace is append-onl
 | [Decisions](docs/decisions) · [Risks](docs/RISKS.md) | ADRs and the risk register |
 | [Scenarios](docs/SCENARIOS.md) · [Backlog](backlog/BACKLOG.md) · [Progress](backlog/PROGRESS.md) | Golden tests, the work plan and where it stands |
 
-## Try the reference tests
+## Development checks
 
-Requires Node 22+.
+Requires Node 22.13+ (22 LTS), 24 LTS, or 26+. pnpm is pinned in `package.json`.
 
 ```bash
-npm install
+corepack enable
+pnpm install --frozen-lockfile
 ```
 
 ```bash
-npm test
+pnpm check
 ```
 
-This validates the synthetic fixtures against the schemas and runs the reference model of the merge rules, graph invariants and card-state derivation.
+This checks generated schema types, lint boundaries, strict TypeScript, the reference tests, and Vitest tests across the workspace. `pnpm test` (or `npm test` after installing with pnpm) runs both test suites.
+
+The scaffold contains `apps/desktop` and `packages/{schema,domain,store,index,mcp,ingest,sources,llm,context}`. Only schema types and tooling are implemented; the app and driver entry points are placeholders.
 
 ## Contributing
 

@@ -4,14 +4,14 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 0
+Steps done since last audit: 1
 
 ## Steps
 
 | Step | Item | Status | Owner | PR | Notes |
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
-| 2 | C1 monorepo scaffold | todo | n/a | | |
+| 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
@@ -68,7 +68,7 @@ Agents list the exact instructions for each `waiting-owner` step here, newest fi
 ### Step 1 — S1 two-Mac sync test
 You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox account, and later the same Google account in Google Drive for desktop. Use only the synthetic labels the procedure gives; no real work content.
 
-1. On both Macs: clone the repo, install Node 22+, then run `npm ci` and `npm test` from the repo root.
+1. On both Macs: clone the repo, install Node 22.13+ (22 LTS), then run `corepack enable` and `pnpm install --frozen-lockfile` and `npm test` from the repo root.
 2. Follow [docs/spikes/S1-procedure.md](../docs/spikes/S1-procedure.md) top to bottom for each provider row: local folder, Dropbox, Google Drive (mirror mode), Google Drive (stream mode).
 3. Fill in the results table at the end of that procedure (or attach sanitized results to issue #1). Check for personal paths or account names before committing.
 4. Tick the Owner box for step 1 above.
