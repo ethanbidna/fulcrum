@@ -15,7 +15,7 @@ Steps done since last audit: 0
 | 3 | S2 Llama benchmark | todo | [ ] | | |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
 | 5 | S6 MCP shim | todo | [ ] | | |
-| 6 | S4 connector capability matrix | waiting-owner | [ ] | | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
+| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | todo | n/a | | |
 | 8 | S3 Graphiti | todo | [ ] | | |
 | 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
