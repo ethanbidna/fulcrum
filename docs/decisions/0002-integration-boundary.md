@@ -25,4 +25,15 @@ The spec prefers self-hosted Activepieces for Gmail, Slack, Granola (then Drive,
 - OAuth app registration and verification (Google restricted scopes, Slack app approval) remain real work regardless of the option (risk R8).
 
 ## Validation (S4)
+The [S4 capability matrix](../spikes/S4.md) reviews both vendors across pieces,
+self-hosted runtime and native APIs. Small read-only probes and synthetic
+response tests cover bounded pagination, Gmail history boundaries/expiry,
+Slack threads/permalinks and safe auth/rate failures.
+
+The provisional recommendation is native APIs behind `SourceAdapter`, pending
+throwaway-account OAuth, link precision and footprint measurements. Default
+piece auth includes write scopes, so reuse requires narrowing permissions and
+providing host services. No runtime or database is adopted by this spike;
+this ADR remains Provisional until measured results and the decision checkpoint.
+
 Capability matrix per source × option: auth, refresh, backfill depth, cursor/incremental, threads/DMs, permalinks, rate limits, memory, install steps.
