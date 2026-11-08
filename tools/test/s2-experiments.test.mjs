@@ -4,6 +4,7 @@ import { alignQuote, scoreKinds, buildRequest, normalizeExtraction, CLASSIFIERS 
 import { rankConfigurations } from '../../spikes/s2/experiments/run.mjs';
 import { HOLDOUT } from '../../spikes/s2/experiments/holdout.mjs';
 import { summarizeClassification } from '../../spikes/s2/experiments/analyze.mjs';
+import { buildSingleRequest, decodeSingle } from '../../spikes/s2/experiments/single-label.mjs';
 
 test('quote grounding derives UTF-16 offsets and rejects ambiguity', () => {
   assert.deepEqual(alignQuote('🌱 Intro. I will send it.', 'I will send it.'), { start: 10, end: 25 });
@@ -89,4 +90,15 @@ test('classification summaries keep invalid empty output out of negative passes'
   assert.equal(summary.precision, 0.5);
   assert.equal(summary.recall, 1);
   assert.equal(summary.medianSeconds, 2);
+});
+
+test('single-label diagnostic distinguishes absence from invalid output', () => {
+  assert.deepEqual(decodeSingle('{"kind":"none"}'), { kinds: [] });
+  assert.deepEqual(decodeSingle('{"kind":"decision_made"}'), { kinds: ['decision_made'] });
+  assert.equal(decodeSingle('{"kind":"none","command":"delete"}'), null);
+  assert.equal(decodeSingle('{"kind":"unknown"}'), null);
+  const body = buildSingleRequest('model', { speaker: 'user', text: 'Input.', expected: [{ secret: 'GOLD-SECRET' }] });
+  assert.equal(JSON.stringify(body).includes('GOLD-SECRET'), false);
+  assert.equal(body.options.num_predict, 32);
+  assert.ok(body.system.includes('none'));
 });

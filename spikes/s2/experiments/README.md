@@ -18,6 +18,7 @@ evidence of Fulcrum accuracy.
 | [Constrained Decoding…Semantic Gap](https://arxiv.org/abs/2609.23742) | Separates structural from semantic failures; valid JSON does not establish correct facts. A preprint. | Count wrong-but-valid predictions and unsupported commitments. |
 | [GoLLIE](https://arxiv.org/abs/2310.03668) | Instruction tuning on annotation guidelines improves information extraction in its evaluations. | Clear definitions now; task-specific tuning remains a later option requiring substantially more reviewed data. |
 | [SchemaRAG, ACL 2026 Industry](https://aclanthology.org/2026.acl-industry.78/) | Studies pruning large schema spaces using schema metadata and examples. | Classify before sending the smaller kind-specific payload schema. |
+| [Meeting Action Item Detection, ICASSP 2023](https://arxiv.org/abs/2303.16763) | Evaluates local/global conversation context for detecting action items. | Follow-up meeting tests must preserve speaker turns and context; short snippets alone do not validate meeting extraction. |
 
 We borrow techniques rather than claim these publications solve Fulcrum's
 speaker attribution, commitments or instruction attacks. Source alignment
@@ -113,6 +114,30 @@ return before a between-request signal is honored; this is not production pause.
 Stop the temporary runtime when the suite finishes. Review outputs for public
 repository hygiene before publishing synthetic traces and a findings report.
 
+## Single-label diagnostic extension
+
+Before any parent-study holdout outputs were available, freeze the simpler
+classifier used in the preceding six-case probe in `single-label.mjs`. It
+returns one of eight labels or `none`, with no examples and a 32-token limit.
+It differs from kind-zero in prompt, output shape and token budget, so any
+improvement cannot be attributed to one change alone. All current cases have
+at most one annotated fact; this extension cannot validate multiple facts per
+input or justify dropping legitimate additional facts in production.
+
+After both parent studies complete, run it on all 112 cases for all three
+models, without selecting a winner on holdout. Route its predicted label through
+the same payload extractor. Reuse prior payload responses only when model,
+item, kind and the entire request match; record reuse separately from new
+inference calls. The extension checks parent model identities and captures
+parent trace hashes. It saves separate traces and outputs under
+`spikes/s2/out/single-label/`.
+
+Pass the Llama and Qwen parent output directories to:
+
+```sh
+node spikes/s2/experiments/single-label.mjs PATH_TO_LLAMA_OUTPUT PATH_TO_QWEN_OUTPUT
+```
+
 ## Alternative model candidate
 
 If installed Llama variants remain unreliable, a reasonable next challenger is
@@ -120,5 +145,14 @@ If installed Llama variants remain unreliable, a reasonable next challenger is
 which is non-thinking and Apache-2.0 licensed. Ollama's
 [`qwen3:4b-instruct-2507-q4_K_M`](https://ollama.com/library/qwen3:4b-instruct-2507-q4_K_M)
 is approximately 2.5 GB. This is a candidate for comparison, not a claim that it
-will pass Fulcrum's tests. It has not been downloaded or run. Switching the
+will pass Fulcrum's tests. The owner approved its download during this study;
+the local digest is `0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0`.
+It is queued for the same protocol in an isolated checkout of commit `88921ff`,
+with only the `MODELS` constant changed to that exact Qwen tag. Preserve this
+one-line patch with its results and replay within that checkout. Switching the
 production model would require reviewing ADR-0003 and the product specification.
+
+The Qwen card recommends temperature 0.7/top-p 0.8/top-k 20/min-p 0 for general
+queries. This study deliberately uses the same fixed extraction settings for
+all models, plus the temperature-0.3 variant. It does not test all vendor
+sampling recommendations or unrestricted reasoning-length outputs.
