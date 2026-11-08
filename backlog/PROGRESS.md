@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 5
+Steps done since last audit: 0
 
 ## Steps
 
@@ -110,4 +110,4 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 
 ## Audit log
 
-_No audits yet._
+- 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR pending; owner checks remain unchanged.
