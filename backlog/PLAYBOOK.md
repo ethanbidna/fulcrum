@@ -22,9 +22,14 @@ Columns:
 
 ## Phase B — core product on fixtures (M1)
 
+The owner authorized model-independent core work alongside the feasibility
+studies on 2026-11-08. C2 can start after C1; unfinished hardware checks and
+model/context adoption still require the decision checkpoint. This changes the
+build order, not the criteria for accepting a runtime or driver.
+
 | Step | Item | Issue | Needs | Owner action | Extra instructions |
 |---|---|---|---|---|---|
-| 10 | C2 invariants and policy | #9 | 2, 9 | — | Port `tools/reference/invariants.mjs` and `card-state.mjs` into `packages/domain` (TypeScript); keep reference tests as cross-checks. |
+| 10 | C2 invariants and policy | #9 | 2 | — | Port `tools/reference/invariants.mjs` and `card-state.mjs` into `packages/domain` (TypeScript); keep reference tests as cross-checks. |
 | 11 | C3 commands, events, undo | #10 | 10 | — | — |
 | 12 | C4 store driver | #11 | 11 | — | Apply S1 findings; reuse the S1 harness tests. |
 | 13 | C5 projections | #12 | 11 | — | — |

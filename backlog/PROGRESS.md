@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 2
+Steps done since last audit: 3
 
 ## Steps
 
@@ -19,7 +19,7 @@ Steps done since last audit: 2
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | todo | [ ] | | |
 | 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
-| 10 | C2 invariants and policy | todo | n/a | | |
+| 10 | C2 invariants and policy | done | n/a | #45 | TypeScript invariants, affected validation, P1–P12 policy and golden projections; model-independent sequencing authorized |
 | 11 | C3 commands, events, undo | todo | n/a | | |
 | 12 | C4 store driver | todo | n/a | | |
 | 13 | C5 projections | todo | n/a | | |

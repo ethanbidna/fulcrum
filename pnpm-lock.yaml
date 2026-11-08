@@ -49,7 +49,11 @@ importers:
 
   packages/context: {}
 
-  packages/domain: {}
+  packages/domain:
+    dependencies:
+      '@fulcrum/schema':
+        specifier: workspace:*
+        version: link:../schema
 
   packages/index: {}
 
