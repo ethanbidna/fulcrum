@@ -186,3 +186,48 @@ parent trace hashes, requests, raw responses, normalized candidates, scores and
 `review.md`. Offline replay verifies requests, normalization and scores. The
 runner refuses to overwrite an existing manifest rather than reset its budget.
 Review the annotations and semantic accuracy before drawing adoption conclusions.
+
+## Additional model screening
+
+The owner subsequently approved both newer challengers:
+[Qwen3.5-4B](https://huggingface.co/Qwen/Qwen3.5-4B) and
+[Gemma 4 E4B](https://huggingface.co/google/gemma-4-E4B-it). Gemma's effective
+parameter count understates its total model footprint. The installed Ollama
+0.23.0 rejects both current packages as requiring a newer version. Use an
+isolated official Ollama 0.40.15 runtime, checksum-verified against its release,
+on localhost port 11435 with cloud disabled, a separate temporary model store,
+one parallel request and one loaded model. Leave the installed application and
+the original inference processes unchanged. Both model downloads may overlap;
+serialize inference after the original battery to avoid resource contention.
+
+`challengers.mjs` screens three configurations on the original 24 balanced
+**development** cases: few-shot kind-set chat, zero-shot kind-set chat and the
+minimal single-label classifier adapted to chat. Every request explicitly sets
+`think: false`; verify behavior in saved responses. The first inference request
+also serves as the execution compatibility check; metadata inspection alone
+cannot validate inference. Capture failed loads/API calls as failures and
+continue to the other model. Never substitute a cloud tag.
+
+Select the screen winner with the original exact/false-positive/invalid/missing
+kind ordering, then route predictions on 12 development probes covering every
+kind plus ordinary negatives and attacks. No gold routing or repair. Each model
+has a one-hour/120-inference-request cap, including screening and probes. Report
+unfinished denominators and retain every attempted request. A failed model is
+not a successful empty extraction. This is a screen/probe, not the full frozen
+holdout battery. Runtime and chat changes confound comparisons with that battery.
+Only promote a promising candidate to a separate full evaluation after review.
+
+After downloads and the original battery finish:
+
+```sh
+node spikes/s2/experiments/challengers.mjs
+node spikes/s2/experiments/challengers.mjs --audit
+```
+
+Ignored outputs are under `spikes/s2/out/challengers/`. They include model
+identities/capabilities, source hashes, raw traces, objective scores, offline
+replay and `review.md`. Native thermal monitoring and the same serious/critical
+stop threshold cover the queued inference. The completion job links the result
+from the main comparison report and stops only its isolated runtime. This adds
+up to two hours of inference beyond the original three-model battery; neither
+completion tonight nor production accuracy is established by queueing it.
