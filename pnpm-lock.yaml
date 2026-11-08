@@ -50,6 +50,9 @@ importers:
       '@fulcrum/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@fulcrum/index':
+        specifier: workspace:*
+        version: link:../../packages/index
       '@fulcrum/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -77,11 +80,18 @@ importers:
 
   packages/domain:
     dependencies:
+      '@fulcrum/index':
+        specifier: workspace:*
+        version: link:../index
       '@fulcrum/schema':
         specifier: workspace:*
         version: link:../schema
 
-  packages/index: {}
+  packages/index:
+    dependencies:
+      '@fulcrum/schema':
+        specifier: workspace:*
+        version: link:../schema
 
   packages/ingest: {}
 

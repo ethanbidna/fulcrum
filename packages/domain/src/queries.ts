@@ -1,3 +1,4 @@
+import type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';
 import type { Initiative } from '@fulcrum/schema';
 import type { Node, WorkspaceState } from './types.js';
 import type { Replay } from './replay.js';
@@ -10,6 +11,8 @@ import { projectPortfolio, projectRail } from './projections.js';
 import type { PortfolioCard, PortfolioRail } from './projections.js';
 
 export interface QueryArgs {
+  'search': { text: string; scope?: SearchScope };
+  'status.index': Record<string, never>;
   'portfolio.list': Record<string, never>;
   'portfolio.rail': { since?: string };
   'graph.get': { initiativeId: string };
@@ -19,6 +22,8 @@ export interface QueryArgs {
   'history.list': HistoryFilter;
 }
 export interface QueryResults {
+  'search': SearchHit[];
+  'status.index': IndexProgress;
   'portfolio.list': PortfolioCard[];
   'portfolio.rail': PortfolioRail;
   'graph.get': GraphView;
@@ -29,12 +34,14 @@ export interface QueryResults {
 }
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
+  'search': ['text', 'scope'], 'status.index': [],
   'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
   'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'],
 };
-function validateQuery(name: QueryName, args: unknown) {
+export function validateQuery(name: QueryName, args: unknown) {
   const value = object(args);
   if (!Object.hasOwn(QUERY_FIELDS, name) || Object.keys(value).some(key => !QUERY_FIELDS[name].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Unknown query or query argument');
+  if (name === 'search' && typeof value.text !== 'string') throw new DomainFault('VALIDATION_FAILED', 'Search text is required');
   for (const key of ['id', 'nodeId', 'initiativeId', 'since']) if (value[key] !== undefined) text(value[key]);
   if (value.actor !== undefined && !['user', 'ai', 'connector', 'mcp', 'system'].includes(String(value.actor))) throw new DomainFault('VALIDATION_FAILED', 'Invalid history actor');
   if (value.target !== undefined) {

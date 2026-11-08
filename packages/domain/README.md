@@ -90,3 +90,8 @@ public result. Unknown queries, unsupported arguments and missing records fail
 explicitly. C6/P1 must authenticate clients and restrict read results before
 sharing them with a scoped external client; these methods are the internal
 core read API, not an exposed transport.
+
+C7 adds typed `search` and `status.index` queries through the injected
+`DomainPorts.readIndex` interface. No SQLite/runtime module enters the domain.
+Unavailable search has its own `INDEX_UNAVAILABLE` code; canonical reads and
+commands remain available. Search scopes are filters, not MCP authorization.

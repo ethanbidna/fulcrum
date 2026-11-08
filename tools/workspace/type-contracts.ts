@@ -11,6 +11,9 @@ void [validPriority, invalidPriority, incompleteTask, scalarChange, nullChange];
 
 import type { Domain } from '../../packages/domain/src/index.js';
 function projectionTypes(domain: Domain) {
+  void domain.query('search', { text: 'Synthetic', scope: { kinds: ['node'] } });
+  // @ts-expect-error Search kinds are canonical record kinds, not assignees or graph node types.
+  void domain.query('search', { text: 'Synthetic', scope: { kinds: ['task'] } });
   void domain.query('graph.focus', { nodeId: 'synthetic' });
   // @ts-expect-error Focus requires a canonical node ID argument.
   void domain.query('graph.focus', { initiativeId: 'synthetic' });

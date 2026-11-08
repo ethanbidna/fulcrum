@@ -10,7 +10,7 @@ import { replayEvents } from './replay.js';
 import type { Replay } from './replay.js';
 import { Transaction } from './transaction.js';
 import type { WorkspaceState } from './types.js';
-import { queryProjection } from './queries.js';
+import { queryProjection, validateQuery } from './queries.js';
 import type { QueryName, QueryArgs, QueryResults } from './queries.js';
 
 const SCHEMA_VERSION = 1;
@@ -33,6 +33,19 @@ export class Domain {
   }
   private get state() { return this.replay.document.state as WorkspaceState; }
   async query<Q extends QueryName>(name: Q, args: QueryArgs[Q]): Promise<QueryResults[Q]> {
+    validateQuery(name, args);
+    if (name === 'search' || name === 'status.index') {
+      const index = this.ports.readIndex;
+      if (!index) throw new DomainFault('INDEX_UNAVAILABLE', 'Search index is unavailable');
+      try {
+        const input = args as QueryArgs['search'];
+        const result = name === 'search' ? await index.search(input.text, input.scope) : index.status();
+        return clone(result) as QueryResults[Q];
+      } catch (error) {
+        const invalid = error instanceof Error && 'code' in error && error.code === 'VALIDATION_FAILED';
+        throw new DomainFault(invalid ? 'VALIDATION_FAILED' : 'INDEX_UNAVAILABLE', invalid ? 'Invalid search input' : 'Search index is unavailable');
+      }
+    }
     return queryProjection(this.replay, name, args, () => this.ports.now());
   }
   getSnapshot(): WorkspaceStateDoc { return clone(this.replay.document); }

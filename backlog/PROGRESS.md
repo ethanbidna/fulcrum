@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 2
+Steps done since last audit: 3
 
 ## Steps
 
@@ -24,7 +24,7 @@ Steps done since last audit: 2
 | 12 | C4 store driver | done | n/a | #47 | Durable driver, atomic batches/checkpoints, locking/identity, placeholders, golden fixture and real process-crash tests; sync-provider checks remain S1 |
 | 13 | C5 projections | done | n/a | #49 | Typed read queries, canonical focused graph references, waiting/action rail and replay-derived history; synthetic checks only |
 | 14 | C6 core process and transports | done | n/a | #50 | Authenticated Unix core, Keychain driver, durable domain binding, UI transport and separate dev bridge; real Keychain/Tauri/signing remain unverified |
-| 15 | C7 SQLite index and search | todo | n/a | | |
+| 15 | C7 SQLite index and search | done | n/a | #51 | Machine-local FTS5, incremental snapshot-derived updates, scoped/excerpt-aware search, count progress and cache rebuild recovery |
 | 16 | U1 app shell | todo | [ ] | | |
 | 17 | U2 portfolio board | todo | [ ] | | |
 | 18 | U3 flow canvas | todo | [ ] | | |

@@ -85,3 +85,12 @@ exclusion. Browser-channel tests use a Node WebSocket event adapter; no real
 browser window, Tauri UI, real Keychain, cloud sync or hardware acceptance is
 claimed. [ADR-0014](../../docs/decisions/0014-core-transports.md) records the bounds.
 The development bridge uses the maintained [ws server API](https://github.com/websockets/ws/blob/master/README.md).
+
+## C7 search binding
+
+The core opens `index.sqlite` in its local profile after validated domain replay.
+Search uses the same query channel: `search` with `{text, scope?}`, and
+`status.index` with `{}`. It updates derived rows after acknowledged commands and
+rebuilds on validated external reloads. Cache errors do not revoke writes.
+The launcher emits count-only JSON `index-progress` records before `READY` so
+a native launcher can display rebuild counts. See `packages/index/README.md`.
