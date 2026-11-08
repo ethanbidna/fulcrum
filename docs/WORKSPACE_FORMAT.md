@@ -46,7 +46,10 @@ Schema: [`change-event.schema.json`](../schemas/v1/change-event.schema.json). On
 
 1. Domain validates the command and produces ops.
 2. Store assigns `seq`, `hlc`; serializes to one line; `appendFile` + `fsync` on the current segment.
-3. Only after fsync is the change acknowledged to the UI/MCP.
+3. Only after fsync is the change acknowledged to the UI/MCP. C4 also persists
+   local sequence metadata before returning success. New segments use no-replace
+   publication; multi-event batches publish as one complete segment, capped at
+   1 MiB ([ADR-0013](decisions/0013-workspace-store-publication.md)).
 4. Every N events (default 500) or on clean shutdown, write a checkpoint: write `checkpoints/<deviceId>/.tmp-<uuid>` then `rename` into place (atomic on APFS). Delete older checkpoints beyond 3.
 
 ## Reading and folding
@@ -106,3 +109,11 @@ Expected volume for one user: low thousands of events per month; excerpts ≤ 4 
 ## Encryption (deferred)
 
 `workspace.json#encryption` is reserved. When enabled, each event line's payload is encrypted with a workspace key held in the Keychain; the key must be transferred to a second Mac out of band. Required before recommending a personal sync folder for employer data. Tracked as a backlog item, not designed in detail yet.
+
+## Executable driver
+
+`packages/store` implements C4. Its tests cover the cross-device fixture and
+local process crashes; real sync-provider behavior remains provisional. The
+application binds a domain snapshot provider for checkpoint maintenance and
+retains full logs for undo/protection reconstruction. Details and operational
+limits: [store README](../packages/store/README.md).
