@@ -296,3 +296,26 @@ remain visible. No gold routing, classifier tuning or new holdout is introduced.
 The follow-up waits for a free isolated runtime and uses native thermal checks
 and the repaired local HTTP transport. Include both the original budget-limited
 report and this follow-up when assessing extraction quality.
+
+## Llama timing diagnosis
+
+`llama-latency.mjs` investigates why 8B full-schema requests exceeded their
+caller deadline. Earlier successful 8B calls spent most of their time in prompt
+evaluation; every interrupted frozen runner unloads models in `finally`, so
+resuming after an error starts without that prompt cache. These observations
+suggest a cold-prompt cost, but do not establish the cause of the failed calls.
+
+Use the same downloaded 8B digest on isolated Ollama 0.40.15 at port 11435.
+The diagnostic records streamed events, time to first answer token, final prompt
+and generation metrics, partial output and failures. It tries a short smoke
+prompt, the original full prompt with one output token, the original full
+request with a warm cache, then four inference threads. The one-token prefill
+probe allows up to 15 minutes; other extraction probes retain ten-minute limits,
+within a 30-minute overall cap. Model residency is preserved between variants.
+
+The original prompt/schema/seed/context stay fixed for the extraction probes;
+streaming, runtime, cache state and the declared thread variant differ. These
+are diagnostic interventions, not additions to the frozen benchmark or evidence
+of a production model choice. Concurrent background inference prevents controlled
+hardware comparisons. Save separate results under `spikes/s2/out/llama-latency/`.
+The parent attempts remain failures regardless of any diagnostic success.
