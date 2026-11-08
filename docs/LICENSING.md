@@ -17,7 +17,7 @@ License: **MIT** ([ADR-0010](decisions/0010-license.md)). Rationale: the repo co
 | vis-timeline | Apache-2.0 or MIT | Optional | Only if adopted. |
 | Ajv, ajv-formats | MIT | Schema validation | — |
 | SQLite | Public domain | Local index | — |
-| MCP TypeScript SDK | MIT | MCP shim | — |
+| MCP TypeScript SDK v2 | Apache-2.0 | MCP shim spike | Server/client 2.4.0; include their license and retain any supplied notices when distributing. |
 | Ollama | MIT | Separate app the user installs (or bundled later) | If bundled, include its license. |
 | Meta Llama 3.x weights | Llama Community License + Acceptable Use Policy (not OSI open source) | Downloaded by the user via Ollama; **never** in git or the app bundle | User accepts the license in the wizard. If ever redistributed: license copy, "Built with Llama" attribution, AUP. |
 | Graphiti | Apache-2.0 | Optional sidecar | NOTICE file if bundled. |

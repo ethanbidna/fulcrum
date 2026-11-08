@@ -14,7 +14,7 @@ Steps done since last audit: 1
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
-| 5 | S6 MCP shim | todo | [ ] | | |
+| 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | todo | n/a | | |
 | 8 | S3 Graphiti | todo | [ ] | | |
@@ -51,6 +51,17 @@ Steps done since last audit: 1
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 5 — S6 Claude Desktop check
+
+Follow [spikes/s6/README.md](../spikes/s6/README.md) in full; use only the committed synthetic fixture.
+
+1. Install Node 22 LTS and Claude Desktop. From the repo root run `corepack enable`, `pnpm install --frozen-lockfile` and `pnpm check`.
+2. Run `node spikes/s6/config.mjs`. Back up Claude Desktop's configuration, then merge the printed server entry into its existing `mcpServers` object using Settings → Developer → Edit Config. Do not overwrite other entries or commit generated paths. Fully quit and restart Claude Desktop.
+3. Complete the README's list/graph/evidence/write-denial checks. Record `probe_client_capabilities` output as declared support only; it does not prove a confirmation dialog.
+4. Repeat after generating with `node spikes/s6/config.mjs --excerpts`, then with `node spikes/s6/config.mjs --initiative 01000000-0000-7000-8000-000000000001`. Restart after each config edit. Verify excerpt wrapping and denial of excluded initiative reads.
+5. Remove this server entry when finished. Record versions and pass/fail/blockers in `docs/spikes/S6.md`, review the synthetic results, and open a results PR referencing #6. Claude Desktop and confirmation UX remain unverified until recorded; never commit account details, personal paths or real chats.
+6. Tick the Owner box for step 5 above.
 
 ### Step 4 — S7 packaging comparison
 

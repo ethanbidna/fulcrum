@@ -23,4 +23,11 @@ MCP is the only conversational interface. MCP clients like Claude Desktop forwar
 - Contract tests assert that an MCP write and the equivalent UI command produce identical ops (scenario 11).
 
 ## Validation (S6)
-Claude Desktop (and one other client) end to end with synthetic data; read-only enforcement; scope filtering; elicitation support for protected-field confirmation.
+The [S6 spike](../spikes/S6.md) runs the official TypeScript SDK 2.4.0 over
+stdio against a fixed synthetic fixture. SDK clients pass legacy/current
+protocol reads, read-only rejection, scope checks and excerpt gating. MCP
+Inspector 2.14.0 independently lists tools, reads a graph and receives wrapped
+excerpts. Declared elicitation capabilities are observable; no confirmation
+round trip or Claude Desktop session has been validated. Client behavior stays
+provisional pending the owner checklist. Production socket authentication,
+access logging and write confirmation remain C6/P1 work.

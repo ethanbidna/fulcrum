@@ -17,6 +17,9 @@
     "check": "npm run schema:check && npm run lint && npm run typecheck && npm test"
   },
   "devDependencies": {
+    "@fulcrum/schema": "workspace:*",
+    "@modelcontextprotocol/client": "2.4.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "@types/node": "22.15.29",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
@@ -25,7 +28,7 @@
     "typescript": "6.0.2",
     "typescript-eslint": "8.72.1",
     "vitest": "5.1.0",
-    "@fulcrum/schema": "workspace:*"
+    "zod": "4.6.7"
   },
   "packageManager": "pnpm@10.11.0"
 }
