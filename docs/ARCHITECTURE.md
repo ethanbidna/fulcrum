@@ -22,7 +22,7 @@ flowchart LR
   Client["MCP client<br/>(e.g. Claude Desktop)"]
   Ollama["Ollama<br/>localhost only"]
   Ctx["Context sidecar (optional)<br/>Graphiti + embedded graph store"]
-  Conn["Connector runtime (optional)<br/>Activepieces or native adapters"]
+  Conn["Connector execution (optional)<br/>Activepieces pieces"]
   WS[("Portable workspace<br/>user-chosen folder")]
   Local[("Machine-local<br/>~/Library/Application Support/Fulcrum")]
 
