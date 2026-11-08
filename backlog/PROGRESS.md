@@ -25,7 +25,7 @@ Steps done since last audit: 3
 | 13 | C5 projections | done | n/a | #49 | Typed read queries, canonical focused graph references, waiting/action rail and replay-derived history; synthetic checks only |
 | 14 | C6 core process and transports | done | n/a | #50 | Authenticated Unix core, Keychain driver, durable domain binding, UI transport and separate dev bridge; real Keychain/Tauri/signing remain unverified |
 | 15 | C7 SQLite index and search | done | n/a | #51 | Machine-local FTS5, incremental snapshot-derived updates, scoped/excerpt-aware search, count progress and cache rebuild recovery |
-| 16 | U1 app shell | waiting-owner | [ ] | | Browser/Tauri shell, four destinations, tokens, live core status and quiet count; native launch and owner feel pending |
+| 16 | U1 app shell | waiting-owner | [ ] | #52 | Browser/Tauri shell, four destinations, tokens, live core status and quiet count; native launch and owner feel pending |
 | 17 | U2 portfolio board | todo | [ ] | | |
 | 18 | U3 flow canvas | todo | [ ] | | |
 | 19 | U4 inspector and focused view | todo | [ ] | | |
