@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { once } from 'node:events';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -94,4 +94,13 @@ test('S7 measurement observes real RPC readiness and leaves GUI/signing checks p
 
 test('S7 measurement rejects missing executables without hanging during cleanup', { timeout: 1000 }, async () => {
   await assert.rejects(measure({ kind: 'sidecar', runtime: 'node', executable: '/nonexistent/fulcrum-s7', artifact: CORE }));
+});
+
+test('S7 measurement rejects a sidecar that exits during settling', { timeout: 5000 }, async context => {
+  const directory = await mkdtemp('/tmp/f7-exit-');
+  context.after(() => rm(directory, { recursive: true, force: true }));
+  const exitHook = join(directory, 'exit.cjs');
+  await writeFile(exitHook, 'setTimeout(() => process.exit(0), 300);');
+  await assert.rejects(measure({ kind: 'sidecar', runtime: 'node', executable: process.execPath,
+    args: ['--require', exitHook, CORE], artifact: CORE, settleMs: 600, sampleCount: 1, intervalMs: 0 }), /exited|missing/i);
 });

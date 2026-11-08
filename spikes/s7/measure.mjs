@@ -77,7 +77,9 @@ async function idleSamples(child, health, options) {
   await pause(options.settleMs ?? SETTLE_MS);
   const samples = [];
   for (let sample = 0; sample < (options.sampleCount ?? SAMPLE_COUNT); sample++) {
+    if (child.exitCode !== null || child.signalCode !== null) throw new Error('Application exited during measurement');
     const tree = processTree(processes(), child.pid);
+    if (!tree.some(row => row.pid === health.processId)) throw new Error('Sidecar missing during measurement');
     samples.push({ processTreeRssBytes: tree.reduce((sum, row) => sum + row.rssBytes, 0), sidecarRssBytes: tree.find(row => row.pid === health.processId)?.rssBytes ?? null });
     await pause(options.intervalMs ?? SAMPLE_INTERVAL_MS);
   }
