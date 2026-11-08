@@ -319,3 +319,19 @@ are diagnostic interventions, not additions to the frozen benchmark or evidence
 of a production model choice. Concurrent background inference prevents controlled
 hardware comparisons. Save separate results under `spikes/s2/out/llama-latency/`.
 The parent attempts remain failures regardless of any diagnostic success.
+
+## Resident 8B probe follow-up
+
+After the timing diagnostic, `llama-probe-followup.mjs` trials the repair on the
+failed 8B full probes: the same downloaded weights and exact original prompts,
+schemas, seeds, context and output limits, on isolated Ollama 0.40.15 with four
+CPU threads and a 15-minute keep-alive. Retain the model across individual
+request failures; unload it only after the study. Each request still has a
+ten-minute deadline, with a 45-minute total budget. Runtime/thread/cache changes
+are declared interventions and cannot replace the original scores.
+
+Save separate requests, failures, field/span scores and planned/attempted/returned
+counts in `spikes/s2/out/llama-probe-followup/`. Only previously failed full
+probes are selected. Model completion is distinct from correct extraction, and
+neither is production acceptance. The queued trial has native thermal monitoring
+and waits for the latency diagnostic's isolated runtime to be released.
