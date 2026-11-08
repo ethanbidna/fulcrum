@@ -9,7 +9,8 @@ Host: Intel x64 macOS 15.7.9, 32 GiB RAM, 16 logical CPUs. Exact model year was
 not verified, so this is not proof of the specified 2019 hardware target.
 Ollama 0.23.0; both installed models used Q4_K_M. Existing model aliases were
 copied to the explicit instruct tags; digests and generation configuration are
-recorded in the original reports. No 1B download/run occurred, per owner choice.
+recorded in the original reports. The runner did not capture its Node version;
+no exact runner-version claim is made. No 1B download/run occurred, per owner choice.
 
 Ollama and benchmark were launched with background taskpolicy/nice, local bind,
 cloud disabled and one parallel request. The raw manual fields remain null:
