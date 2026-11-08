@@ -114,6 +114,9 @@ sequenceDiagram
   W->>P: fold → read models → card state, rail, graph
 ```
 
+C7 binds the machine-local FTS5 read side through a typed interface; cache
+failures do not revoke acknowledged events. See [ADR-0015](decisions/0015-local-search-cache.md).
+
 Detailed stage contracts: [INGESTION.md](INGESTION.md). A source claim is never authoritative until the reconciler has turned it into a domain command that passed policy.
 
 ## Storage split
@@ -151,7 +154,7 @@ interface WorkspaceStore {
 
 // packages/index — rebuildable read side
 interface ReadIndex {
-  rebuild(state: WorkspaceState): Promise<void>;
+  rebuild(snapshot: WorkspaceStateDoc): Promise<void>;
   apply(change: AppliedChange): Promise<void>;
   search(text: string, scope?: SearchScope): Promise<SearchHit[]>;
 }

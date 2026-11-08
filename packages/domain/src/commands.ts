@@ -1,4 +1,5 @@
 import type { Actor, ChangeEvent, CommandInvocation, EvidenceRef, Op, RecordKind, WorkspaceStateDoc } from '@fulcrum/schema';
+import type { ReadIndex } from '@fulcrum/index/interfaces';
 import type { PolicyContext } from './policy.js';
 
 export const COMMAND_ARGUMENTS = {
@@ -31,7 +32,7 @@ export interface CommandEnvelope {
   reason?: string;
   baseEventIds?: Record<string, string | null>;
 }
-export type ErrorCode = 'VALIDATION_FAILED' | 'INVARIANT_VIOLATION' | 'POLICY_DENIED' | 'PROTECTED_FIELD' | 'NOT_FOUND' | 'STALE_BASE' | 'WORKSPACE_READ_ONLY';
+export type ErrorCode = 'VALIDATION_FAILED' | 'INVARIANT_VIOLATION' | 'POLICY_DENIED' | 'PROTECTED_FIELD' | 'NOT_FOUND' | 'STALE_BASE' | 'WORKSPACE_READ_ONLY' | 'INDEX_UNAVAILABLE';
 export interface DomainError { code: ErrorCode; message: string; details?: unknown }
 export type CommandResult = { ok: true; eventId: string; ops: Op[]; raisedQuestionIds: string[]; suggestedAssertionIds: string[] } | { ok: false; error: DomainError };
 export type EventDraft = Omit<ChangeEvent, 'seq' | 'hlc'>;
@@ -47,6 +48,7 @@ export interface DomainPorts {
   deviceId: string;
   userEntityId: string;
   readOnly?: boolean;
+  readIndex?: Pick<ReadIndex, 'search' | 'status'>;
   mcp?: PolicyContext['mcp'];
   reconciliationProof?(command: CommandInvocation): {
     match?: PolicyContext['match'];

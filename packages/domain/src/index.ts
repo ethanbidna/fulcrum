@@ -18,3 +18,4 @@ export type { HistoryEntry, HistoryChange, HistoryFilter } from './history-proje
 export { projectPortfolio, projectRail } from './projections.js';
 export type { PortfolioCard, PortfolioRail, RailOptions, WaitingItem } from './projections.js';
 export type { QueryName, QueryArgs, QueryResults } from './queries.js';
+export type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';

@@ -29,6 +29,7 @@ interface DomainError {
     | 'PROTECTED_FIELD'          // AI/MCP-without-confirmation write to a protected field
     | 'NOT_FOUND'
     | 'STALE_BASE'               // optimistic check failed (UI edited an outdated value)
+    | 'INDEX_UNAVAILABLE'        // local search cache cannot serve results
     | 'WORKSPACE_READ_ONLY';     // newer schema, online-only files, or not this device's role
   message: string;
   details?: unknown;
@@ -133,3 +134,12 @@ Protected deletions are denied. Missing evidence and rejected reintroductions
 are denied without a write. MCP writes are tagged by their event actor; they
 share the same command handlers. Portfolio-wide commands require unrestricted
 MCP scope, and cross-initiative edge checks include both endpoints.
+
+### Local search queries (C7)
+
+`search({text, scope?})` uses the injected read-index interface. Scope supports
+`initiativeIds`, `kinds`, `limit` and explicit `includeExcerpts`. Source excerpt
+matching/snippets are off by default. `status.index({})` returns local cache
+availability and document counts, independent of initiative completion. Cache
+failures report `INDEX_UNAVAILABLE` without revoking domain writes. The core
+rebuilds missing caches from canonical state on open; see ADR-0015.
