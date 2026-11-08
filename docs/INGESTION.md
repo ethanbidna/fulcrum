@@ -24,7 +24,7 @@ flowchart LR
 - First connection offers a bounded backfill (default 14 days) — not unlimited history.
 - Respect rate limits; exponential backoff; resumable mid-page.
 - Required per item: `connector`, `remoteId`, `threadRemoteId?`, `permalink?`, `happenedAt`, author identity, text.
-- Adapter implementations: Activepieces-backed or native ([ADR-0002](decisions/0002-integration-boundary.md)). Order: Slack, Gmail, Granola; then Google Drive, Dropbox, Google Calendar.
+- Adapter implementations use Activepieces pieces ([ADR-0011](decisions/0011-activepieces-integration-boundary.md)); extend or add pieces for missing capabilities. Order: Slack, Gmail, Granola; then Google Drive, Dropbox, Google Calendar. Granola uses its API by default; CSV is a fallback through the same integration boundary when API access is unavailable.
 
 ## 2. Normalize
 

@@ -1,6 +1,6 @@
 # ADR-0002: Connectors behind a SourceAdapter interface; Activepieces is a candidate, not a foundation
 
-- **Status:** **Provisional** — decided by spike S4
+- **Status:** Superseded by [ADR-0011](0011-activepieces-integration-boundary.md)
 - **Date:** 2026-11-07
 
 ## Context
