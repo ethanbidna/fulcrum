@@ -24,6 +24,7 @@ export function replayEvents(snapshot: WorkspaceStateDoc, input: ChangeEvent[]):
   const events = [...seen.values()].sort((a, b) => a.hlc.localeCompare(b.hlc) || a.deviceId.localeCompare(b.deviceId) || a.seq - b.seq);
   const replay: Replay = { document, writers, before: new Map(), protections: new Set(), events };
   const deleted = new Set<string>();
+  const sequences = new Map<string, Set<number>>();
   for (const event of events) {
     const stateBefore = clone(document.state);
     const undoOps: BeforeOp[] = [];
@@ -39,7 +40,11 @@ export function replayEvents(snapshot: WorkspaceStateDoc, input: ChangeEvent[]):
       if (original.protections.has(key)) replay.protections.add(key); else replay.protections.delete(key);
     }
     for (const key of protectionKeys) writers.set(`protection:${key}`, event.eventId);
-    document.frontier[event.deviceId] = Math.max(document.frontier[event.deviceId] ?? 0, event.seq);
+    const seenSequences = sequences.get(event.deviceId) ?? new Set<number>();
+    seenSequences.add(event.seq); sequences.set(event.deviceId, seenSequences);
+    let frontier = document.frontier[event.deviceId] ?? 0;
+    while (seenSequences.has(frontier + 1)) frontier++;
+    document.frontier[event.deviceId] = frontier;
     document.maxHlc = event.hlc;
   }
   document.fieldWriters = Object.fromEntries(writers);

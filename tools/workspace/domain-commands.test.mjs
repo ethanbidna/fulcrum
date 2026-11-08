@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { Domain, COMMAND_ARGUMENTS, suggestionSignature, checkInvariants } from '../../packages/domain/src/index.ts';
+import { Domain, COMMAND_ARGUMENTS, suggestionSignature, checkInvariants, replayEvents } from '../../packages/domain/src/index.ts';
 import { loadValidators, readJson } from '../reference/schemas.mjs';
 import { fold, fromStateDocument, toStateDocument } from '../reference/fold.mjs';
 const validators = loadValidators();
@@ -86,6 +86,15 @@ describe('v1 command catalog', () => {
 });
 
 describe('atomic events, retry safety and undo', () => {
+  test('replay frontier never advances past a missing device sequence', () => {
+    const snapshot = initial(); const deviceId = snapshot.state.settings.ingestionDeviceId;
+    const event = { v: 1, eventId: id('09', 2000), deviceId, seq: 2, hlc: '1794161400000-0002', at: '2026-11-08T18:10:00Z', actor: 'user', command: { name: 'node.update', args: {} }, ops: [] };
+    expect(replayEvents(snapshot, [event]).document.frontier[deviceId]).toBe(0);
+    const first = { ...event, eventId: id('09', 2001), seq: 1, hlc: '1794161400000-0001' };
+    expect(replayEvents(snapshot, [event, first]).document.frontier[deviceId]).toBe(2);
+    snapshot.frontier[deviceId] = 4;
+    expect(replayEvents(snapshot, [{ ...event, seq: 6 }]).document.frontier[deviceId]).toBe(4);
+  });
   test('base writers, stale bases, idempotency and restart', async () => {
     const f = setup(); const args = { id: nodeId(1), patch: { title: 'First edit' } };
     const first = passed(await f.execute('node.update', args, { idempotencyKey: 'synthetic:once' }));
