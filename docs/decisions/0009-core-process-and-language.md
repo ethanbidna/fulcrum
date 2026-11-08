@@ -22,6 +22,8 @@ Option 2. `fulcrum-core` is a TypeScript process holding an exclusive lock per M
 ## Validation (S7)
 The [S7 report](../spikes/S7.md) records an Intel Node SEA executable that passes
 an embedded SQLite FTS5 query and Unix-socket handshake. Its smoke size is about
-110 MiB, above the earlier unmeasured estimate. Bun, the Tauri shell, complete
-RSS, universal execution and signing remain unverified; no packaging runtime
+110 MiB, above the earlier unmeasured estimate. Both runtimes and Tauri apps
+now pass Intel/Apple Silicon CI builds, Rust tests and FTS5/socket launch checks.
+Controlled hardware, complete RSS, universal execution and signing remain
+unverified; no packaging runtime
 selection or fallback decision is accepted from this sample.

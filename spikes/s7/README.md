@@ -31,8 +31,8 @@ On the Intel Mac, and later on Apple Silicon if available:
 ## Build and measure both candidates
 
 The commands below run from the repository root. Build downloads use pinned
-postject/CLI packages; Cargo resolves its dependency graph on the first run.
-Keep the generated `spikes/s7/src-tauri/Cargo.lock` and commit it with results.
+postject/CLI packages and the committed `spikes/s7/src-tauri/Cargo.lock`.
+Keep the lockfile unchanged for comparisons; record any intentional update.
 
 ```sh
 node spikes/s7/build.mjs node sidecar
@@ -148,7 +148,7 @@ Review count/measurement JSON and build-info files, remove process IDs and any
 personal data, and commit selected reports under `docs/spikes/S7-results/`.
 Never commit executables, bundles, toolchains, credentials or raw build logs.
 Fill the comparison rows in `docs/spikes/S7.md`, record startup trials and
-complete RSS observations, and commit Cargo.lock with the toolchain versions.
+complete RSS observations, and record the toolchain versions.
 Open a results PR referencing #7, then tick the Owner box for step 4 in
 `backlog/PROGRESS.md`. Keep ADR-0001/0009 packaging status provisional until the
 decision checkpoint reviews the measured comparison.

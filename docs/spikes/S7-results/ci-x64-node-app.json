@@ -1,0 +1,46 @@
+{
+  "formatVersion": 1,
+  "measuredAt": "2026-11-08T01:22:12.949Z",
+  "kind": "app",
+  "runtime": "node",
+  "hardware": {
+    "platform": "darwin",
+    "architecture": "x64",
+    "memoryBytes": 15032385536
+  },
+  "sqliteVersion": "3.53.4",
+  "fts5": true,
+  "artifactApparentBytes": 129373794,
+  "firstSuccessfulHealthRpcMs": 4322.322399,
+  "samples": [
+    {
+      "processTreeRssBytes": 84676608,
+      "sidecarRssBytes": 32833536
+    },
+    {
+      "processTreeRssBytes": 84676608,
+      "sidecarRssBytes": 32833536
+    },
+    {
+      "processTreeRssBytes": 84664320,
+      "sidecarRssBytes": 32833536
+    },
+    {
+      "processTreeRssBytes": 84660224,
+      "sidecarRssBytes": 32833536
+    },
+    {
+      "processTreeRssBytes": 84660224,
+      "sidecarRssBytes": 32833536
+    }
+  ],
+  "visibleWindowFirstPaintMs": null,
+  "webkitProcessesOutsideTreeMeasured": false,
+  "notarization": "not_run",
+  "context": {
+    "environment": "GitHub Actions macos-15-intel runner",
+    "runId": 42433326171,
+    "commit": "79116b65f5d1baaeb894283a2b3319195e023a94",
+    "controlledHardwareComparison": false
+  }
+}
