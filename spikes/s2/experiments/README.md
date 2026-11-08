@@ -156,3 +156,33 @@ The Qwen card recommends temperature 0.7/top-p 0.8/top-k 20/min-p 0 for general
 queries. This study deliberately uses the same fixed extraction settings for
 all models, plus the temperature-0.3 variant. It does not test all vendor
 sampling recommendations or unrestricted reasoning-length outputs.
+
+## Bounded robustness extension
+
+Keep this separate from the frozen comparison. `robustness.mjs` derives 24
+sources from the approved development annotations: facts at beginning/middle/end
+of roughly 300-word context, paired trusted speakers, emoji/newline offsets,
+two facts of the same or different kinds, ordinary negatives and mixed attacks.
+It covers all eight kinds. This is correlated synthetic stress data, not a new
+holdout, full meeting benchmark or temporal conflict reconciliation test.
+
+Each model uses its original screening winner, without tuning on holdout.
+Before stress extraction, repeat eight critical sampled-classifier cases with
+seeds 7 and 101 against the existing seed-42 baseline. Stability is reported
+separately from correctness. All three models run sequentially, capped at
+30 minutes and 80 new inference requests each (90 minutes/240 requests total).
+The budget can leave extraction unfinished; reports show completed denominators
+and never count unfinished cases as passes. No additional models are downloaded.
+
+After the parent studies and single-label diagnostic, run:
+
+```sh
+node spikes/s2/experiments/robustness.mjs PATH_TO_LLAMA_OUTPUT PATH_TO_QWEN_OUTPUT
+node spikes/s2/experiments/robustness.mjs --audit PATH_TO_LLAMA_OUTPUT PATH_TO_QWEN_OUTPUT
+```
+
+Ignored outputs live under `spikes/s2/out/robustness/`, including source hashes,
+parent trace hashes, requests, raw responses, normalized candidates, scores and
+`review.md`. Offline replay verifies requests, normalization and scores. The
+runner refuses to overwrite an existing manifest rather than reset its budget.
+Review the annotations and semantic accuracy before drawing adoption conclusions.
