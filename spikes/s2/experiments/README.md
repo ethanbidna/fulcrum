@@ -279,3 +279,20 @@ The initial Llama retry/resumption overlaps challenger inference on this
 16-logical-CPU, 32-GB test host. Both use two inference threads and background
 priority. This change in host activity further rules out controlled timing or
 resource comparisons; it does not validate battery or UI behavior.
+
+## Unfinished challenger payload coverage
+
+A one-hour screen can consume its full budget before payload extraction. Keep
+that budget-limited result unchanged. After both screens and the Llama probes
+finish, `payload-followup.mjs` runs only the 12 originally planned probes that
+lack complete parent extraction. It reuses the selected screen's classifications,
+checks model identities and exact requests, and never repeats completed probes.
+This is a separate follow-up with a 30-minute/48-request cap per model, not a
+reset or extension of the original run's denominator.
+
+Outputs under `spikes/s2/out/challenger-payload-followup/` preserve parent trace
+hashes, new attempts, pipeline scores and a separate review. Failed requests
+remain visible. No gold routing, classifier tuning or new holdout is introduced.
+The follow-up waits for a free isolated runtime and uses native thermal checks
+and the repaired local HTTP transport. Include both the original budget-limited
+report and this follow-up when assessing extraction quality.
