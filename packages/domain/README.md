@@ -34,9 +34,18 @@ scope changes; an unrestricted portfolio operation requires unrestricted scope.
 Unknown settings fail closed. Source-backed retries compare event time
 (`happenedAt`) against rejection time, not ingestion time.
 
-C3 will implement `Domain.execute`: command schema validation, trusted context
-construction, applying these required effects, immutable events and undo.
-These helpers do not yet provide a write API or an end-to-end ingestion path.
+C3 adds `Domain.execute`: strict command arguments, trusted context, required
+protection/suggestion effects, events and undo. `DomainPorts` supplies canonical
+Ajv state/event validators and an atomic durable commit interface. The driver
+assigns causal sequence/HLC; no state or subscriber changes before its success.
+`getSnapshot`, `history` and `subscribe` return isolated views of acknowledged
+state. Start with a base snapshot and its subsequent retained events; replay
+builds the field writers, protection metadata and undo preimages.
+
+The command tests use the real JSON Schemas and an in-memory commit port;
+C4 still needs the filesystem driver and crash recovery. There is no
+end-to-end ingestion path yet. See `docs/DOMAIN_COMMANDS.md` for argument
+conventions and ADR-0012 for replay/undo behavior.
 No persisted schema, model selection or feasibility decision changes in C2.
 
 Run `pnpm check`; focused tests: `pnpm exec vitest run tools/workspace/domain-core.test.mjs`.

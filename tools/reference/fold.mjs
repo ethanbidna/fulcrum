@@ -64,15 +64,16 @@ function applyOp(state, writers, tombstones, conflicts, event, op) {
   }
   const writerKey = `${recordKey}:${op.field}`;
   detectConcurrentWrite(writers, conflicts, event, op, writerKey, record[op.field]);
-  setField(record, op.field, op.value);
+  setField(record, op.field, op.value, op.kind);
   writers.set(writerKey, event.eventId);
 }
 
 function applyCreate(collection, writers, tombstones, conflicts, event, op, recordKey) {
-  if (collection.has(op.id) || tombstones.has(recordKey)) {
+  if (collection.has(op.id) || (tombstones.has(recordKey) && !event.undoOf)) {
     conflicts.push({ type: 'duplicate_create', kind: op.kind, id: op.id, eventId: event.eventId, material: false });
     return;
   }
+  tombstones.delete(recordKey);
   collection.set(op.id, structuredClone(op.record));
   for (const field of Object.keys(op.record)) writers.set(`${recordKey}:${field}`, event.eventId);
 }
@@ -80,7 +81,7 @@ function applyCreate(collection, writers, tombstones, conflicts, event, op, reco
 function applySettings(state, writers, conflicts, event, op) {
   const writerKey = `settings:singleton:${op.field}`;
   detectConcurrentWrite(writers, conflicts, event, op, writerKey, state.settings[op.field]);
-  state.settings[op.field] = op.value;
+  setField(state.settings, op.field, op.value, 'settings');
   writers.set(writerKey, event.eventId);
 }
 
@@ -95,8 +96,8 @@ function detectConcurrentWrite(writers, conflicts, event, op, writerKey, current
   });
 }
 
-function setField(record, field, value) {
-  if (value === null) delete record[field];
+function setField(record, field, value, kind) {
+  if (value === null && !(kind === 'initiative' && field === 'moscow')) delete record[field];
   else record[field] = value;
 }
 
@@ -125,7 +126,7 @@ export function toStateDocument(state) {
 export function fromStateDocument(doc) {
   const state = emptyState();
   for (const collection of Object.values(COLLECTION_BY_KIND)) {
-    for (const record of doc[collection] ?? []) state[collection].set(record.id, structuredClone(record));
+    for (const record of doc[collection] ?? []) state[collection].set(collection === 'rejections' ? record.signature : record.id, structuredClone(record));
   }
   state.settings = { ...doc.settings };
   return state;
