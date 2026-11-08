@@ -110,4 +110,4 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 
 ## Audit log
 
-- 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR pending; owner checks remain unchanged.
+- 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR #48; owner checks remain unchanged.
