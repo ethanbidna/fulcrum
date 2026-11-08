@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 1
+Steps done since last audit: 2
 
 ## Steps
 
@@ -16,7 +16,7 @@ Steps done since last audit: 1
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
-| 7 | S5 Granola access | todo | n/a | | |
+| 7 | S5 Granola access | done | n/a | Pending | Official API/export/integration research; CSV baseline, scoped API when eligible; no live access |
 | 8 | S3 Graphiti | todo | [ ] | | |
 | 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
 | 10 | C2 invariants and policy | todo | n/a | | |
