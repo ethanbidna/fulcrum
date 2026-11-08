@@ -1,0 +1,6 @@
+:root { font: 16px system-ui, sans-serif; color: #23262b; background: #fafafa; }
+main { max-width: 36rem; margin: 2rem auto; padding: 0 1rem; }
+h1 { font-size: 1.5rem; }
+pre { white-space: pre-wrap; min-height: 6rem; }
+button { padding: .5rem .75rem; font: inherit; }
+button:focus-visible { outline: 2px solid #356ba0; outline-offset: 3px; }
