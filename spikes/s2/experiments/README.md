@@ -231,3 +231,51 @@ stop threshold cover the queued inference. The completion job links the result
 from the main comparison report and stops only its isolated runtime. This adds
 up to two hours of inference beyond the original three-model battery; neither
 completion tonight nor production accuracy is established by queueing it.
+
+## Five-minute timeout recovery
+
+The overnight battery stopped after 803 calls during the first 8B full-schema
+probe. It saved `fetch failed` at 300.98 seconds; the server recorded HTTP 500
+at five minutes. Native thermal samples remained nominal. This is consistent
+with the HTTP client's independent five-minute header deadline; the original
+error omitted its nested cause, so do not claim that log alone proves it.
+[Undici documents a 300-second default](https://undici.nodejs.org/api/Client)
+separate from the caller's abort signal.
+
+`transport.mjs` uses Node's maintained HTTP client for loopback inference,
+retaining the caller's existing deadline, response-size bounds and cancellation.
+`preload.mjs` installs it only for known local inference ports. No prompts,
+models, scoring or frozen inference files change. To reproduce the actual long
+header wait and compare against native fetch:
+
+```sh
+FULCRUM_SLOW_HTTP_TEST=1 node --test tools/test/s2-transport.test.mjs
+```
+
+The long test takes about 310 seconds and is skipped in routine checks. Short
+checks cover cancellation, delayed headers, HTTP errors and isolated routing.
+Resume the frozen runner with:
+
+```sh
+node --import ./spikes/s2/experiments/preload.mjs spikes/s2/experiments/run.mjs
+```
+
+Optional `FULCRUM_INFERENCE_PORT=11436` routes the same logical requests to an
+isolated runtime with the original model store/version. Record transport source
+hashes and the physical endpoint beside resumed outputs. The operational
+recovery records these in `spikes/s2/out/recovery-transport.json`.
+
+`retry-probe.mjs ORIGINAL_OUTPUT` sends an identical failed full-probe request
+once more, saving the retry separately under `spikes/s2/out/probe-retries/`.
+It retains the original failure and never substitutes retry scores in the
+original summary. The frozen runner resumes missing calls from its trace keys;
+failed recorded calls remain failures. Bounded recovery can advance past a
+newly recorded failure to finish independent work, but must stop if a restart
+makes no trace progress. Do not delete failed rows or count retries as first
+attempts. Complete parent studies then allow the previously queued single-label
+and robustness diagnostics; their failures are recorded independently.
+
+The initial Llama retry/resumption overlaps challenger inference on this
+16-logical-CPU, 32-GB test host. Both use two inference threads and background
+priority. This change in host activity further rules out controlled timing or
+resource comparisons; it does not validate battery or UI behavior.
