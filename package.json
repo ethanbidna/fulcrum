@@ -14,7 +14,8 @@
     "lint": "eslint apps packages tools/workspace",
     "schema:generate": "node tools/workspace/generate-schema.mjs",
     "schema:check": "node tools/workspace/generate-schema.mjs --check",
-    "check": "npm run schema:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run schema:check && npm run lint && npm run typecheck && npm test",
+    "dev": "node tools/dev-shell.mjs"
   },
   "devDependencies": {
     "@fulcrum/schema": "workspace:*",

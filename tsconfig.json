@@ -11,11 +11,13 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "types": [],
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "apps/**/*.ts",
     "packages/**/*.ts",
-    "tools/workspace/type-contracts.ts"
+    "tools/workspace/type-contracts.ts",
+    "apps/**/*.tsx"
   ]
 }

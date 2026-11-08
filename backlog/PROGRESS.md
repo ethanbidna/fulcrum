@@ -25,7 +25,7 @@ Steps done since last audit: 3
 | 13 | C5 projections | done | n/a | #49 | Typed read queries, canonical focused graph references, waiting/action rail and replay-derived history; synthetic checks only |
 | 14 | C6 core process and transports | done | n/a | #50 | Authenticated Unix core, Keychain driver, durable domain binding, UI transport and separate dev bridge; real Keychain/Tauri/signing remain unverified |
 | 15 | C7 SQLite index and search | done | n/a | #51 | Machine-local FTS5, incremental snapshot-derived updates, scoped/excerpt-aware search, count progress and cache rebuild recovery |
-| 16 | U1 app shell | todo | [ ] | | |
+| 16 | U1 app shell | waiting-owner | [ ] | #52 | Browser/Tauri shell, four destinations, tokens, live core status and quiet count; native launch and owner feel pending |
 | 17 | U2 portfolio board | todo | [ ] | | |
 | 18 | U3 flow canvas | todo | [ ] | | |
 | 19 | U4 inspector and focused view | todo | [ ] | | |
@@ -51,6 +51,14 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 16 — U1 app shell review
+
+1. Install Node 22 LTS and pnpm 10.11.0. From the repository root run `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm check`, then `pnpm dev`.
+2. Open `http://127.0.0.1:5173`. Review the four destinations, selected location, Tab/Shift-Tab/Enter, browser back/forward, quiet question count and narrow-window layout. This is a disposable synthetic workspace; no model, connector or Keychain access. Ctrl-C stops it.
+3. For native review, install stable Rust/Cargo and Xcode Command Line Tools; follow the exact two-terminal core/`pnpm --filter @fulcrum/desktop tauri dev` commands in `apps/desktop/README.md`. Use only the synthetic workspace. Record Keychain prompts and native launch blockers explicitly; standalone packaging/signing is not accepted by this step.
+4. Record observations and any blockers in `docs/reviews/U1.md`. Confirm the shell feels right; unfinished portfolio/priorities/question/settings workflows are expected and explicitly labeled.
+5. Tick the Owner box for step 16 above only after that review. Do not tick other pending owner checks.
 
 ### Step 5 — S6 Claude Desktop check
 

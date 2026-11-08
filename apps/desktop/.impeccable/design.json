@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T21:03:17.692997+00:00",
+  "title": "Design System: Fulcrum desktop",
+  "extensions": {
+    "colorMeta": {
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 89.9)",
+          "oklch(26.4% 0.0000 89.9)",
+          "oklch(37.9% 0.0000 89.9)",
+          "oklch(49.3% 0.0000 89.9)",
+          "oklch(60.7% 0.0000 89.9)",
+          "oklch(72.1% 0.0000 89.9)",
+          "oklch(83.6% 0.0000 89.9)",
+          "oklch(95.0% 0.0000 89.9)"
+        ]
+      },
+      "surface-navigation": {
+        "role": "neutral",
+        "displayName": "Surface Navigation",
+        "tonalRamp": [
+          "oklch(15.0% 0.0029 264.5)",
+          "oklch(26.4% 0.0029 264.5)",
+          "oklch(37.9% 0.0029 264.5)",
+          "oklch(49.3% 0.0029 264.5)",
+          "oklch(60.7% 0.0029 264.5)",
+          "oklch(72.1% 0.0029 264.5)",
+          "oklch(83.6% 0.0029 264.5)",
+          "oklch(95.0% 0.0029 264.5)"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "Surface Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0058 264.5)",
+          "oklch(26.4% 0.0058 264.5)",
+          "oklch(37.9% 0.0058 264.5)",
+          "oklch(49.3% 0.0058 264.5)",
+          "oklch(60.7% 0.0058 264.5)",
+          "oklch(72.1% 0.0058 264.5)",
+          "oklch(83.6% 0.0058 264.5)",
+          "oklch(95.0% 0.0058 264.5)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Text",
+        "tonalRamp": [
+          "oklch(15.0% 0.0141 261.7)",
+          "oklch(26.4% 0.0141 261.7)",
+          "oklch(37.9% 0.0141 261.7)",
+          "oklch(49.3% 0.0141 261.7)",
+          "oklch(60.7% 0.0141 261.7)",
+          "oklch(72.1% 0.0141 261.7)",
+          "oklch(83.6% 0.0141 261.7)",
+          "oklch(95.0% 0.0141 261.7)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0208 261.3)",
+          "oklch(26.4% 0.0208 261.3)",
+          "oklch(37.9% 0.0208 261.3)",
+          "oklch(49.3% 0.0208 261.3)",
+          "oklch(60.7% 0.0208 261.3)",
+          "oklch(72.1% 0.0208 261.3)",
+          "oklch(83.6% 0.0208 261.3)",
+          "oklch(95.0% 0.0208 261.3)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15.0% 0.0075 260.7)",
+          "oklch(26.4% 0.0075 260.7)",
+          "oklch(37.9% 0.0075 260.7)",
+          "oklch(49.3% 0.0075 260.7)",
+          "oklch(60.7% 0.0075 260.7)",
+          "oklch(72.1% 0.0075 260.7)",
+          "oklch(83.6% 0.0075 260.7)",
+          "oklch(95.0% 0.0075 260.7)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Accent",
+        "tonalRamp": [
+          "oklch(15.0% 0.0960 256.4)",
+          "oklch(26.4% 0.0960 256.4)",
+          "oklch(37.9% 0.0960 256.4)",
+          "oklch(49.3% 0.0960 256.4)",
+          "oklch(60.7% 0.0960 256.4)",
+          "oklch(72.1% 0.0960 256.4)",
+          "oklch(83.6% 0.0960 256.4)",
+          "oklch(95.0% 0.0960 256.4)"
+        ],
+        "rampNote": "Tonal ramps are synthesized panel previews, not shipping CSS tokens."
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Accent Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0862 256.4)",
+          "oklch(26.4% 0.0862 256.4)",
+          "oklch(37.9% 0.0862 256.4)",
+          "oklch(49.3% 0.0862 256.4)",
+          "oklch(60.7% 0.0862 256.4)",
+          "oklch(72.1% 0.0862 256.4)",
+          "oklch(83.6% 0.0862 256.4)",
+          "oklch(95.0% 0.0862 256.4)"
+        ]
+      },
+      "accent-surface": {
+        "role": "primary",
+        "displayName": "Accent Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0137 258.3)",
+          "oklch(26.4% 0.0137 258.3)",
+          "oklch(37.9% 0.0137 258.3)",
+          "oklch(49.3% 0.0137 258.3)",
+          "oklch(60.7% 0.0137 258.3)",
+          "oklch(72.1% 0.0137 258.3)",
+          "oklch(83.6% 0.0137 258.3)",
+          "oklch(95.0% 0.0137 258.3)"
+        ]
+      },
+      "blocked": {
+        "displayName": "Blocked",
+        "tonalRamp": [
+          "oklch(15.0% 0.1325 22.9)",
+          "oklch(26.4% 0.1325 22.9)",
+          "oklch(37.9% 0.1325 22.9)",
+          "oklch(49.3% 0.1325 22.9)",
+          "oklch(60.7% 0.1325 22.9)",
+          "oklch(72.1% 0.1325 22.9)",
+          "oklch(83.6% 0.1325 22.9)",
+          "oklch(95.0% 0.1325 22.9)"
+        ]
+      },
+      "waiting": {
+        "displayName": "Waiting",
+        "tonalRamp": [
+          "oklch(15.0% 0.0957 77.8)",
+          "oklch(26.4% 0.0957 77.8)",
+          "oklch(37.9% 0.0957 77.8)",
+          "oklch(49.3% 0.0957 77.8)",
+          "oklch(60.7% 0.0957 77.8)",
+          "oklch(72.1% 0.0957 77.8)",
+          "oklch(83.6% 0.0957 77.8)",
+          "oklch(95.0% 0.0957 77.8)"
+        ]
+      },
+      "completed": {
+        "displayName": "Completed",
+        "tonalRamp": [
+          "oklch(15.0% 0.0660 158.1)",
+          "oklch(26.4% 0.0660 158.1)",
+          "oklch(37.9% 0.0660 158.1)",
+          "oklch(49.3% 0.0660 158.1)",
+          "oklch(60.7% 0.0660 158.1)",
+          "oklch(72.1% 0.0660 158.1)",
+          "oklch(83.6% 0.0660 158.1)",
+          "oklch(95.0% 0.0660 158.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Destination heading."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Connection and unavailable-workflow heading."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions and recovery controls."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigation destinations."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Quiet counts."
+      },
+      "status": {
+        "displayName": "Status",
+        "purpose": "Local-core connection text."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "navigation-hover",
+        "value": "background-color 150ms ease-out",
+        "purpose": "Navigation hover feedback; removed for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-navigation",
+        "value": "700px"
+      },
+      {
+        "name": "two-column-navigation",
+        "value": "430px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary retry button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Recover an unavailable local-core connection.",
+      "html": "<button class=\"ds-primary\">Retry connection</button>",
+      "css": ".ds-primary { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; font-size: 14px; line-height: 1.5; border: 0; border-radius: var(--radius-control); color: var(--surface); background: var(--accent); padding: var(--space-2) var(--space-4); cursor: pointer; } .ds-primary:hover { background: var(--accent-hover); } .ds-primary:active { transform: translateY(1px); } .ds-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Text retry button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Inline recovery at the navigation foot.",
+      "html": "<button class=\"ds-text\">Retry connection</button>",
+      "css": ".ds-text { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; font-size: 11px; line-height: 1.5; background: none; color: var(--accent); border: 0; padding: var(--space-2) 0; text-align: left; cursor: pointer; } .ds-text:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Navigation destination",
+      "kind": "nav",
+      "refersTo": "navigation-link",
+      "description": "A stable current-page link.",
+      "html": "<a class=\"ds-nav\" href=\"#initiatives\" aria-current=\"page\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 22 22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3h6v6H3z M13 3h6v6h-6z M3 13h6v6H3z M13 13h6v6h-6z\"/></svg>Initiatives</a>",
+      "css": ".ds-nav { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; font-size: 14px; line-height: 1.5; display: flex; align-items: center; gap: var(--space-3); min-height: 38px; padding: var(--space-2) var(--space-3); border-radius: var(--radius-control); font-weight: 500; text-decoration: none; color: var(--text); transition: background-color 150ms ease-out; } .ds-nav:hover { background: var(--surface-hover); } .ds-nav[aria-current=\"page\"] { background: var(--accent-surface); color: var(--accent); } .ds-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; } @media(prefers-reduced-motion: reduce) { .ds-nav { transition: none; } }"
+    },
+    {
+      "name": "Connection status",
+      "kind": "custom",
+      "refersTo": "connection-status",
+      "description": "State color paired with an explicit local-core label.",
+      "html": "<p class=\"ds-status\" role=\"status\"><span class=\"ds-dot\" aria-hidden=\"true\"></span>Connected to local core</p>",
+      "css": ".ds-status { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; font-size: 14px; line-height: 1.5; display: flex; gap: var(--space-2); align-items: center; margin: 0; color: var(--text-secondary); font-size: 11px; } .ds-dot { width: 6px; height: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--completed); }"
+    },
+    {
+      "name": "Loading lines",
+      "kind": "custom",
+      "refersTo": "loading-line",
+      "description": "Static placeholders accompanying the opening status.",
+      "html": "<div class=\"ds-loading\" aria-hidden=\"true\"><span></span><span></span></div>",
+      "css": ".ds-loading { display: grid; gap: var(--space-3); margin: 0 auto var(--space-6); width: min(240px, 100%); } .ds-loading span { height: 12px; background: var(--surface-hover); border-radius: var(--radius-control); } .ds-loading span:last-child { width: 70%; justify-self: center; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Four stable destinations",
+    "overview": "A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and recovery actions; fine separators and restrained type establish hierarchy.\n\nThis records the implemented U1 shell, not later portfolio or graph workflows. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.",
+    "keyCharacteristics": [
+      "White work area with cool neutral navigation.",
+      "Muted blue selection and visible keyboard focus.",
+      "Inline connection recovery and honest workflow notices."
+    ],
+    "rules": [
+      {
+        "name": "The Quiet Accent Rule",
+        "body": "Reserve blue for selection, focus and actionable recovery.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do retain all four named destinations across viewport sizes.",
+      "Do pair connection color with explicit status text.",
+      "Do show visible keyboard focus and move focus to the destination heading.",
+      "Do state unavailable workflows plainly in the main content.",
+      "Do use the original geometric SVG mark."
+    ],
+    "donts": [
+      "Don't add completion percentages, status columns, avatars or embedded AI chat.",
+      "Don't turn Questions into an uncategorized inbox or interruptive popup.",
+      "Don't use color as the only state cue.",
+      "Don't infer unimplemented controls or workflow capabilities from this shell."
+    ]
+  }
+}
