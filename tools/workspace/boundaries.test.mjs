@@ -9,6 +9,8 @@ async function violations(filePath, code) {
 
 describe('architecture import boundaries', () => {
   test.each([
+    ['apps/core/src/index.ts', "import { Domain } from '@fulcrum/domain';"],
+    ['apps/core/src/index.ts', "import { FileWorkspaceStore } from '@fulcrum/store';"],
     ['apps/desktop/src/index.ts', "import type { Domain } from '@fulcrum/domain';"],
     ['packages/mcp/src/index.ts', "export { execute } from '@fulcrum/domain';"],
     ['packages/domain/src/index.ts', "import type { Store } from '@fulcrum/store/interfaces';"],

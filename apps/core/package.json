@@ -1,0 +1,9 @@
+{
+  "name": "@fulcrum/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs", "build:dev": "node build.mjs --dev" },
+  "dependencies": { "@fulcrum/domain": "workspace:*", "@fulcrum/store": "workspace:*", "@fulcrum/schema": "workspace:*" },
+  "devDependencies": { "esbuild": "0.28.2", "ws": "8.22.2", "@types/ws": "8.18.1" }
+}

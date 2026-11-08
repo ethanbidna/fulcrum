@@ -29,6 +29,7 @@ export interface WorkspaceStore {
 export type FaultStage = 'append-half' | 'append-fsync' | 'batch-before-publish' | 'checkpoint-before-rename' | 'identity-before-save';
 export interface StoreOptions {
   localDirectory: string;
+  schemaDirectory?: URL;
   deviceLabel: string;
   readerVersion?: number;
   now?: () => Date;
