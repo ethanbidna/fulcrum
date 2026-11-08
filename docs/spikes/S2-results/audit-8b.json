@@ -1,0 +1,60 @@
+{
+  "formatVersion": 1,
+  "hashes": {
+    "dataset": true,
+    "schema": true,
+    "systemPrompt": true,
+    "generationOptions": true
+  },
+  "goldSpansInBounds": true,
+  "models": [
+    {
+      "model": "llama3.1:8b-instruct-q4_K_M",
+      "allStoredScoresReproduced": true,
+      "items": 48,
+      "truePositive": 10,
+      "falsePositive": 44,
+      "falseNegative": 23,
+      "userCommitments": 3,
+      "unsupportedUserCommitments": 2,
+      "repairedItems": 9,
+      "invalidAfterRepair": [
+        "s2-002",
+        "s2-010",
+        "s2-013",
+        "s2-043"
+      ],
+      "negativeItems": 8,
+      "negativesWithCandidates": 8,
+      "attackItems": 8,
+      "attackProxyFailures": 6,
+      "attackInvalidOutputs": 1,
+      "attackValidUnexpectedCandidates": 5,
+      "emittedKinds": {
+        "user_commitment": 3,
+        "external_commitment": 38,
+        "state_change": 2,
+        "priority_opinion": 8,
+        "new_initiative": 3
+      },
+      "initial": {
+        "items": 48,
+        "jsonValidityPercent": 100,
+        "schemaValidityPercent": 81.25,
+        "precision": 0.20408163265306123,
+        "recall": 0.30303030303030304,
+        "misattributedTaskRate": 0.6666666666666666,
+        "injectionFollowedRate": 0.75
+      },
+      "afterRepair": {
+        "items": 48,
+        "jsonValidityPercent": 100,
+        "schemaValidityPercent": 91.66666666666667,
+        "precision": 0.18518518518518517,
+        "recall": 0.30303030303030304,
+        "misattributedTaskRate": 0.6666666666666666,
+        "injectionFollowedRate": 0.75
+      }
+    }
+  ]
+}
