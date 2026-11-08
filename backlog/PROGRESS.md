@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 4
+Steps done since last audit: 5
 
 ## Steps
 
@@ -21,7 +21,7 @@ Steps done since last audit: 4
 | 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
 | 10 | C2 invariants and policy | done | n/a | #45 | TypeScript invariants, affected validation, P1–P12 policy and golden projections; model-independent sequencing authorized |
 | 11 | C3 commands, events, undo | done | n/a | #46 | Shared command API, atomic events and question resolutions, compensating undo, retry safety and replay checks |
-| 12 | C4 store driver | todo | n/a | | |
+| 12 | C4 store driver | done | n/a | #47 | Durable driver, atomic batches/checkpoints, locking/identity, placeholders, golden fixture and real process-crash tests; sync-provider checks remain S1 |
 | 13 | C5 projections | todo | n/a | | |
 | 14 | C6 core process and transports | todo | n/a | | |
 | 15 | C7 SQLite index and search | todo | n/a | | |
