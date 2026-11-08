@@ -10,3 +10,11 @@ export { Domain } from './domain.js';
 export { COMMAND_ARGUMENTS, suggestionSignature } from './commands.js';
 export type { CommandName, CommandEnvelope, CommandResult, DomainError, DomainPorts, EventDraft, AppliedChange } from './commands.js';
 export { replayEvents } from './replay.js';
+
+export { projectGraph, projectFocus } from './graph-projections.js';
+export type { GraphView } from './graph-projections.js';
+export { projectHistory } from './history-projections.js';
+export type { HistoryEntry, HistoryChange, HistoryFilter } from './history-projections.js';
+export { projectPortfolio, projectRail } from './projections.js';
+export type { PortfolioCard, PortfolioRail, RailOptions, WaitingItem } from './projections.js';
+export type { QueryName, QueryArgs, QueryResults } from './queries.js';
