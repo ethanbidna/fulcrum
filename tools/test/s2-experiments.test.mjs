@@ -1,10 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { alignQuote, scoreKinds, buildRequest, normalizeExtraction, CLASSIFIERS } from '../../spikes/s2/experiments/configurations.mjs';
 import { rankConfigurations } from '../../spikes/s2/experiments/run.mjs';
 import { HOLDOUT } from '../../spikes/s2/experiments/holdout.mjs';
-import { summarizeClassification } from '../../spikes/s2/experiments/analyze.mjs';
+import { summarizeClassification, analyzeSingle } from '../../spikes/s2/experiments/analyze.mjs';
 import { buildSingleRequest, decodeSingle } from '../../spikes/s2/experiments/single-label.mjs';
+import { buildPayloadRequest } from '../../spikes/s2/experiments/configurations.mjs';
+import { scoreItem } from '../../spikes/s2/evaluate.mjs';
 
 test('quote grounding derives UTF-16 offsets and rejects ambiguity', () => {
   assert.deepEqual(alignQuote('🌱 Intro. I will send it.', 'I will send it.'), { start: 10, end: 25 });
@@ -101,4 +107,44 @@ test('single-label diagnostic distinguishes absence from invalid output', () => 
   assert.equal(JSON.stringify(body).includes('GOLD-SECRET'), false);
   assert.equal(body.options.num_predict, 32);
   assert.ok(body.system.includes('none'));
+});
+
+test('single-label audit replays results and detects a changed cached response', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'fulcrum-single-audit-'));
+  const hash = text => createHash('sha256').update(text).digest('hex');
+  try {
+    const development = JSON.parse(await readFile(new URL('../../spikes/s2/eval/items.json', import.meta.url), 'utf8'));
+    const item = development[0];
+    const model = 'synthetic-local';
+    const raw = JSON.stringify({ candidates: [{ text: 'write the Cedar draft', quote: item.text }] });
+    const result = { response: raw };
+    const parent = { phase: 'payload', model, id: item.id, kind: 'user_commitment', request: buildPayloadRequest(model, item, 'user_commitment'), raw, result };
+    const parentText = `${JSON.stringify(parent)}\n`;
+    await writeFile(join(directory, 'traces-parent.jsonl'), parentText);
+    const parentDirectory = await mkdtemp(join(tmpdir(), 'fulcrum-single-parent-'));
+    try {
+      await writeFile(join(parentDirectory, 'traces.jsonl'), parentText);
+      const classifyRaw = '{"kind":"user_commitment"}';
+      const rows = [
+        { stage: 'classify', model, id: item.id, request: buildSingleRequest(model, item), result: { response: classifyRaw }, raw: classifyRaw, reused: false, seconds: 1, score: scoreKinds(item, decodeSingle(classifyRaw)) },
+        { stage: 'payload', model, id: item.id, kind: 'user_commitment', request: parent.request, result, raw, reused: true, seconds: null, score: { valid: true, rejected: 0 } },
+      ];
+      const candidates = normalizeExtraction(item, 'user_commitment', raw).candidates;
+      const pipeline = { model, id: item.id, split: 'development', classificationValid: true, candidates, rejected: 0, score: scoreItem(item, { candidates }) };
+      await writeFile(join(directory, 'pipeline.jsonl'), `${JSON.stringify(pipeline)}\n`);
+      const sourceHashes = {};
+      for (const path of ['single-label.mjs', 'configurations.mjs', 'holdout.mjs', '../evaluate.mjs', '../ollama.mjs']) sourceHashes[path] = hash(await readFile(new URL(`../../spikes/s2/experiments/${path}`, import.meta.url)));
+      await writeFile(join(directory, 'manifest.json'), JSON.stringify({ identity: { sourceHashes, itemsSha256: hash(JSON.stringify([...development, ...HOLDOUT])), parents: [{ tracesSha256: hash(parentText) }] }, metadata: { [model]: {} } }));
+      const writeTraces = () => writeFile(join(directory, 'traces.jsonl'), rows.map(row => JSON.stringify(row)).join('\n') + '\n');
+      await writeTraces();
+      const summary = await analyzeSingle(directory, [parentDirectory]);
+      assert.equal(summary.actualRequests, 1);
+      assert.equal(summary.reusedPayloads, 1);
+      assert.equal(summary.extraction[`${model}/development`].tp, 1);
+      rows[1].result = { response: '{"candidates":[]}' };
+      rows[1].raw = rows[1].result.response;
+      await writeTraces();
+      await assert.rejects(analyzeSingle(directory, [parentDirectory]));
+    } finally { await rm(parentDirectory, { recursive: true, force: true }); }
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });

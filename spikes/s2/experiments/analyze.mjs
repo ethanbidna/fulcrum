@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { CLASSIFIERS, FULL_CONFIGS, buildRequest, buildPayloadRequest, normalizeExtraction, scoreKinds } from './configurations.mjs';
 import { HOLDOUT } from './holdout.mjs';
 import { scoreItem } from '../evaluate.mjs';
+import { buildSingleRequest, decodeSingle } from './single-label.mjs';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const DEFAULT_OUTPUT = resolve(ROOT, 'spikes/s2/out/experiments');
@@ -34,7 +35,7 @@ export function summarizeClassification(rows, items) {
   };
 }
 
-function summarizeExtraction(rows, items) {
+export function summarizeExtraction(rows, items) {
   const tp = sum(rows, 'truePositive');
   const fp = sum(rows, 'falsePositive');
   const fn = sum(rows, 'falseNegative');
@@ -51,6 +52,76 @@ function summarizeExtraction(rows, items) {
     userTasks: userTasks.length,
     wrongUserKind: userTasks.filter(({ row }) => !items.get(row.id).expected.some(candidate => candidate.kind === 'user_commitment')).length,
   };
+}
+
+export async function analyzeSingle(directory, parentDirectories) {
+  const development = JSON.parse(await readFile(new URL('../eval/items.json', import.meta.url), 'utf8'));
+  const allItems = [...development, ...HOLDOUT];
+  const items = new Map(allItems.map(item => [item.id, item]));
+  const manifest = JSON.parse(await readFile(resolve(directory, 'manifest.json'), 'utf8'));
+  assert.equal(manifest.identity.itemsSha256, sha256(JSON.stringify(allItems)));
+  assert.deepEqual(Object.keys(manifest.identity.sourceHashes).sort(), ['single-label.mjs', 'configurations.mjs', 'holdout.mjs', '../evaluate.mjs', '../ollama.mjs'].sort());
+  for (const [path, digest] of Object.entries(manifest.identity.sourceHashes)) assert.equal(sha256(await readFile(new URL(path, import.meta.url))), digest);
+  assert.equal(parentDirectories.length, manifest.identity.parents.length);
+  const parents = [];
+  for (const [index, path] of parentDirectories.entries()) {
+    const text = await readFile(resolve(path, 'traces.jsonl'), 'utf8');
+    assert.equal(sha256(text), manifest.identity.parents[index].tracesSha256);
+    parents.push(...text.trim().split('\n').map(line => JSON.parse(line)));
+  }
+  const traces = await readRows(resolve(directory, 'traces.jsonl'));
+  const keys = traces.map(row => `${row.model}/${row.stage}/${row.id}/${row.kind ?? ''}`);
+  assert.equal(new Set(keys).size, keys.length);
+  for (const row of traces) {
+    const item = items.get(row.id);
+    assert.ok(item);
+    assert.ok(Object.hasOwn(manifest.metadata, row.model));
+    assert.equal(row.raw, row.result.response ?? row.result.message?.content ?? '');
+    if (row.stage === 'classify') {
+      assert.deepEqual(row.request, buildSingleRequest(row.model, item));
+      assert.deepEqual(row.score, scoreKinds(item, decodeSingle(row.raw)));
+      assert.equal(row.reused, false);
+      continue;
+    }
+    assert.equal(row.stage, 'payload');
+    assert.deepEqual(row.request, buildPayloadRequest(row.model, item, row.kind));
+    const normalized = normalizeExtraction(item, row.kind, row.raw);
+    assert.deepEqual(row.score, { valid: normalized.valid, rejected: normalized.rejected });
+    if (row.reused) {
+      const parent = parents.find(trace => trace.phase === 'payload' && trace.model === row.model && trace.id === row.id && trace.kind === row.kind);
+      assert.ok(parent);
+      assert.deepEqual(row.request, parent.request);
+      assert.deepEqual(row.result, parent.result);
+    }
+  }
+  const pipeline = await readRows(resolve(directory, 'pipeline.jsonl'));
+  assert.equal(new Set(pipeline.map(row => `${row.model}/${row.id}`)).size, pipeline.length);
+  for (const row of pipeline) {
+    const item = items.get(row.id);
+    const classification = traces.find(trace => trace.stage === 'classify' && trace.model === row.model && trace.id === row.id);
+    assert.ok(classification);
+    const kinds = decodeSingle(classification.raw)?.kinds ?? [];
+    const extracted = kinds.map(kind => {
+      const trace = traces.find(trace => trace.stage === 'payload' && trace.model === row.model && trace.id === row.id && trace.kind === kind);
+      assert.ok(trace);
+      return normalizeExtraction(item, kind, trace.raw);
+    });
+    assert.deepEqual(row.candidates, extracted.flatMap(result => result.candidates));
+    assert.equal(row.rejected, extracted.reduce((total, result) => total + result.rejected, 0));
+    assert.equal(row.classificationValid, classification.score.valid);
+    assert.deepEqual(row.score, scoreItem(item, { candidates: row.candidates }));
+  }
+  const classification = {};
+  const extraction = {};
+  for (const model of Object.keys(manifest.metadata)) for (const split of ['development', 'holdout']) {
+    const selected = traces.filter(row => row.stage === 'classify' && row.model === model && row.id.startsWith('h-') === (split === 'holdout'));
+    if (selected.length) classification[`${model}/${split}`] = summarizeClassification(selected, items);
+    const extracted = pipeline.filter(row => row.model === model && row.split === split);
+    if (extracted.length) extraction[`${model}/${split}`] = summarizeExtraction(extracted, items);
+  }
+  const summary = { replayed: true, actualRequests: traces.filter(row => !row.reused).length, reusedPayloads: traces.filter(row => row.reused).length, classification, extraction };
+  await writeFile(resolve(directory, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
+  return summary;
 }
 
 async function readRows(path) {
@@ -125,4 +196,9 @@ export async function analyze(directory = DEFAULT_OUTPUT) {
   return result;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) console.log(JSON.stringify(await analyze(process.argv[2]), null, 2));
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const result = process.argv[2] === '--single'
+    ? await analyzeSingle(process.argv[3], process.argv.slice(4))
+    : await analyze(process.argv[2]);
+  console.log(JSON.stringify(result, null, 2));
+}
