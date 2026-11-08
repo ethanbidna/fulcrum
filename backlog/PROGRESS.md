@@ -13,7 +13,7 @@ Steps done since last audit: 1
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
-| 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
+| 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | todo | n/a | | |
@@ -62,6 +62,17 @@ Follow [spikes/s6/README.md](../spikes/s6/README.md) in full; use only the commi
 4. Repeat after generating with `node spikes/s6/config.mjs --excerpts`, then with `node spikes/s6/config.mjs --initiative 01000000-0000-7000-8000-000000000001`. Restart after each config edit. Verify excerpt wrapping and denial of excluded initiative reads.
 5. Remove this server entry when finished. Record versions and pass/fail/blockers in `docs/spikes/S6.md`, review the synthetic results, and open a results PR referencing #6. Claude Desktop and confirmation UX remain unverified until recorded; never commit account details, personal paths or real chats.
 6. Tick the Owner box for step 5 above.
+
+### Step 4 — S7 packaging comparison
+
+Wait until S2 finishes before controlled builds/measurements. Follow [spikes/s7/README.md](../spikes/s7/README.md) in full; it includes paths for both architectures, universal assembly and notarization.
+
+1. Install Node 22 LTS, stable Rust/Cargo, Bun and Xcode Command Line Tools. Run `corepack enable`, `pnpm install --frozen-lockfile` and `pnpm check` from the repo root.
+2. Run `node spikes/s7/build.mjs node app`, `cargo test --manifest-path spikes/s7/src-tauri/Cargo.toml`, and `node spikes/s7/build.mjs bun app`. Use the committed Cargo.lock. Record tool versions and any compilation/launch blockers; CI validation does not replace target-hardware checks.
+3. Run the exact `measure.mjs` sidecar/app commands in the README at least five times per runtime on Intel, then repeat on Apple Silicon if available. Record visible-window timing and Activity Monitor shell/sidecar/WebKit RSS separately; health-RPC timing is not UI first paint.
+4. Follow the README's two-architecture universal build and execute it on both targets. Record signing/notarization acceptance or **no Developer ID**; this Mac's identity check currently found none.
+5. Review and commit reports under `docs/spikes/S7-results/`, fill `docs/spikes/S7.md`, and open a results PR referencing #7. Do not commit binaries, identities, paths, credentials or raw build logs.
+6. Tick the Owner box for step 4 above.
 
 ### Step 6 — S4 connector tests
 
