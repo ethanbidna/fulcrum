@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "environment": {
+    "platform": "macOS",
+    "architecture": "x64",
+    "node": "22.23.4",
+    "sdkServer": "2.4.0",
+    "sdkClient": "2.4.0",
+    "inspector": "2.14.0"
+  },
+  "fixtureSha256": "c797b8583c4c32e59cbd9a770e213772fddf0b8d36086454a6eaa10160d0b4ca",
+  "sdkClient": {
+    "legacyStdio": "passed",
+    "modern20260728Stdio": "passed",
+    "readOnlyRejection": "passed",
+    "scopeEnforcement": "passed",
+    "hiddenDependencyRedaction": "passed",
+    "excerptDefaultOff": "passed",
+    "excerptOptInWrapping": "passed",
+    "declaredElicitationCapabilities": "passed",
+    "elicitationConfirmationRoundTrip": "not_tested"
+  },
+  "inspectorCli": {
+    "modernToolsList": "passed",
+    "toolsListed": 4,
+    "getGraph": "passed",
+    "graphNodes": 10,
+    "getEvidenceWithExcerpts": "passed",
+    "sourcesReturned": 3
+  },
+  "claudeDesktop": "not_run",
+  "productionCoreSocketAuthentication": "not_implemented_in_spike"
+}
