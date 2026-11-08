@@ -65,6 +65,8 @@ credential to JavaScript. Requests use the fixed private core socket, authentica
 natively, and are limited to health/query/execute plus native subscriptions.
 Keychain and socket I/O have deadlines. Subscriptions are closed on retry/exit.
 No filesystem, shell-spawn or network plugin permissions are granted to the UI.
+The native development CSP allows Vite styles/HMR only in development; the
+release CSP permits native IPC and local packaged assets.
 The [Tauri command](https://v2.tauri.app/develop/calling-rust/) and
 [event](https://v2.tauri.app/develop/calling-frontend/) APIs are isolated in the
 platform adapter. The [Vite server](https://vite.dev/config/server-options) uses
@@ -73,7 +75,7 @@ loopback and a strict port.
 `pnpm --filter @fulcrum/desktop build` builds the release frontend, excluding the
 browser session bootstrap and WebSocket channel. `cargo test --manifest-path
 apps/desktop/src-tauri/Cargo.toml` tests the native socket protocol with synthetic
-servers. `pnpm --filter @fulcrum/desktop tauri build --no-bundle` compiles the shell.
+servers. `pnpm --filter @fulcrum/desktop tauri build --debug --no-bundle` compiles the development shell against the production frontend.
 CI compiles/tests Intel and ARM separately; it does not prove visible-window or
 Keychain acceptance.
 
