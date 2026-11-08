@@ -14,7 +14,7 @@ Steps done since last audit: 1
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38 | 48 synthetic cases, runner and scoring tests; Intel/Apple Silicon results pending |
 | 4 | S7 Tauri + core sidecar packaging | todo | [ ] | | |
-| 5 | S6 MCP shim | waiting-owner | [ ] | Pending | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
+| 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | todo | n/a | | |
 | 8 | S3 Graphiti | todo | [ ] | | |
