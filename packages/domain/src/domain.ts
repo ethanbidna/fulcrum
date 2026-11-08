@@ -10,6 +10,8 @@ import { replayEvents } from './replay.js';
 import type { Replay } from './replay.js';
 import { Transaction } from './transaction.js';
 import type { WorkspaceState } from './types.js';
+import { queryProjection } from './queries.js';
+import type { QueryName, QueryArgs, QueryResults } from './queries.js';
 
 const SCHEMA_VERSION = 1;
 const MAX_RESOLUTION_COMMANDS = 64;
@@ -30,6 +32,9 @@ export class Domain {
     if (violations.length) throw new DomainFault('INVARIANT_VIOLATION', 'Invalid initial graph', { invariant: violations[0]!.code, violations });
   }
   private get state() { return this.replay.document.state as WorkspaceState; }
+  async query<Q extends QueryName>(name: Q, args: QueryArgs[Q]): Promise<QueryResults[Q]> {
+    return queryProjection(this.replay, name, args, () => this.ports.now());
+  }
   getSnapshot(): WorkspaceStateDoc { return clone(this.replay.document); }
   history(): ChangeEvent[] { return clone(this.replay.events); }
   subscribe(listener: (change: AppliedChange) => void): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }

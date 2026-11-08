@@ -43,9 +43,50 @@ state. Start with a base snapshot and its subsequent retained events; replay
 builds the field writers, protection metadata and undo preimages.
 
 The command tests use the real JSON Schemas and an in-memory commit port;
-C4 still needs the filesystem driver and crash recovery. There is no
+C4 provides the filesystem driver and local process-crash checks. There is no
 end-to-end ingestion path yet. See `docs/DOMAIN_COMMANDS.md` for argument
 conventions and ADR-0012 for replay/undo behavior.
 No persisted schema, model selection or feasibility decision changes in C2.
 
 Run `pnpm check`; focused tests: `pnpm exec vitest run tools/workspace/domain-core.test.mjs`.
+
+## C5 read projections
+
+`Domain.query(name, args)` reads the last acknowledged state and returns an
+isolated result. Queries do not emit events or subscriber notifications. IDs
+in every view are canonical: editing a focused item uses the same commands as
+editing the full graph. A query during an in-flight commit sees the previous
+acknowledged state.
+
+- `portfolio.list({})`: active initiative records with exactly one derived card
+  state. Grouping and presentation controls belong to U2.
+- `portfolio.rail({since?})`: all available user actions, unresolved gating
+  Dependencies deduplicated across active initiatives, recent meaningful change
+  entries and the open Question count. Satisfied OR alternatives do not create
+  waiting items. Deferred Questions are not counted as open.
+- `graph.get({initiativeId})`: home nodes/edges, visual groups and external
+  endpoint records in `references`.
+- `graph.focus({nodeId})`: root and all `contains` descendants; internal edges
+  and outgoing immediate `depends_on` prerequisites. References are not expanded
+  into another subtree or graph. Simple nodes return ordinary detail slices.
+- `initiative.get({id})` and `node.get({id})`: canonical records.
+- `history.list({target?, actor?, since?})`: newest-first event order with
+  replay-derived before/after operations, actor, command, evidence refs, run ID
+  and undo linkage. An ignored replay operation has no fabricated change.
+  Full retained history is required to reconstruct undo and delete preimages.
+
+The rail defaults to the last seven days, at most 20 entries. Its clock comes
+from the trusted application port. Lifecycle, execution state, MoSCoW, dates,
+outcomes, routes, prerequisites, supersession and objective alignment changes
+are meaningful, as are initiative/node/edge/question/objective creation or
+removal. Renames, descriptions, ordering, group membership, timestamp and
+protection maintenance are retained in History but omitted from the rail.
+There is no generated prose or completion metric. Freshness remains a separate
+machine-local ingestion concern; these queries do not infer successful sync.
+
+The pure projection helpers accept schema/invariant-validated records. Their
+record references belong to that supplied state; `Domain.query` clones the
+public result. Unknown queries, unsupported arguments and missing records fail
+explicitly. C6/P1 must authenticate clients and restrict read results before
+sharing them with a scoped external client; these methods are the internal
+core read API, not an exposed transport.
