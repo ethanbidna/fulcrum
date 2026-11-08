@@ -93,3 +93,43 @@ Queries never mutate. Served from the in-memory folded state and the SQLite inde
 ## Events emitted for projections
 
 `AppliedChange { eventId, actor, ops, raisedQuestionIds }` is published to subscribers (UI, MCP resource-change notifications, index). The UI re-reads affected projections; it does not patch local state optimistically beyond the in-flight command.
+
+## C3 executable API
+
+`packages/domain` exports `Domain`, `CommandEnvelope`, `DomainPorts` and the
+`COMMAND_ARGUMENTS` catalog. The exact argument keys are listed there and
+exercised individually in `tools/workspace/domain-commands.test.mjs`.
+
+- Creates/proposals and `source.record`, `assertion.record`, `question.raise`,
+  `device.register` take `{record}`. Caller-supplied IDs identify records;
+  command handlers supply creation timestamps and initiative defaults.
+- Updates take `{id, patch}` with the field allow-lists in the catalog above.
+  Other setters take `{id, fieldName: value}`. `decision.decide` takes
+  `{id, outcome}`; `question.resolve` takes `{id, resolutionId}`.
+- Evidence commands take `{target, evidenceRef}` / `{target, sourceId}`.
+  Field protection takes `{target, field}`; only the user may unprotect.
+- Entity merge takes `{id, intoId}`. Split takes `{id, record, aliases}` and
+  explicitly moves those aliases into a new entity; existing references stay
+  on the original unless separately corrected. Objective reranking takes
+  `{ranks: [{id, rank}]}`; alignment takes
+  `{initiativeId, objectiveId, alignment}`.
+- Rejection takes `{signature, untilNewEvidence}` (use false for indefinite).
+  Defer takes `{id, deferredUntil}` (null clears its optional date).
+  Settings setters take their named setting as the sole key.
+- Undo takes `{eventId}` / `{runId}`. Optional envelope `baseEventIds` maps
+  `kind:id:field` to the last event seen (or null); a mismatch returns
+  `STALE_BASE`. Unknown commands/keys and unsupported patch fields are rejected.
+
+The application supplies canonical Ajv state/event validators, authenticated
+local identity/scope, and the durable commit port. A trusted reconciliation
+proof supplies a creation match attempt and, for user/external commitments, a
+prospective evidence-backed assertion recorded atomically with the node.
+Neither proof nor actor authority is taken from source content. See
+[ADR-0012](decisions/0012-command-transactions-and-undo.md).
+
+A protected AI update commits suggested assertions and, for a material change,
+one deduplicated contextual Question. The original field remains unchanged.
+Protected deletions are denied. Missing evidence and rejected reintroductions
+are denied without a write. MCP writes are tagged by their event actor; they
+share the same command handlers. Portfolio-wide commands require unrestricted
+MCP scope, and cross-initiative edge checks include both endpoints.

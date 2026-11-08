@@ -6,3 +6,7 @@ export { checkPolicy, PolicyRule } from './policy.js';
 export type { FieldWrite, PolicyIntent, PolicyContext, PolicyResult, PolicyRuleId } from './policy.js';
 export { CardState, buildGraph, deriveCardState, isSatisfied, prerequisitesMet, isReached, isSkipped, isOnLivePath, nextAvailableActions } from './card-state.js';
 export type { Graph, DerivedCardState } from './card-state.js';
+export { Domain } from './domain.js';
+export { COMMAND_ARGUMENTS, suggestionSignature } from './commands.js';
+export type { CommandName, CommandEnvelope, CommandResult, DomainError, DomainPorts, EventDraft, AppliedChange } from './commands.js';
+export { replayEvents } from './replay.js';
