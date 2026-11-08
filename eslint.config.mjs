@@ -2,7 +2,7 @@ import tseslint from 'typescript-eslint';
 import layers from './tools/workspace/layers.mjs';
 
 export default [
-  { ignores: ['**/node_modules/**', '**/dist/**', 'packages/schema/src/generated.ts'] },
+  { ignores: ['**/node_modules/**', '**/dist/**', '**/dist-dev/**', 'packages/schema/src/generated.ts'] },
   ...tseslint.configs.recommended,
   {
     files: ['apps/**/*.{ts,tsx,js,mjs}', 'packages/**/*.{ts,tsx,js,mjs}'],

@@ -75,10 +75,15 @@ Rules (enforced by lint import boundaries once the monorepo exists):
 
 | Layer | May import | Must not |
 |---|---|---|
+| `apps/core` (composition root) | public `domain` and driver APIs, generated types, Node | domain/driver private modules |
 | `apps/desktop`, `packages/mcp` | `domain` public API, generated types | `store`, `index`, any driver |
 | `packages/domain` | generated schema types, `store` and `index` **interfaces** | Node/Tauri APIs, network, model calls |
 | `packages/ingest` | `domain` commands, driver interfaces | write workspace files directly |
 | drivers | Node APIs, their own third-party libs | `domain` internals |
+
+The C6 implementation and development-only transport boundary are described in
+[ADR-0014](decisions/0014-core-transports.md). The production core has no TCP
+listener; its separate browser-development build is not a release artifact.
 
 The **domain** is pure: given current state and a command, it returns either a rejection or a list of field-level ops plus derived questions. That makes every rule unit-testable with fixtures and keeps the AI path and the human path identical.
 

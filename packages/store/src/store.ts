@@ -32,10 +32,10 @@ export class FileWorkspaceStore implements WorkspaceStore {
   private checkpointProvider: (() => Promise<WorkspaceStateDoc>) | undefined;
   private readonly watchers = new Set<() => void>();
   constructor(private readonly options: StoreOptions) {}
-  static async create(directory: string, now = new Date()): Promise<WorkspaceManifest> {
+  static async create(directory: string, now = new Date(), options: { schemaDirectory?: URL } = {}): Promise<WorkspaceManifest> {
     await mkdir(directory, { recursive: true });
     const manifest: WorkspaceManifest = { format: 'fulcrum-workspace', schemaVersion: SCHEMA_VERSION, workspaceId: uuid(), createdAt: now.toISOString() };
-    const validators = await loadStoreValidators();
+    const validators = await loadStoreValidators(options.schemaDirectory);
     try { await durableFile(path.join(directory, 'workspace.json'), JSON.stringify(manifest)); await syncDirectory(directory); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error; }
     const existing = JSON.parse(await readFile(path.join(directory, 'workspace.json'), 'utf8')) as WorkspaceManifest;
@@ -48,7 +48,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
     const relative = path.relative(this.directory, this.localDirectory);
     if (!relative || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative))) throw new StoreError('LOCAL_DIRECTORY_IN_WORKSPACE', 'Local state must be outside the workspace');
     await mkdir(this.localDirectory, { recursive: true });
-    this.validators = await loadStoreValidators();
+    this.validators = await loadStoreValidators(this.options.schemaDirectory);
     this.lock = await acquireCoreLock(this.localDirectory, this.options.lockStaleMs);
     try {
       const read = await readWorkspace(this.directory, this.validators);
