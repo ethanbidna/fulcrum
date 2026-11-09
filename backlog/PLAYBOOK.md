@@ -67,6 +67,11 @@ and native checks remain pending. No Owner checkbox is completed by this excepti
 | 26 | U6 context view | #25 | 19, 21 | — | — |
 | 27 | U7 timeline | #26 | 19 | — | — |
 
+For I1, the owner requested continuation after merged U5 (#59) on 2026-11-09.
+That satisfies the implementation prerequisite for step 21; step 20's week-long
+usability review remains unchecked. This exception accepts no model, connector
+or hardware behavior.
+
 ## Phase D — autonomy and questions (M3)
 
 | Step | Item | Issue | Needs | Owner action | Extra instructions |

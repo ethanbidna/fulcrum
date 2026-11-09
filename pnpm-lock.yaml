@@ -53,6 +53,9 @@ importers:
       '@fulcrum/index':
         specifier: workspace:*
         version: link:../../packages/index
+      '@fulcrum/ingest':
+        specifier: workspace:*
+        version: link:../../packages/ingest
       '@fulcrum/llm':
         specifier: workspace:*
         version: link:../../packages/llm
@@ -62,6 +65,9 @@ importers:
       '@fulcrum/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      '@fulcrum/sources':
+        specifier: workspace:*
+        version: link:../../packages/sources
       '@fulcrum/store':
         specifier: workspace:*
         version: link:../../packages/store
@@ -145,7 +151,11 @@ importers:
         specifier: workspace:*
         version: link:../schema
 
-  packages/ingest: {}
+  packages/ingest:
+    dependencies:
+      '@fulcrum/sources':
+        specifier: workspace:*
+        version: link:../sources
 
   packages/llm: {}
 

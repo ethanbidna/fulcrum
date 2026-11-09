@@ -90,3 +90,26 @@ On wake (or app start): pull each scope from its cursor; process **newest-first 
 | Connector auth expired | Scope marked "Needs reconnect" in Settings → Sources; no popups; small indicator on freshness. |
 | Context sidecar down | Fall back to native ContextIndex. |
 | Extraction invalid JSON twice | Item marked `extraction_failed`; no state change; retry on model upgrade. |
+
+## Implemented I1 boundary
+
+The synthetic adapter, reference-only SQLite queue and single-flight scheduler
+are implemented in `packages/sources` and `packages/ingest`. The core accepts
+explicit programmatic adapter/scope configuration; default operation stays off.
+Pages and continuations commit atomically, successful hashes dedupe, changed
+payloads queue separately, revoked scopes are purged, and handover checks consult
+the current workspace ingestion-device setting before and after requests.
+
+Full source text is rehydrated at processing time rather than written to the
+queue. Delivery is at least once: consumers must use the supplied stable
+connector/remote-id/hash idempotency key for Domain commands. Healthy scopes
+continue when an independent source fails. Missing/changed rehydrated sources
+and failed consumers remain explicit failures; no silent successful retry.
+
+`status.freshness` is a core read query: pending references without an extraction
+consumer remain “Local AI unavailable”; a complete scan alone cannot report
+current while relevant work waits. The seven-day synthetic integration covers
+the ingestion portion of scenario 1. Real extraction, thread-context batching,
+superseded assertions, reconciliation, Settings controls, native sleep/resource
+hooks and live connectors remain later steps. No actual sleep/wake or account
+behavior is accepted by these tests.
