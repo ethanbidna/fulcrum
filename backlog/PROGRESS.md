@@ -32,7 +32,7 @@ Steps done since last audit: 5
 | 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
 | 20 | U5 list and history | waiting-owner | [ ] | #59 | Merged; canonical List and evidence-linked History; 405 tests and Intel/ARM builds pass; owner week-long usage pending |
 | 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler, restart/dedupe and seven-day freshness tests; real extraction/connectors/native sleep remain later |
-| 22 | I3 extraction | done | n/a | PR_PENDING | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
+| 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | todo | n/a | | |
 | 24 | I5 reconciler | todo | n/a | | |
 | 25 | I2 first real connector | todo | [ ] | | |
