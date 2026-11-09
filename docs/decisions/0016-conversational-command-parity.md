@@ -1,4 +1,4 @@
-# ADR-0015: Conversational commands preserve manual intent
+# ADR-0016: Conversational commands preserve manual intent
 
 - **Status:** Accepted
 - **Date:** 2026-11-09

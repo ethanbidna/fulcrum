@@ -97,4 +97,4 @@ from an AI command, before continuing the list. Bring the command adapter portio
 of P1 forward after U4; preserve the exclusive MCP conversational interface.
 P1 remains incomplete until its scoped settings, installation, headless startup,
 packaging and owner client checks pass. U5 follows the command-parity review;
-existing owner/native checks remain pending. See ADR-0015.
+existing owner/native checks remain pending. See ADR-0016.

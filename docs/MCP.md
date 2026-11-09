@@ -66,6 +66,6 @@ Fulcrum cannot stop a client model from following injected text, but it never pl
 ## Command adapter preview
 
 The current command adapter is documented in [packages/mcp](../packages/mcp/README.md).
-It brings current desktop command parity forward under ADR-0015. The settings,
+It brings current desktop command parity forward under ADR-0016. The settings,
 scopes, automatic core startup, one-click installation and resource notifications
 above remain the full P1 target; the preview does not claim them implemented.
