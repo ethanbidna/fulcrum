@@ -195,7 +195,7 @@ interface ContextIndex {
 | Schemas | JSON Schema 2020-12 as source of truth; TS types generated; Ajv at runtime | decided | [0008](decisions/0008-schema-source-of-truth.md) |
 | Local index | SQLite + FTS5 (machine-local only) | preferred | [0005](decisions/0005-portable-workspace-event-log.md) |
 | Connectors | `SourceAdapter` backed by Activepieces pieces; execution mode to measure | direction accepted; execution provisional | [0011](decisions/0011-activepieces-integration-boundary.md) |
-| Local model | Meta Llama via Ollama, hardware-tiered | *(provisional — S2)* | [0003](decisions/0003-local-model-runtime.md) |
+| Model providers | Runtime interfaces; local default, hardware-aware chooser; optional explicit hosted adapters | Selection/installation planned; model adoption pending | [0018](decisions/0018-model-choice-and-setup.md) |
 | Temporal context | Native SQLite `ContextIndex` first; Graphiti adapter if S3 passes | *(provisional — S3)* | [0004](decisions/0004-context-layer.md) |
 | Ingestion host | One designated device per workspace | decided | [0006](decisions/0006-single-ingestion-device.md) |
 | MCP | Local stdio shim, off by default, scoped and logged | decided | [0007](decisions/0007-local-mcp-security.md) |
@@ -207,9 +207,14 @@ interface ContextIndex {
 - [WORKSPACE_FORMAT.md](WORKSPACE_FORMAT.md) — files, events, merge, migration, backup
 - [DOMAIN_COMMANDS.md](DOMAIN_COMMANDS.md) — command catalog, autonomy policy, undo
 - [INGESTION.md](INGESTION.md) — connector → reconciliation pipeline
-- [OPERATIONS.md](OPERATIONS.md) — local-only modes, sleep/wake, resources, model install
+- [OPERATIONS.md](OPERATIONS.md) — local-default modes, sleep/wake, resources, model install
 - [MCP.md](MCP.md) — tool contract
 - [SECURITY_MODEL.md](SECURITY_MODEL.md) — threat model, trust, public repo boundary
 - [ONBOARDING.md](ONBOARDING.md) — install and first run for non-technical users
 - [RISKS.md](RISKS.md) — risk register
 - [SCENARIOS.md](SCENARIOS.md) — golden scenarios and fixtures
+
+Optional hosted adapters (ADR-0018) are infrastructure drivers behind the same
+runtime boundary. Provider calls originate in the core after explicit local
+configuration, never in the UI or domain. Keys remain in Keychain; selected data
+and usage scope are enforced before a call. No app-hosted proxy is introduced.

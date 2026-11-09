@@ -11,7 +11,11 @@
 | **Ingestion — full** | + larger model, embeddings, optional Graphiti sidecar. | Apple Silicon with ≥16 GB. |
 | **Paused** | Ingestion queue frozen; UI fully usable. | User toggle, battery, thermal, or fullscreen/presentation. |
 
-All modes are local-only: no hosted inference, no telemetry, no app backend. The only network traffic is to the user's opted-in source APIs, model downloads the user starts, and (if enabled) an MCP client the user runs.
+All modes default to local inference, with no telemetry or app backend. Optional
+hosted inference requires explicit provider/content-scope opt-in and a user API
+key (ADR-0018); local failures never enable it automatically. Other traffic is
+limited to opted-in source APIs, user-started model/runtime downloads and updates,
+and an explicitly enabled MCP client.
 
 ## Sleep and wake
 
@@ -43,25 +47,30 @@ results are committed; the values here are not measured thresholds.
 
 ## Model tiers
 
-Candidates only — the Llama models are under the Meta Llama Community License, downloaded through Ollama on the user's request, never bundled ([LICENSING.md](LICENSING.md)).
+Candidates only; profiles must identify purpose, runtime, quantization, model
+digest, hardware measurements and accuracy-evaluation status. An installed or
+fast model is not automatically accepted for extraction. [ADR-0018](decisions/0018-model-choice-and-setup.md)
+supersedes the original automatic Llama 3B/1B fallback assumptions.
 
-| Hardware (detected) | Starting candidate | ContextIndex | Notes |
-|---|---|---|---|
-| Intel, 8 GB | none by default; offer viewer mode or 1B | native | Likely too constrained; S2 decides. |
-| Intel, 16 GB+ (target) | Llama 3.2 3B instruct, 4-bit | native | 1B fallback if 3B swaps or is too slow. |
-| Apple Silicon, 8 GB | Llama 3.2 3B instruct, 4-bit | native | |
-| Apple Silicon, 16 GB+ | Llama 3.1 8B instruct, 4-bit | native or Graphiti | Graphiti only if S3 passes. |
+| Hardware | Provisional starting point | Acceptance still required |
+|---|---|---|
+| Intel / limited memory | User-selected compatible local candidate, background use, or optional hosted setup | No default extractor accepted; check latency/resources and accuracy |
+| Apple Silicon, about 16 GB | Qwen3.5 4B as a smaller candidate | Comparable full extraction holdout and actual device test |
+| Apple Silicon, about 24–32 GB+ | Llama 3.1 8B quantized candidate | Device test and semantic/accuracy review |
 
-The app stores the selected model **by tested capability tag**, not just name, so a future model can be swapped in after passing the same extraction eval set.
+These are proposed profiles, not minimum RAM guarantees. A bounded synthetic
+self-test checks local compatibility and responsiveness. The existing resource
+policy remains in force. ContextIndex/Graphiti selection is independent.
 
-## Model install (first run or Settings → Local AI)
+## Model install (first run or Settings → AI)
 
-1. Detect architecture, RAM, macOS version, free disk.
-2. Detect Ollama (`127.0.0.1:11434/api/version`). If missing, explain in one sentence and offer to download the official Ollama app (opens the vendor page; Fulcrum does not silently install software). Bundling the Ollama binary is a later productization option.
-3. Show the model's license summary and link; require the user to accept before download.
-4. Pull the tier's model with progress, pause/resume and disk-space check.
-5. Run a 30-second self-test on synthetic text: JSON validity and latency. Show the result honestly ("Works, but slow on this Mac — Fulcrum will process in the background while plugged in").
-6. If anything fails: plain-language reason + Retry + "Continue without local AI" (viewer mode).
+The [onboarding flow](ONBOARDING.md#ai-selection-and-setup-p2-contract) owns model
+choice, origin filters, license consent, managed runtime/download progress,
+verification, cancellation/recovery and self-test. Local is the default; hosted
+setup is a separate explicit path with Keychain credentials, sharing scope and
+usage limits. No Terminal or manual model-pull command is required of end users.
+No model weights or API keys are bundled or synced. Install records and provider
+settings remain machine-local; runtime adapters stay behind public interfaces.
 
 ## Diagnostics
 

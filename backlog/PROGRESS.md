@@ -30,7 +30,7 @@ Steps done since last audit: 3
 | 18 | U3 flow canvas | waiting-owner | [ ] | #54 | Editable canonical flow with typed relationships and session undo; browser/native review limits recorded |
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
 | 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
-| 20 | U5 list and history | waiting-owner | [ ] | #59 | Canonical List and evidence-linked History implemented; owner week-long usage pending |
+| 20 | U5 list and history | waiting-owner | [ ] | #59 | Merged; canonical List and evidence-linked History; 405 tests and Intel/ARM builds pass; owner week-long usage pending |
 | 21 | I1 adapters, queue, scheduler | todo | n/a | | |
 | 22 | I3 extraction | todo | n/a | | |
 | 23 | I4 native ContextIndex | todo | n/a | | |
@@ -44,7 +44,7 @@ Steps done since last audit: 3
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
 | 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
-| 34 | P2 first-run wizard | todo | [ ] | | |
+| 34 | P2 first-run wizard | todo | [ ] | | ADR-0018 adds model/origin choices, managed downloads and optional API keys; requirements only, implementation pending |
 | 35 | P6 encryption — design | todo | n/a | | Merging the PR is the approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
 | 37 | P5 signing, notarization, updates | todo | [ ] | | |
