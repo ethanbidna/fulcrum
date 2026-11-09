@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 5
+Steps done since last audit: 0
 
 ## Steps
 
@@ -31,7 +31,7 @@ Steps done since last audit: 5
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
 | 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
 | 20 | U5 list and history | waiting-owner | [ ] | #59 | Merged; canonical List and evidence-linked History; 405 tests and Intel/ARM builds pass; owner week-long usage pending |
-| 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler, restart/dedupe and seven-day freshness tests; real extraction/connectors/native sleep remain later |
+| 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler and seven-day freshness tests; audit #63 tracks canonical-hash handover dedupe defect; live connectors/native sleep remain later |
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | todo | n/a | | |
 | 24 | I5 reconciler | todo | n/a | | |
@@ -158,5 +158,7 @@ You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox
 Codex can keep working on steps that don't depend on this (2–7) in the meantime.
 
 ## Audit log
+
+- 2026-11-09 — Recurring audit through I3 / #62: one confirmed handover-dedupe schema mismatch filed as #63; no implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-09-product.md). Audit PR #64; owner checks and model adoption remain pending.
 
 - 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR #48; owner checks remain unchanged.
