@@ -29,8 +29,8 @@ Steps done since last audit: 3
 | 17 | U2 portfolio board | waiting-owner | [ ] | #53 | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
 | 18 | U3 flow canvas | waiting-owner | [ ] | #54 | Editable canonical flow with typed relationships and session undo; browser/native review limits recorded |
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
-| 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Owner priority #57; inline request/review/apply/undo implemented; agent review and owner usability remain separate |
-| 20 | U5 list and history | todo | [ ] | | Owner: use the app for a week |
+| 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
+| 20 | U5 list and history | waiting-owner | [ ] | #59 | Canonical List and evidence-linked History implemented; owner week-long usage pending |
 | 21 | I1 adapters, queue, scheduler | todo | n/a | | |
 | 22 | I3 extraction | todo | n/a | | |
 | 23 | I4 native ContextIndex | todo | n/a | | |
@@ -52,6 +52,14 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 20 — U5 List and History review
+
+1. With Node 22 LTS and pnpm 10.11.0, run `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm check`, then `pnpm dev`. Open `http://127.0.0.1:5173`; choose Vendor evaluation. Use synthetic data only.
+2. Open List. Check containment indentation, type, state, role, date, prerequisites and source counts. Edit a title directly; Enter or blur saves, Escape cancels. Use the command input for generated edits. Return to Flow and confirm it is the same node.
+3. Open History. Inspect actor, command, before/after and attached evidence. Undo the title event; confirm restoration in List and Flow. Domain conflicts must show an error without silently overwriting later work. AI-run undo applies to the entire displayed run, including other initiatives.
+4. Try browser Back/Forward/reload and narrow-window table scrolling. Evidence links open originals only when a safe HTTP(S) permalink exists. Native external-link, Keychain and visible-window behavior remain separately unverified.
+5. Use the app by hand for about a week; file issues for anything that bothers you. Record observations in `docs/reviews/U5.md`, then tick only the Owner box for step 20. Ctrl-C stops/removes the disposable fixture. Other Owner checks and model adoption remain pending.
 
 ### Step 19a — U4a command review
 

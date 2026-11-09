@@ -21,7 +21,8 @@ external dependencies and decisions. See ../../docs/PRODUCT_SPEC.md, which wins.
 
 The app shell provides Initiatives, Priorities, Questions and Settings navigation.
 U2 adds the grouped active-initiative portfolio; U3 adds the editable initiative flow.
-U4 adds the contextual inspector and Task focus over the same graph. Priorities,
+U4 adds the contextual inspector and Task focus over the same graph. U5 adds
+canonical List and evidence-linked History with reversible events. Priorities,
 question resolution and settings remain later workflows. Tasks are only the user's work.
 The owner also requires both an in-app natural-language command bar and external
 MCP. The command bar drafts local changes for explicit review and atomic apply;

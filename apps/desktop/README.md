@@ -211,3 +211,17 @@ The command bar and MCP use the same domain commands. MCP remains separately
 disabled by default and requires its explicit sharing configuration; the command
 bar does not enable external access. See [U4a review](../../docs/reviews/U4a.md)
 for measured results and pending native/owner checks.
+
+## List and History (U5)
+
+Flow, List and History are lateral initiative routes. List uses the same canonical
+records and containment hierarchy; prerequisites remain separate. Titles edit
+inline: Enter or blur saves, Escape restores. Other edits remain available through
+the command input. A refresh retains unsaved/rejected titles.
+
+History records actor, command, before/after and attached evidence. Undo change
+compensates one event; Undo AI run compensates the entire indicated run, even
+across initiatives. Later-write conflicts remain visible domain errors. Evidence
+with a safe HTTP(S) permalink opens the original; other evidence remains named
+without inventing a link. Native external-link behavior requires owner acceptance.
+No model, connector or external client is needed to use these views.

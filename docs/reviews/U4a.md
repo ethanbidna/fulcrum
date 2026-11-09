@@ -42,7 +42,8 @@
   the readable compact command-input typography is recorded by the documenter.
 - Full Node 22 `pnpm check`: 79 reference plus 319 workspace tests pass
   (398 total), with one existing S1 TODO. Core and release frontend builds pass.
-  Exact-head CI is recorded below when completed.
+  Final head c0fdc9e passed CI 42656203194 and Intel/ARM native tests/debug
+  builds 42656203322; PR #58 merged as 612130d5.
 
 ## Limits
 

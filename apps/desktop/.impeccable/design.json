@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-09T16:30:57.142095+00:00",
+  "generatedAt": "2026-11-09T19:08:32.331007+00:00",
   "title": "Design System: Fulcrum desktop",
   "extensions": {
     "colorMeta": {
@@ -394,11 +394,32 @@
       "description": "One request above the workspace, followed by a structured review before explicit apply.",
       "html": "<form class=\"ds-command\"><label class=\"ds-command-label\" for=\"ds-request\">What would you like to change?</label><div class=\"ds-command-input\"><input id=\"ds-request\" placeholder=\"Describe a change to your work\u2026\" /><span class=\"ds-command-shortcut\" aria-hidden=\"true\">\u2318K</span><button aria-label=\"Review command\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M4 10h12M11 5l5 5-5 5\"/></svg></button></div><p>Enter to review changes \u00b7 planned locally</p></form>",
       "css": ".ds-command { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; color: var(--text); line-height: 1.5; max-width: 1080px; margin-bottom: 24px; } .ds-command-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .ds-command-input { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line-control); padding: 8px 0; } .ds-command-input:focus-within { border-bottom-color: var(--accent); } .ds-command input { flex: 1; min-width: 0; border: 0; border-radius: 0; padding: 8px 0; background: transparent; color: var(--text); font: inherit; font-size: 17px; } .ds-command input::placeholder { color: var(--text-secondary); opacity: 1; } .ds-command-shortcut, .ds-command p { color: var(--text-secondary); font-size: 12px; } .ds-command p { margin: 8px 0 0; } .ds-command button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--radius-control); background: var(--accent); color: var(--surface); cursor: pointer; } .ds-command button:hover:not(:disabled) { background: var(--accent-hover); } .ds-command button:disabled { opacity: .5; cursor: default; } .ds-command svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; } .ds-command input:focus-visible, .ds-command button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; } @media(max-width: 640px) { .ds-command input { font-size: 16px; } .ds-command-shortcut { display: none; } }"
+    },
+    {
+      "name": "Initiative view navigation",
+      "kind": "nav",
+      "description": "Lateral representations of the same initiative, selected with an underline.",
+      "html": "<nav class=\"ds-views\" aria-label=\"Initiative views\"><a href=\"#flow\">Flow</a><a href=\"#list\" aria-current=\"page\">List</a><a href=\"#history\">History</a></nav>",
+      "css": ".ds-views { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; color: var(--text); line-height: 1.5; display: flex; flex-direction: row; gap: 24px; border-bottom: 1px solid var(--line); margin-bottom: 24px; font-size: 14px; } .ds-views a { padding: 8px 0 12px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; } .ds-views a[aria-current=\"page\"] { color: var(--text); border-bottom-color: var(--accent); } .ds-views a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Canonical work table",
+      "kind": "custom",
+      "description": "Locally scrolling table with editable titles and containment indentation.",
+      "html": "<div class=\"ds-list-scroll\" role=\"region\" aria-label=\"Scrollable work list\" tabindex=\"0\"><table class=\"ds-work-list\"><thead><tr><th scope=\"col\">Work</th><th scope=\"col\">Type</th><th scope=\"col\">State</th><th scope=\"col\">Role</th><th scope=\"col\">Date</th><th scope=\"col\">Prerequisites</th><th scope=\"col\">Sources</th></tr></thead><tbody><tr><th scope=\"row\"><input aria-label=\"Title for Synthetic parent\" value=\"Synthetic parent\" /></th><td>task</td><td>open</td><td>Personal action</td><td>\u2014</td><td>\u2014</td><td>1</td></tr><tr><th scope=\"row\" style=\"--ds-row-depth:1\"><input aria-label=\"Title for Synthetic child\" value=\"Synthetic child\" /></th><td>task</td><td>open</td><td>Personal action</td><td>\u2014</td><td><a href=\"#initiative\">Synthetic prerequisite</a></td><td>0</td></tr></tbody></table></div>",
+      "css": ".ds-list-scroll { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; color: var(--text); line-height: 1.5; overflow-x: auto; max-width: 100%; } .ds-work-list { border-collapse: collapse; width: 100%; min-width: 900px; text-align: left; font-size: 12px; } .ds-work-list th, .ds-work-list td { border-bottom: 1px solid var(--line); padding: 12px 10px; vertical-align: top; font-weight: 400; } .ds-work-list thead th { color: var(--text-secondary); padding-top: 0; } .ds-work-list tbody th { min-width: 260px; padding-left: calc(10px + var(--ds-row-depth, 0) * 20px); } .ds-work-list input { width: 100%; min-width: 160px; padding: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 14px; } .ds-work-list a { color: var(--accent); text-underline-offset: 3px; } .ds-list-scroll:focus-visible, .ds-work-list input:focus-visible, .ds-work-list a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "History event",
+      "kind": "custom",
+      "description": "Flat event with attributed changes, inline disclosure and local undo action.",
+      "html": "<article class=\"ds-history\"><header><div><h3>node.update</h3><p>You \u00b7 <time datetime=\"2026-11-09T12:00:00Z\">Nov 9, 2026</time></p></div><button>Undo change</button></header><details open><summary>1 change</summary><ul><li><p>Synthetic Task \u00b7 title</p><dl><dt>Before</dt><dd>Synthetic draft</dd><dt>After</dt><dd>Synthetic next step</dd></dl></li></ul><p class=\"ds-history-note\">No evidence was attached to this event.</p></details></article>",
+      "css": ".ds-history { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; color: var(--text); line-height: 1.5; border-bottom: 1px solid var(--line); padding: 20px 0; } .ds-history header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 12px; } .ds-history h3 { font-size: 14px; font-weight: 500; margin: 0 0 4px; } .ds-history header p, .ds-history-note { color: var(--text-secondary); font-size: 12px; margin: 0; } .ds-history button { border: 0; padding: 0; background: transparent; color: var(--accent); font: inherit; cursor: pointer; text-underline-offset: 3px; } .ds-history button:hover { text-decoration: underline; } .ds-history button:disabled { color: var(--text-secondary); cursor: default; } .ds-history summary { cursor: pointer; font-size: 12px; color: var(--accent); } .ds-history ul { list-style: none; padding: 0; margin: 16px 0; } .ds-history li { margin-bottom: 16px; } .ds-history li p { font-size: 14px; margin: 0 0 8px; overflow-wrap: anywhere; } .ds-history dl { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 4px 12px; margin: 0; font-size: 12px; } .ds-history dt { color: var(--text-secondary); } .ds-history dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; } .ds-history button:focus-visible, .ds-history summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
     }
   ],
   "narrative": {
     "northStar": "Four stable destinations",
-    "overview": "A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.\n\nThis records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.",
+    "overview": "A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.\n\nThis records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review, plus U5 List and History representations. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.",
     "keyCharacteristics": [
       "White work area with cool neutral navigation.",
       "Muted blue selection and visible keyboard focus.",
@@ -406,7 +427,8 @@
       "Initiative cards with one meaningful state and a quiet optional context rail.",
       "A readable flow canvas with distinct object marks and explicit relationship labels.",
       "A collapsible inspector and Task focus that preserve the same graph context.",
-      "One inline command request followed by a structured review and explicit apply."
+      "One inline command request followed by a structured review and explicit apply.",
+      "Lateral initiative views with a canonical work table and an inspectable change ledger."
     ],
     "rules": [
       {

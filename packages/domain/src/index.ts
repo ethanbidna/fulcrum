@@ -26,3 +26,6 @@ export type { Inspection, InspectionTarget } from './inspector-projections.js';
 export type { CommandRequest, CommandPlan, CommandChange } from './command-plans.js';
 
 export { MAX_COMMAND_PROMPT_LENGTH } from './command-plans.js';
+
+export { projectInitiativeList, projectInitiativeHistory } from './detail-projections.js';
+export type { InitiativeListRow, InitiativeHistoryEntry, EvidenceLink, DescribedChange } from './detail-projections.js';

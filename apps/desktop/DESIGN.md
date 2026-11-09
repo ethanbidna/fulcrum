@@ -184,7 +184,7 @@ components:
 
 A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.
 
-This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
+This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review, plus U5 List and History representations. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
 
 **Key Characteristics:**
 
@@ -195,6 +195,7 @@ This records the implemented U1 shell, U2 active-initiative portfolio, U3 editab
 - A readable flow canvas with distinct object marks and explicit relationship labels.
 - A collapsible inspector and Task focus that preserve the same graph context.
 - One inline command request followed by a structured review and explicit apply.
+- Lateral initiative views with a canonical work table and an inspectable change ledger.
 
 ## Colors
 
@@ -238,6 +239,8 @@ Blocked red, waiting amber and completed green retain semantic roles from the hi
 
 The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size. U4 reuses the same ramp: caption-sized inspector fields and breadcrumbs, label-sized inspector heading, 17px object titles, 13px section headings and a title-sized focused Task heading. Counts and draft notes remain secondary. The command entry uses regular-weight 17px text, reducing to 16px at 640px and below for readable entry. Review headings reuse 17px heading styling, change names use body text, and before/after values, hints and results use caption text; this is a local component treatment, not a new global type scale.
 
+List and History reuse the established ramp: 17px section headings, body-sized editable titles and change labels, medium-weight label-sized event headings, and caption-sized columns, attribution, timestamps and disclosures. No new font, color or type-size token is introduced.
+
 ## Layout
 
 Desktop uses a 216px navigation column beside a flexible work area, with a viewport-height minimum. Navigation has 32px top padding; main content has 40px padding. Settings rests at the navigation foot, above connection status. The page header uses a bottom separator and 24px bottom padding.
@@ -255,6 +258,8 @@ The initiative flow places a quiet attribute row and wrapping local toolbar abov
 With the inspector open, the flow workspace has a flexible canvas column and a 300px inspector column separated by 20px. The inspector uses a left separator and 20px left padding. At 1040px and below it follows the canvas in normal flow, with a top separator and 20px top padding. Above that breakpoint the canvas stays sticky with a 20px top inset while inspector content scrolls with the page. Hiding the inspector returns its width to the canvas. Focus breadcrumbs run horizontally and wrap; they do not inherit the shell navigation's column layout.
 
 The inline command region follows the page heading and precedes the current workspace content. Its maximum width is 1080px with 24px bottom spacing. Review stays in normal flow, with 20px top spacing and vertical padding; it preserves the graph below. Change rows use 12px vertical padding and fine separators. Before/after values use a 36px label column beside a flexible value column. At 640px and below the shortcut hint hides and the review-heading gap reduces from 16px to 8px.
+
+Initiative representations share a horizontal navigation row below the command input, with 24px gaps and a bottom separator. The List table stays full width with a 900px minimum inside a focusable horizontal scroll region; narrow windows scroll the table locally. Cells have 12px by 10px padding. The Work column has a 260px minimum and adds 20px indentation per containment level. History remains in normal page flow, with 20px vertical event padding, a 16px header gap and a flexible Before/After grid beside 48px labels.
 
 ## Elevation & Depth
 
@@ -327,6 +332,18 @@ Focus task in the inspector and double-clicking a canonical Task open a filtered
 The leading request field uses an unfilled, square-edged input over a single control-gray underline. Focus changes the underline to blue and preserves the shared keyboard outline. The 36px square submit button uses the control radius, muted blue fill, white outline arrow and deeper-blue hover; unavailable submission uses half opacity. Supporting status and local-planning copy remain caption-sized and secondary.
 
 A request produces a flat review below the input: a heading and quiet change count, named changes, explicit From/To values for field updates, and descriptive details for created or removed records. The review uses separators rather than nested cards, badges or a conversation transcript. Apply changes is the primary action; Dismiss is an unfilled blue text action. Planning, apply failures and the applied result remain inline. The applied result exposes Undo command for that event.
+
+### Initiative view navigation
+
+Flow, List and History are lateral links to representations of one initiative. Labels use secondary text at rest; the current view uses primary text and a two-pixel blue underline over the shared separator. Links have 8px top and 12px bottom padding, no filled tab surface, and the shared keyboard outline. Hash routes preserve browser back navigation and initiative context.
+
+### Canonical work table
+
+A plain table presents Work, Type, State, Role, Date, Prerequisites and Sources. Quiet column headings and thin row rules keep the work titles prominent. Containment appears as title indentation and an accessible Child Task label; prerequisites remain explicit links to their initiatives. Titles are unfilled, borderless body-sized inputs with visible keyboard focus. Enter or blur saves the title; Escape restores it. Pending saves disable the field, and failures keep the draft with an inline alert. The command entry remains available for other changes.
+
+### History ledger
+
+A flat chronological ledger separates events with thin rules. Each event has a medium-weight command heading, quiet actor and timestamp, explicit Undo/Undone state when relevant, and an unfilled blue Undo change action when available. A blue change-count disclosure contains named changes and Before/After values; the first event starts expanded. Long values wrap and preserve line breaks. Evidence remains inside that disclosure, with named original links opening separately or an explicit no-original-link label. AI-run undo appears with its event and initiative scope. Pending undo disables undo actions and failures appear inline. No new card, overlay or narrative-summary treatment is introduced.
 
 ### Keyboard access
 
