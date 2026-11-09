@@ -36,7 +36,7 @@ All data is synthetic. People, companies and messages in fixtures are invented.
 | 3 | Colleague's promised review → Dependency, not Task | Schema forbids owned Tasks ✅; reconciler test | Partly |
 | 4 | New idea proposed, not activated without approval | Fixture ✅; policy P1 test | Partly |
 | 5 | External opinion doesn't override protected MoSCoW | Fixture ✅ (`domain.test.mjs`); policy P4 test | Partly |
-| 6 | Aliases resolve or raise one identity question | ContextIndex test with alias fixtures | Backlog (M2) |
+| 6 | Aliases resolve or raise one identity question | `context-index.test.mjs` + `identity.json`: exact alias/ID resolution; one material contextual domain question, selection and undo | Synthetic integration (I4); unattended reconciliation remains I5 |
 | 7 | Unavailable approval blocks only dependent work | `domain.test.mjs` ✅ | Reference ✅ |
 | 8 | Conflicting source claims: both shown, chronology kept, user choice preserved | Reconciler test | Backlog (M3) |
 | 9 | Second Mac: indexes rebuilt, no credentials, no duplicate IDs | Store test with two simulated devices ✅ (fold); manual two-Mac test (S1) | Partly |
