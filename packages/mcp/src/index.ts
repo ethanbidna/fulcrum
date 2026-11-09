@@ -11,7 +11,7 @@ const REQUEST_TOKEN_LIMIT = 200;
 const INITIATIVE_TITLE_LIMIT = 200;
 const NODE_TITLE_LIMIT = 300;
 const EDGE_LABEL_LIMIT = 80;
-const INTERNAL_PREFIXES = ['device.', 'settings.', 'source.', 'assertion.', 'entity.', 'field.', 'suggestion.'];
+const INTERNAL_PREFIXES = ['command.', 'device.', 'settings.', 'source.', 'assertion.', 'entity.', 'field.', 'suggestion.'];
 export const CONVERSATIONAL_COMMANDS = (Object.keys(COMMAND_ARGUMENTS) as CommandName[]).filter(name => !INTERNAL_PREFIXES.some(prefix => name.startsWith(prefix)));
 const QUERIES = ['portfolio.list', 'portfolio.board', 'portfolio.rail', 'initiative.get', 'node.get', 'graph.get', 'graph.focus', 'inspector.get', 'history.list', 'search'] as const;
 const id = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);

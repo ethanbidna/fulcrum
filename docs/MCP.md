@@ -1,6 +1,6 @@
 # MCP server contract
 
-Fulcrum has **no built-in chat**. Conversation happens in the user's own MCP client. The MCP server exposes the same domain queries and commands as the UI — no separate policy engine ([ADR-0007](decisions/0007-local-mcp-security.md)).
+Fulcrum has **no built-in chat**. External conversation happens in the user's own MCP client; an in-app command bar also drafts local edits for explicit review (ADR-0017). The MCP server exposes the same domain queries and commands as the UI — no separate policy engine ([ADR-0007](decisions/0007-local-mcp-security.md)).
 
 ## Transport and lifecycle
 

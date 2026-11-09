@@ -39,6 +39,7 @@ build order, not the criteria for accepting a runtime or driver.
 | 17 | U2 portfolio board | #16 | 15, 16 | Review | Attach screenshots made from fixtures to the PR. |
 | 18 | U3 flow canvas | #17 | 17 | Review | Attach screenshots or a short recording. |
 | 19 | U4 inspector and focused view | #18 | 18 | Review | Demonstrate that an edit in the focused view appears in the full canvas. |
+| 19a | U4a in-app command bar | #57 | 19 | Review local command entry, preview/apply and undo | Owner explicitly requested both in-app and MCP before U5; ADR-0017 |
 | 20 | U5 list and history | #19 | 19 | Use the app by hand for about a week; file issues for anything that bothers you | — |
 
 For U2, the owner explicitly delegated U1 review/merge and asked to proceed on
@@ -94,7 +95,9 @@ After every 5 steps marked `done`, the next run is an audit instead of a step: c
 
 On 2026-11-09 the owner asked that every manual addition also be generatable
 from an AI command, before continuing the list. Bring the command adapter portion
-of P1 forward after U4; preserve the exclusive MCP conversational interface.
+of P1 forward after U4.
 P1 remains incomplete until its scoped settings, installation, headless startup,
-packaging and owner client checks pass. U5 follows the command-parity review;
+packaging and owner client checks pass. The owner then explicitly requested BOTH MCP and an in-app command bar; U4a
+implements that interaction before U5 under ADR-0017. The owner authorized
+agent review/merge and then U5 after U4a implementation review;
 existing owner/native checks remain pending. See ADR-0016.

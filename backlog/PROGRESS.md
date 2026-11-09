@@ -29,6 +29,7 @@ Steps done since last audit: 3
 | 17 | U2 portfolio board | waiting-owner | [ ] | #53 | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
 | 18 | U3 flow canvas | waiting-owner | [ ] | #54 | Editable canonical flow with typed relationships and session undo; browser/native review limits recorded |
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
+| 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Owner priority #57; inline request/review/apply/undo implemented; agent review and owner usability remain separate |
 | 20 | U5 list and history | todo | [ ] | | Owner: use the app for a week |
 | 21 | I1 adapters, queue, scheduler | todo | n/a | | |
 | 22 | I3 extraction | todo | n/a | | |
@@ -42,7 +43,7 @@ Steps done since last audit: 3
 | 30 | A2 priorities and KPIs | todo | n/a | | |
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
-| 33 | P1 MCP server | todo | [ ] | #56 | Command adapter brought forward; full P1 scoped setup, packaging and owner acceptance pending |
+| 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
 | 34 | P2 first-run wizard | todo | [ ] | | |
 | 35 | P6 encryption — design | todo | n/a | | Merging the PR is the approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
@@ -51,6 +52,14 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 19a — U4a command review
+
+1. Install Node 22 LTS and pnpm 10.11.0. Run `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm check`, then `pnpm dev`. Open `http://127.0.0.1:5173`; choose Vendor evaluation. Use synthetic content only.
+2. Press Cmd-K, enter `Rename Test design capabilities to Synthetic design review.`, then Enter. Review From/To, press Cmd-Enter to apply, and use Undo command. This exact rename does not need a model. Nothing should change before Apply.
+3. To check generation, start an existing local Ollama with the installed provisional `qwen3:4b-instruct-2507-q4_K_M` model. No download is required by the app. Focus Test design capabilities and enter `Add a child task called Prepare launch notes under this task.` Review the Task and contains link before Apply. Confirm the parent stays open; Undo removes both. Generation can take up to two minutes on this Intel Mac. Invalid/deadline failures keep text and write nothing.
+4. Try Cmd-K, Enter, Cmd-Enter, Escape, changing selection during planning, a narrow window, and Edit directly in the inspector. External MCP remains separately disabled unless explicitly configured; this UI does not enable sharing.
+5. Record observations in `docs/reviews/U4a.md`, then tick only the Owner box for step 19a. Model adoption, native visible-window/Keychain/CSP, full P1 setup, sync and other Owner checks remain pending. Ctrl-C stops/removes the disposable fixture. The owner authorized agent review/merge and continuation to U5 while these usability checks remain unchecked.
 
 ### Step 19 — U4 inspector and focus review
 

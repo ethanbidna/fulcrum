@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import type { InspectionTarget } from '@fulcrum/domain';
 import type { Platform } from '../platform/platform.js';
 import { destinationFromHash, initiativeFromHash, focusedNodeFromHash, destinations } from './navigation.js';
 import type { Destination } from './navigation.js';
 import { useInitiative } from './use-initiative.js';
 import { useCore } from './use-core.js';
 import type { CoreState } from './use-core.js';
+import { CommandBar } from './command-bar.js';
 import { Portfolio } from './portfolio.js';
 import { Icon } from './icon.js';
 const FlowCanvas = lazy(async () => ({ default: (await import('./flow-canvas.js')).FlowCanvas }));
@@ -29,8 +31,10 @@ export function App({ platform }: { platform: Platform }) {
   const [destination, setDestination] = useState(() => destinationFromHash(window.location.hash));
   const [initiativeId, setInitiativeId] = useState(() => initiativeFromHash(window.location.hash));
   const [focusedNodeId, setFocusedNodeId] = useState(() => focusedNodeFromHash(window.location.hash));
+  const [commandTarget,setCommandTarget] = useState<InspectionTarget>();
+  useEffect(()=>{setCommandTarget(focusedNodeId ? {kind:'node',id:focusedNodeId} : undefined);},[initiativeId,focusedNodeId]);
   const heading = useRef<HTMLHeadingElement>(null);
-  const { state, retry, execute, query, undo, canUndo } = useCore(platform);
+  const { state, retry, execute, query, undo, canUndo, planCommand, cancelCommandPlan, applyCommandPlan } = useCore(platform);
   useEffect(() => {
     const navigate = () => { setDestination(destinationFromHash(window.location.hash)); setInitiativeId(initiativeFromHash(window.location.hash)); setFocusedNodeId(focusedNodeFromHash(window.location.hash)); };
     window.addEventListener('hashchange', navigate);
@@ -39,6 +43,9 @@ export function App({ platform }: { platform: Platform }) {
   const { initiative, loading: initiativeLoading } = useInitiative(initiativeId, state.phase === 'connected' ? state.board : undefined, query);
   useEffect(() => { document.title = `${initiative?.title ?? destinations.find(item => item.id === destination)!.label} · Fulcrum`; heading.current?.focus(); }, [destination, initiative?.title]);
   const page = destinations.find(item => item.id === destination)!;
+  const requestTarget: InspectionTarget | undefined = commandTarget
+    ?? (focusedNodeId ? {kind:'node',id:focusedNodeId}
+      : initiativeId ? {kind:'initiative',id:initiativeId} : undefined);
   return <div className="app-shell">
     <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); heading.current?.focus(); }}>Skip to content</a>
     <aside className="sidebar" aria-label="Workspace">
@@ -51,9 +58,10 @@ export function App({ platform }: { platform: Platform }) {
     </aside>
     <main id="main-content">
       <header className="page-header">{initiativeId && destination === 'initiatives' && <a className="breadcrumb" href="#initiatives">Initiatives</a>}<h1 ref={heading} tabIndex={-1}>{initiative?.title ?? page.label}</h1>{!initiativeId && <p>{descriptions[destination]}</p>}</header>
+      {<CommandBar available={state.phase === 'connected'} {...(requestTarget ? {target:requestTarget} : {})} {...(initiativeId ? {initiativeId} : {})} plan={planCommand} apply={applyCommandPlan} cancel={cancelCommandPlan} undo={eventId=>execute({name:'change.undo',args:{eventId}})} />}
       {state.phase === 'unavailable' ? <section className="view-message" aria-labelledby="connection-heading"><Icon name={destination} /><h2 id="connection-heading">Connect to your workspace</h2><p>Open the local core, then retry the connection.</p><button className="primary-button" onClick={retry}>Retry connection</button></section>
         : state.phase === 'connecting' ? <section className="view-message" aria-busy="true"><div className="loading-lines" aria-hidden="true"><span /><span /></div><p>Opening your workspace…</p></section>
-          : destination === 'initiatives' && initiativeId ? initiative ? <Suspense fallback={<p role="status">Opening the flow editor…</p>}><FlowCanvas key={`${initiativeId}:${focusedNodeId ?? 'full'}`} {...(focusedNodeId ? { focusedNodeId } : {})} initiative={initiative} board={state.board} query={query} execute={execute} undo={undo} canUndo={canUndo} /></Suspense> : initiativeLoading ? <p role="status">Opening the initiative…</p> : <section className="view-message"><h2>Initiative unavailable</h2><p>It may have been archived or removed.</p><a href="#initiatives">Return to initiatives</a></section> : destination === 'initiatives' ? <Portfolio board={state.board} execute={execute} /> : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p></section>}
+          : destination === 'initiatives' && initiativeId ? initiative ? <Suspense fallback={<p role="status">Opening the flow editor…</p>}><FlowCanvas onInspectionChange={setCommandTarget} key={`${initiativeId}:${focusedNodeId ?? 'full'}`} {...(focusedNodeId ? { focusedNodeId } : {})} initiative={initiative} board={state.board} query={query} execute={execute} undo={undo} canUndo={canUndo} /></Suspense> : initiativeLoading ? <p role="status">Opening the initiative…</p> : <section className="view-message"><h2>Initiative unavailable</h2><p>It may have been archived or removed.</p><a href="#initiatives">Return to initiatives</a></section> : destination === 'initiatives' ? <Portfolio board={state.board} execute={execute} /> : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p></section>}
     </main>
   </div>;
 }

@@ -53,6 +53,9 @@ importers:
       '@fulcrum/index':
         specifier: workspace:*
         version: link:../../packages/index
+      '@fulcrum/llm':
+        specifier: workspace:*
+        version: link:../../packages/llm
       '@fulcrum/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp

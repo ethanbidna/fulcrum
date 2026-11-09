@@ -22,6 +22,6 @@ try {
   server = await createServer({ root: path.join(root, 'apps/desktop'), configFile: path.join(root, 'apps/desktop/vite.config.ts') });
   await server.listen();
   console.log('Synthetic local workspace ready: http://127.0.0.1:5173');
-  console.log('No models, connectors or Keychain access. Ctrl-C stops this session.');
+  console.log('No connectors or Keychain access. Commands use local Ollama only when requested. Ctrl-C stops this session.');
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { void close().then(() => process.exit(0)); });
 } catch (error) { await close(); throw error; }

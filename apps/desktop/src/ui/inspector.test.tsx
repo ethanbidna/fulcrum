@@ -16,7 +16,7 @@ function setup(target?: InspectionTarget) {
   return { state, parent, props, query, execute, select, focus, close };
 }
 test('inspector exposes attributes, contextual counts, focus and collapsible child checklist', async () => {
-  const f = setup(); render(<Inspector {...f.props} />); await screen.findByRole('form', { name: 'Node attributes' });
+  const f = setup(); render(<Inspector {...f.props} />); await screen.findByText('Edit directly'); expect(screen.getByText('Edit directly').closest('details')?.open).toBe(false); fireEvent.click(screen.getByText('Edit directly')); await screen.findByRole('form', { name: 'Node attributes' });
   expect(screen.getByText('Evidence sources')).toBeTruthy(); expect(screen.getByRole('region', { name: 'Contextual questions' })).toBeTruthy();
   const child = f.state.nodes.find(node => f.state.edges.some(edge => edge.type === 'contains' && edge.fromId === f.parent && edge.toId === node.id))!;
   fireEvent.click(screen.getByRole('checkbox', { name: `Complete ${child.title}` }));
@@ -27,6 +27,7 @@ test('inspector exposes attributes, contextual counts, focus and collapsible chi
 });
 test('attribute rejection shows exact domain message and preserves the draft', async () => {
   const f = setup(); f.execute.mockResolvedValue({ ok: false, error: { message: 'Synthetic protected edit' } }); render(<Inspector {...f.props} />);
+  await screen.findByText('Edit directly'); fireEvent.click(screen.getByText('Edit directly'));
   const input = await screen.findByLabelText('Title'); fireEvent.change(input, { target: { value: 'Synthetic focused title' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save attributes' })); await screen.findByRole('alert');
   expect(screen.getByRole('alert').textContent).toBe('Synthetic protected edit'); expect((input as HTMLInputElement).value).toBe('Synthetic focused title');

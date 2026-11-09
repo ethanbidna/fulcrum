@@ -33,8 +33,9 @@ pnpm dev
 
 Open `http://127.0.0.1:5173`. This launches a real file-backed core and the separate
 C6 development bridge against a new disposable synthetic workspace seeded from fixtures/states/portfolio.state.json through domain commands in the OS
-temporary directory. It never reads/writes Keychain, starts inference, calls
-connectors or opens an existing workspace. Ctrl-C shuts down the session and
+temporary directory. It never reads/writes Keychain, starts a model runtime, calls
+connectors or opens an existing workspace. An explicit command request can call
+an already running local Ollama; ordinary browsing does not invoke inference. Ctrl-C shuts down the session and
 removes its temporary workspace. Port 5173 must be free; it never selects another
 port silently. Do not use this disposable launcher for real work.
 
@@ -180,3 +181,33 @@ from its checklist highlights that canonical canvas node.
 See [U4 review](../../docs/reviews/U4.md) and paired focused/full edit screenshots
 in `.impeccable/review/u4/`. Native launch, Keychain, packaged CSP, sync/hardware and
 owner usability are not accepted by the browser or CI checks.
+
+## Natural-language commands (U4a)
+
+Use the inline input on any page, or focus it with Cmd-K (Ctrl-K off macOS).
+Enter drafts a plan; inspect the named changes, then Cmd-Enter/Ctrl-Enter or
+Apply changes commits one atomic event. Escape cancels/dismisses; Undo command
+reverses that exact event. Selecting an object supplies context; in a focused
+Task view, “this task” continues to mean the focused Task after deselection.
+Manual attributes/state controls remain under Edit directly in the inspector.
+There is no ongoing chat transcript.
+
+For model-generated requests, run an existing Ollama installation locally with
+an installed approved model. The provisional default is
+`qwen3:4b-instruct-2507-q4_K_M`; the core startup option `--command-model`
+selects another approved installed model. This app does not download models or
+start Ollama. The runtime driver fixes loopback HTTP, refuses redirects and
+bounds requests to two minutes; generation speed/interpretation remain model
+and hardware dependent. Exact named rename requests resolve without inference.
+An unavailable, invalid or cancelled plan keeps the request and writes nothing.
+
+Examples in the synthetic Vendor evaluation fixture:
+
+- `Rename Test design capabilities to Synthetic design review.`
+- `Add a child task called Prepare launch notes under this task.` (focused Task)
+- `Make Security approval a prerequisite of Run sample design export.`
+
+The command bar and MCP use the same domain commands. MCP remains separately
+disabled by default and requires its explicit sharing configuration; the command
+bar does not enable external access. See [U4a review](../../docs/reviews/U4a.md)
+for measured results and pending native/owner checks.

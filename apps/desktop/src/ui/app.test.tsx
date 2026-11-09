@@ -102,3 +102,10 @@ test('focused routes preserve initiative identity and browser-back route shape',
   expect(focusedNodeFromHash(`#initiatives/${initiative}`)).toBeUndefined();
   expect(focusedNodeFromHash(`#initiatives/${initiative}/focus/untrusted`)).toBeUndefined();
 });
+
+test('command text survives a lost core connection', async () => {
+  const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
+  fireEvent.change(screen.getByRole('textbox',{name:'What would you like to change?'}),{target:{value:'Keep this synthetic request'}});
+  f.transport.query.mockRejectedValue(new Error('CONNECTION_CLOSED')); act(()=>f.changed()); await screen.findByText('Local core unavailable');
+  expect((screen.getByRole('textbox',{name:'What would you like to change?'}) as HTMLInputElement).value).toBe('Keep this synthetic request');
+});

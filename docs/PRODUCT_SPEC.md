@@ -9,7 +9,7 @@ A single-user, initiative-first desktop application that quietly ingests relevan
 
 ## Strict constraints and non-goals
 - No percent-complete bars, pie rings, or numeric completion estimates on initiatives. Plans are fluid; track actionability, waiting, outcomes, source freshness, and milestones instead
-- No built-in AI chat. Conversational operations are exposed through an optional local MCP server for Claude and other MCP clients
+- No ongoing built-in AI chat. An inline command bar drafts local changes for explicit review and atomic apply; the optional local MCP server exposes the same operations to external clients
 - No AI-written dashboard summaries or constantly regenerated prose. Deterministic views over typed state
 - No Kanban workflow-status columns by default. Initiatives are highest-order cards grouped by user categories or MoSCoW
 - No daily task management homepage, arbitrary task ownership, employee accounts, social features, or cloud application backend
@@ -136,7 +136,7 @@ This is the authoritative product specification. Phase 0 (architecture and repos
 
 ## Explicit latest refinements
 - Questions are contextual attachments to Initiative, flow node or edge and aggregate into the global quiet Questions Center. They are not flow objects and do not pop up during normal work
-- Do not build embedded chat. The future MCP server is the exclusive conversational API, and both MCP and UI must call the same domain operations
+- Do not build an ongoing embedded chat. Support both the in-app command bar and external MCP (ADR-0017); both paths must use the same domain operations, with explicit review before applying an in-app model draft
 - Don't construct multi-level graph models. One graph per initiative; focused double-click is merely a filtered view of this graph
 - Priorities use **Must Do / Should Do / Could Do / Won't Do**, not *Have*
 - Strategic objectives and KPIs are portfolio-level priorities and can use ordered ranking, ties and relative emphasis; MoSCoW remains separately protected by default

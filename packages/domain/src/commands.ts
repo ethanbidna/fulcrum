@@ -3,6 +3,7 @@ import type { ReadIndex } from '@fulcrum/index/interfaces';
 import type { PolicyContext } from './policy.js';
 
 export const COMMAND_ARGUMENTS = {
+  'command.apply': ['commands'],
   'initiative.create': ['record'], 'initiative.propose': ['record'], 'initiative.approve': ['id'], 'initiative.reject': ['id'],
   'initiative.update': ['id', 'patch'], 'initiative.setMoscow': ['id', 'moscow'], 'initiative.setLifecycle': ['id', 'lifecycle'],
   'initiative.setCategories': ['id', 'categoryIds'], 'initiative.rank': ['id', 'manualRank'], 'initiative.rerank': ['ranks'],

@@ -78,6 +78,11 @@ export class Domain {
       throw error;
     }
   }
+  preview(command: CommandEnvelope): { ops: Op[] } {
+    this.validateEnvelope(command); this.checkBases(command);
+    if (['change.undo', 'run.undo'].includes(command.name)) throw new DomainFault('VALIDATION_FAILED', 'Undo cannot be previewed as a plan');
+    return { ops: clone(this.prepare(command).ops) };
+  }
   private validateEnvelope(command: CommandEnvelope) {
     validateInvocation(command);
     const allowed = ['name', 'args', 'actor', 'idempotencyKey', 'evidenceRefs', 'runId', 'reason', 'baseEventIds'];
@@ -107,6 +112,11 @@ export class Domain {
       }
       if (invocation.name === 'question.resolve' && !['user', 'mcp'].includes(command.actor)) throw new DomainFault('POLICY_DENIED', 'Only the user can choose a question resolution', { rule: PolicyRule.ManualPrecedence });
       if (['change.undo', 'run.undo'].includes(invocation.name)) throw new DomainFault('VALIDATION_FAILED', 'Undo cannot be embedded in a resolution');
+      if (invocation.name === 'command.apply') {
+        if (commandCount !== 1 || !['user', 'mcp'].includes(command.actor) || !Array.isArray(invocation.args.commands) || !invocation.args.commands.length || invocation.args.commands.length >= MAX_RESOLUTION_COMMANDS) throw new DomainFault('VALIDATION_FAILED', 'Invalid approved command plan');
+        for (const child of invocation.args.commands) apply(child as CommandInvocation);
+        return;
+      }
       const key = JSON.stringify(invocation);
       if (active.has(key)) throw new DomainFault('VALIDATION_FAILED', 'Recursive question resolution');
       active.add(key);
