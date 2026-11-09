@@ -46,6 +46,10 @@ For U2, the owner explicitly delegated U1 review/merge and asked to proceed on
 subjective usability and native launch checks remain pending in step 16. This
 exception does not complete any Owner checkbox or accept a model/runtime.
 
+For U3, the owner delegated agent review/merge of U2 and continuation on
+2026-11-08. Merged #53 satisfies the implementation prerequisite; portfolio
+usability and native checks remain pending, with no Owner box completed.
+
 ## Phase C — context and ingestion (M2)
 
 | Step | Item | Issue | Needs | Owner action | Extra instructions |

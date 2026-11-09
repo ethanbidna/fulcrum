@@ -5,7 +5,7 @@ export function PortfolioCardView({ card, categoryLabels, questionCount, control
   const item = card.initiative;
   return <article className="initiative-card" aria-label={item.title}>
     <div className="card-topline"><span className="moscow-label">{item.moscow === null ? 'MoSCoW not set' : moscowLabels[item.moscow]}</span>{controls}</div>
-    <h3>{item.title}</h3>
+    <h3><a href={`#initiatives/${item.id}`}>{item.title}</a></h3>
     {item.description && <p className="card-description">{item.description}</p>}
     <p className={`card-state state-${card.cardState.kind}`}>{cardStateText(card)}</p>
     <div className="card-metadata">{categoryLabels.length > 0 && <span>{categoryLabels.join(' · ')}</span>}{item.targetDate && <time dateTime={item.targetDate}>Due {new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${item.targetDate}T00:00:00Z`))}</time>}</div>

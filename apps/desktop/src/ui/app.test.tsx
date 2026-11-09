@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from './app.js';
 import type { CoreTransport } from '../core-transport.js';
-import { destinationFromHash } from './navigation.js';
+import { destinationFromHash, initiativeFromHash } from './navigation.js';
 afterEach(() => { cleanup(); window.location.hash = ''; vi.useRealTimers(); });
 function emptyBoard(questionCount = 3) { return { cards: [], categories: [], teams: [], objectives: [], questionCounts: {}, rail: { questionCount, nextAvailableActions: [], waitingOn: [], meaningfulChanges: [] } }; }
 function session() {
@@ -69,4 +69,28 @@ test('an obsolete delayed connection cannot replace the current command channel'
   next.transport.execute.mockResolvedValue({ ok: true, eventId: 'synthetic', ops: [], raisedQuestionIds: [], suggestedAssertionIds: [] });
   await act(async () => { await hook.result.current.execute({ name: 'initiative.rank', args: { id: 'synthetic', manualRank: 'a0' } }); });
   expect(next.transport.execute).toHaveBeenCalledOnce(); expect(old.transport.execute).not.toHaveBeenCalled();
+});
+
+test('initiative routing stays under Initiatives and accepts only canonical id-shaped paths', () => {
+  const id = '01000000-0000-7000-8000-000000000001';
+  expect(destinationFromHash(`#initiatives/${id}`)).toBe('initiatives');
+  expect(initiativeFromHash(`#initiatives/${id}`)).toBe(id);
+  expect(initiativeFromHash('#initiatives/untrusted-command')).toBeUndefined();
+});
+test('session undo tracks only acknowledged user commands and retains failures for retry', async () => {
+  const f = session(); const { renderHook } = await import('@testing-library/react'); const { useCore } = await import('./use-core.js');
+  const hook = renderHook(() => useCore(f.platform));
+  await waitFor(() => expect(hook.result.current.state.phase).toBe('connected'));
+  const success = { ok: true, eventId: 'synthetic-event', ops: [], raisedQuestionIds: [], suggestedAssertionIds: [] };
+  f.transport.execute.mockResolvedValueOnce({ ok: false, error: { code: 'INVARIANT_VIOLATION', message: 'Synthetic error' } });
+  await act(async () => { await hook.result.current.execute({ name: 'node.delete', args: { id: 'synthetic' } }); });
+  expect(hook.result.current.canUndo).toBe(false);
+  f.transport.execute.mockResolvedValueOnce(success);
+  await act(async () => { await hook.result.current.execute({ name: 'node.update', args: { id: 'synthetic', patch: { title: 'Synthetic' } } }); });
+  expect(hook.result.current.canUndo).toBe(true);
+  f.transport.execute.mockResolvedValueOnce({ ok: false, error: { code: 'STALE_BASE', message: 'Later edit conflicts' } });
+  await act(async () => { await hook.result.current.undo(); }); expect(hook.result.current.canUndo).toBe(true);
+  f.transport.execute.mockResolvedValueOnce({ ...success, eventId: 'synthetic-undo' });
+  await act(async () => { await hook.result.current.undo(); }); expect(hook.result.current.canUndo).toBe(false);
+  expect(f.transport.execute).toHaveBeenLastCalledWith({ name: 'change.undo', args: { eventId: 'synthetic-event' } });
 });

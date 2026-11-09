@@ -158,3 +158,14 @@ record rejects the whole command. Existing schema, protection, evidence, MCP
 scope and compensating undo rules apply. The UI uses maintained fractional
 indexing to assign an ordered batch, including missing/duplicate old ranks.
 Only rank fields change; categories, teams, objectives and MoSCoW remain intact.
+
+## U3 canvas client
+
+Canvas semantic edits reuse `node.create/update/delete`, `edge.create/delete`
+and `change.undo`; no parallel mutation API. Invariant rejections retain their
+stable code/details and now provide a human message for each known graph rule.
+The UI retains acknowledged user event IDs for session undo, including portfolio
+edits before opening a flow. Rejected edits do not enter that stack; undo conflicts
+keep their event available for review/retry. Input text undo stays native.
+Presentation-only drag coordinates and ELK layout are ephemeral; v1 has no position
+field. No event or schema migration is needed for arranging the current view.

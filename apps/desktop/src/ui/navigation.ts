@@ -6,6 +6,10 @@ export const destinations = [
 ] as const;
 export type Destination = typeof destinations[number]['id'];
 export function destinationFromHash(hash: string): Destination {
-  const id = hash.replace(/^#\/?/, '');
+  const id = hash.replace(/^#\/?/, '').split('/')[0];
   return destinations.find(destination => destination.id === id)?.id ?? 'initiatives';
+}
+
+export function initiativeFromHash(hash: string): string | undefined {
+  return /^#initiatives\/([0-9a-f-]{36})$/i.exec(hash)?.[1];
 }

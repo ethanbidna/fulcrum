@@ -8,6 +8,8 @@ export type CoreState =
   | { phase: 'connected'; questionCount: number; initiativeCount: number; board: PortfolioBoard };
 const CORE_REFRESH_INTERVAL_MS = 30_000;
 export function useCore(platform: Platform) {
+  const undoEvents = useRef<string[]>([]);
+  const [undoVersion, setUndoVersion] = useState(0);
   const currentTransport = useRef<CoreTransport | undefined>(undefined);
   const refreshCurrent = useRef<() => Promise<void>>(async () => {});
   const [attempt, setAttempt] = useState(0);
@@ -44,8 +46,19 @@ export function useCore(platform: Platform) {
     const transport = currentTransport.current;
     if (!transport) throw new Error('CORE_UNAVAILABLE');
     const result = await transport.execute(command);
+    if (result.ok && command.name !== 'change.undo') { undoEvents.current.push(result.eventId); setUndoVersion(value => value + 1); }
     if (currentTransport.current === transport) await refreshCurrent.current();
     return result;
   }, []);
-  return { state, execute, retry: useCallback(() => setAttempt(value => value + 1), []) };
+  const query: CoreTransport['query'] = useCallback((name, args) => {
+    if (!currentTransport.current) return Promise.reject(new Error('Local core unavailable. Retry the connection.'));
+    return currentTransport.current.query(name, args);
+  }, []);
+  const undo = useCallback(async () => {
+    const eventId = undoEvents.current.at(-1); if (!eventId) return null;
+    const result = await execute({ name: 'change.undo', args: { eventId } });
+    if (result.ok) { undoEvents.current.pop(); setUndoVersion(value => value + 1); }
+    return result;
+  }, [execute]);
+  return { state, execute, query, undo, canUndo: undoVersion > 0 && undoEvents.current.length > 0, retry: useCallback(() => setAttempt(value => value + 1), []) };
 }
