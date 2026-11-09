@@ -186,3 +186,39 @@ select { max-width: 100%; }
 @media (max-width: 640px) { .flow-canvas { height: 560px; } .flow-selection { flex-wrap: wrap; } .flow-selection > span { max-width: 28ch; } .flow-toolbar .toolbar-actions { gap: 6px; } }
 
 .conditional-route-label { position: absolute; max-width: 200px; padding: 3px 6px; font-size: 12px; line-height: 1.4; color: var(--text); background: var(--surface-navigation); text-align: center; overflow-wrap: anywhere; pointer-events: none; }
+
+.flow-workspace { display: grid; min-width: 0; }
+.flow-workspace.with-inspector { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+.object-inspector { min-width: 0; padding: 0 0 16px 20px; border-left: 1px solid var(--line); font-size: 12px; }
+.inspector-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 20px; }
+.inspector-heading h2 { font-size: 14px; margin: 0; }
+.inspector-object-title { font-size: 17px; line-height: 1.4; margin: 0 0 4px; overflow-wrap: anywhere; }
+.inspector-kind { margin: 0 0 20px; color: var(--text-secondary); }
+.inspector-form { display: grid; gap: 12px; margin: 20px 0; }
+.inspector-form label { display: grid; gap: 4px; color: var(--text-secondary); }
+.inspector-form input, .inspector-form textarea, .inspector-form select { width: 100%; min-width: 0; padding: 7px 8px; color: var(--text); background: var(--surface); border: 1px solid #aeb7c3; border-radius: 6px; font: inherit; }
+.inspector-form textarea { resize: vertical; }
+.inspector-form button { justify-self: start; }
+.inspector-form form { display: grid; gap: 8px; }
+.inspector-facts { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 24px 0; }
+.inspector-facts dt { color: var(--text-secondary); }
+.inspector-facts dd { margin: 0; overflow-wrap: anywhere; }
+.inspector-section { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 16px; }
+.inspector-section h3 { display: flex; gap: 8px; font-size: 13px; margin: 0 0 12px; }
+.inspector-section h3 span { color: var(--text-secondary); font-weight: 400; }
+.inspector-section p { color: var(--text-secondary); margin: 0 0 12px; }
+.inspector-section ul { padding-left: 16px; margin: 0; }
+.inspector-section li { margin: 8px 0; overflow-wrap: anywhere; }
+.inspector-section .child-checklist { list-style: none; padding: 0; }
+.child-checklist li { display: grid; grid-template-columns: 16px minmax(0, 1fr); column-gap: 8px; align-items: start; }
+.child-checklist input { accent-color: var(--accent); margin: 3px 0 0; }
+.child-checklist span { grid-column: 2; color: var(--text-secondary); font-size: 11px; }
+.child-task-link { border: 0; background: none; padding: 0; color: var(--accent); font: inherit; text-align: left; cursor: pointer; }
+.child-task-link:hover { text-decoration: underline; }
+.draft-note { margin: 0; color: var(--text-secondary); font-size: 11px; }
+.focus-breadcrumbs { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; color: var(--text-secondary); font-size: 12px; }
+.focus-breadcrumbs a { color: var(--accent); }
+.focused-task-heading { font-size: 19px; margin: 0 0 24px; }
+@media (max-width: 1040px) { .flow-workspace.with-inspector { grid-template-columns: minmax(0, 1fr); } .object-inspector { border-left: 0; border-top: 1px solid var(--line); padding: 20px 0 0; } }
+
+@media (min-width: 1041px) { .flow-workspace.with-inspector .flow-canvas { position: sticky; top: 20px; } }

@@ -21,8 +21,8 @@ external dependencies and decisions. See ../../docs/PRODUCT_SPEC.md, which wins.
 
 The app shell provides Initiatives, Priorities, Questions and Settings navigation.
 U2 adds the grouped active-initiative portfolio; U3 adds the editable initiative flow.
-Full inspector/focused navigation, priorities, question review and settings remain
-later workflows. Tasks are only the user's work.
+U4 adds the contextual inspector and Task focus over the same graph. Priorities,
+question resolution and settings remain later workflows. Tasks are only the user's work.
 Questions are contextual and quiet. All writes use the core's Domain commands.
 No embedded chat, completion percentages, task owners or status-column board.
 No hosted inference or telemetry by default. Hardware/model acceptance is pending.

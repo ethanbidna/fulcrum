@@ -169,3 +169,16 @@ edits before opening a flow. Rejected edits do not enter that stack; undo confli
 keep their event available for review/retry. Input text undo stays native.
 Presentation-only drag coordinates and ELK layout are ephemeral; v1 has no position
 field. No event or schema migration is needed for arranging the current view.
+
+## U4 inspector projection
+
+`inspector.get({target:{kind,id}})` returns a detached typed node, edge or initiative,
+direct attached evidence-source count, open questions scoped to that exact target,
+direct contains children and attribution labels. It includes relationship endpoint
+names/conditional option labels and the initiative's deterministic card state.
+It does not execute question resolutions or aggregate unrelated questions/evidence.
+
+The inspector reuses `node.update`, `node.setState`, `decision.decide` and
+`edge.update`; child checkboxes write only their child Task. Focus uses the existing
+`graph.focus` query and canonical command IDs; no focused-copy records are stored.
+References are read-only in the focused UI until navigation to their home graph.

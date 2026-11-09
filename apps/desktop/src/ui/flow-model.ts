@@ -82,3 +82,7 @@ export function initialViewport(nodes: CanvasNode[]) {
   const first = [...objects].sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x)[0];
   return { x: INITIAL_CANVAS_PADDING - (first?.position.x ?? 0), y: INITIAL_CANVAS_PADDING - (first?.position.y ?? 0), zoom: 1 };
 }
+export function selectCanvasNode(nodes: CanvasNode[], id: string): CanvasNode[] {
+  if (nodes.every(node => node.type !== 'object' || Boolean(node.selected) === (node.id === id))) return nodes;
+  return nodes.map(node => node.type === 'object' ? { ...node, selected: node.id === id } : node);
+}

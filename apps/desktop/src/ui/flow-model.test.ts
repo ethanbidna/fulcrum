@@ -2,7 +2,7 @@ import { expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { projectGraph } from '@fulcrum/domain';
 import type { WorkspaceState } from '@fulcrum/domain';
-import { canvasEdges, connectionRecord, layoutGraph, refreshObjects, initialViewport, newObject, NODE_HEIGHT, NODE_WIDTH } from './flow-model.js';
+import { canvasEdges, connectionRecord, layoutGraph, refreshObjects, initialViewport, selectCanvasNode, newObject, NODE_HEIGHT, NODE_WIDTH } from './flow-model.js';
 const state = JSON.parse(readFileSync('fixtures/states/portfolio.state.json', 'utf8')).state as WorkspaceState;
 const graph = () => projectGraph(structuredClone(state), state.initiatives[0]!.id);
 test('rendered prerequisite direction round-trips to canonical sentence direction', () => {
@@ -61,4 +61,12 @@ test('initial view keeps node text at authored size and starts at the first work
   const nodes = [{ id: 'first', type: 'object', position: { x: 300, y: 40 }, data: { label: '' } }, { id: 'later', type: 'object', position: { x: 0, y: 600 }, data: { label: '' } }];
   expect(initialViewport(nodes)).toEqual({ x: -276, y: -16, zoom: 1 });
   expect(initialViewport([])).toEqual({ x: 24, y: 24, zoom: 1 });
+});
+
+test('inspector child selection highlights the same node without moving or cloning records', async () => {
+  const nodes = await layoutGraph(graph()); const id = nodes.find(node => node.type === 'object')!.id;
+  const selected = selectCanvasNode(nodes, id);
+  expect(selected.filter(node => node.selected).map(node => node.id)).toEqual([id]);
+  expect(selectCanvasNode(selected, id)).toBe(selected);
+  expect(selected.map(node => node.position)).toEqual(nodes.map(node => node.position));
 });

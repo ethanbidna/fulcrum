@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from './app.js';
 import type { CoreTransport } from '../core-transport.js';
-import { destinationFromHash, initiativeFromHash } from './navigation.js';
+import { destinationFromHash, initiativeFromHash, focusedNodeFromHash } from './navigation.js';
 afterEach(() => { cleanup(); window.location.hash = ''; vi.useRealTimers(); });
 function emptyBoard(questionCount = 3) { return { cards: [], categories: [], teams: [], objectives: [], questionCounts: {}, rail: { questionCount, nextAvailableActions: [], waitingOn: [], meaningfulChanges: [] } }; }
 function session() {
@@ -93,4 +93,12 @@ test('session undo tracks only acknowledged user commands and retains failures f
   f.transport.execute.mockResolvedValueOnce({ ...success, eventId: 'synthetic-undo' });
   await act(async () => { await hook.result.current.undo(); }); expect(hook.result.current.canUndo).toBe(false);
   expect(f.transport.execute).toHaveBeenLastCalledWith({ name: 'change.undo', args: { eventId: 'synthetic-event' } });
+});
+
+test('focused routes preserve initiative identity and browser-back route shape', () => {
+  const initiative = '01000000-0000-7000-8000-000000000001'; const node = '02000000-0000-7000-8000-000000000002';
+  const hash = `#initiatives/${initiative}/focus/${node}`;
+  expect(destinationFromHash(hash)).toBe('initiatives'); expect(initiativeFromHash(hash)).toBe(initiative); expect(focusedNodeFromHash(hash)).toBe(node);
+  expect(focusedNodeFromHash(`#initiatives/${initiative}`)).toBeUndefined();
+  expect(focusedNodeFromHash(`#initiatives/${initiative}/focus/untrusted`)).toBeUndefined();
 });

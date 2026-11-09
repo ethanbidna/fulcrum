@@ -28,7 +28,7 @@ Steps done since last audit: 3
 | 16 | U1 app shell | waiting-owner | [ ] | #52 | Merged; Intel/ARM native tests/compile and browser review pass; actual native launch and owner feel pending |
 | 17 | U2 portfolio board | waiting-owner | [ ] | #53 | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
 | 18 | U3 flow canvas | waiting-owner | [ ] | #54 | Editable canonical flow with typed relationships and session undo; browser/native review limits recorded |
-| 19 | U4 inspector and focused view | todo | [ ] | | |
+| 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Contextual inspector, canonical Task focus and child checklists; owner review pending |
 | 20 | U5 list and history | todo | [ ] | | Owner: use the app for a week |
 | 21 | I1 adapters, queue, scheduler | todo | n/a | | |
 | 22 | I3 extraction | todo | n/a | | |
@@ -51,6 +51,14 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 19 — U4 inspector and focus review
+
+1. Install Node 22 LTS and pnpm 10.11.0. Run `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm check`, then `pnpm dev`. Wait for fixture seeding and open `http://127.0.0.1:5173`; select Vendor evaluation.
+2. Select a node or relationship. Check attributes, state, direct evidence-source count and questions scoped to that exact object. Hide/reopen the inspector; the graph stays available. Edit a title/details, a state, or a relationship label; failures must retain the draft and show the domain message.
+3. Fit graph, then double-click Test design capabilities (or use Focus task). Check the focused Task's children and immediate prerequisite references. Edit a child title; use the Vendor evaluation breadcrumb to return and confirm the same edit in the full canvas. Undo should restore it. Browser Back/Forward and reload must preserve the focused route.
+4. In the parent's inspector, complete a child checkbox; verify only the child's state changes, not the parent's. Shared/prerequisite reference records are read-only here; Open home initiative returns to the full graph for editing. Inspect the focused-edit/full-edit screenshots under `apps/desktop/.impeccable/review/u4/` for the agent's demonstration.
+5. Check narrow-window scrolling, focus and inspector collapse. Record observations in `docs/reviews/U4.md`, then tick only the Owner box for step 19. Native visible-window/Keychain/CSP, hardware, connector, model adoption and other Owner boxes remain pending. Ctrl-C removes the disposable session.
 
 ### Step 18 — U3 flow review
 

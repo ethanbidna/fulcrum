@@ -1,3 +1,5 @@
+import { projectInspection } from './inspector-projections.js';
+import type { Inspection, InspectionTarget } from './inspector-projections.js';
 import type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';
 import type { Initiative } from '@fulcrum/schema';
 import type { Node, WorkspaceState } from './types.js';
@@ -20,6 +22,7 @@ export interface QueryArgs {
   'graph.focus': { nodeId: string };
   'initiative.get': { id: string };
   'node.get': { id: string };
+  'inspector.get': { target: InspectionTarget };
   'history.list': HistoryFilter;
 }
 export interface QueryResults {
@@ -32,17 +35,20 @@ export interface QueryResults {
   'graph.focus': GraphView;
   'initiative.get': Initiative;
   'node.get': Node;
+  'inspector.get': Inspection;
   'history.list': HistoryEntry[];
 }
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
   'search': ['text', 'scope'], 'status.index': [],
   'portfolio.board': [], 'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
-  'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'],
+  'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'], 'inspector.get': ['target'],
 };
 export function validateQuery(name: QueryName, args: unknown) {
   const value = object(args);
   if (!Object.hasOwn(QUERY_FIELDS, name) || Object.keys(value).some(key => !QUERY_FIELDS[name].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Unknown query or query argument');
+  if (name === 'inspector.get' && !value.target) throw new DomainFault('VALIDATION_FAILED', 'An inspector target is required');
+  if (name === 'inspector.get' && Object.keys(object(value.target)).some(key => !['kind', 'id'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Invalid inspector target');
   if (name === 'search' && typeof value.text !== 'string') throw new DomainFault('VALIDATION_FAILED', 'Search text is required');
   for (const key of ['id', 'nodeId', 'initiativeId', 'since']) if (value[key] !== undefined) text(value[key]);
   if (value.actor !== undefined && !['user', 'ai', 'connector', 'mcp', 'system'].includes(String(value.actor))) throw new DomainFault('VALIDATION_FAILED', 'Invalid history actor');
@@ -64,6 +70,7 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
     case 'graph.focus': result = projectFocus(state, text(value.nodeId)); break;
     case 'history.list': result = projectHistory(replay, args as HistoryFilter); break;
     case 'initiative.get': result = requireRecord(state.initiatives, text(value.id)); break;
+    case 'inspector.get': result = projectInspection(state, (args as QueryArgs['inspector.get']).target); break;
     case 'node.get': result = requireRecord(state.nodes, text(value.id)); break;
     default: throw new DomainFault('VALIDATION_FAILED', 'Unknown query');
   }

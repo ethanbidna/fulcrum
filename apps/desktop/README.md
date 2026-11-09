@@ -156,3 +156,27 @@ Verified against the real synthetic file-backed core in the browser; see
 remain unverified. Source status/connector/model behavior is not accepted here.
 Libraries: [React Flow](https://reactflow.dev/learn/customization/custom-nodes)
 and [ELK layered](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html).
+
+## U4 inspector and Task focus
+
+Select a node or edge for its inline attributes/state, distinct attached evidence
+source count, and open questions on that exact object. With no selection the
+inspector shows the initiative's description and deterministic next-action state.
+Hide the inspector from its heading or toolbar; it returns beside the canvas on
+wide windows and below it in narrow windows. No modal or separate graph is used.
+
+Node title/details/state and relationship label edits use existing Domain commands;
+Decision outcomes use `decision.decide`. Simple Task children use checkboxes that
+change only that child's state. Task ownership is never exposed. Full source and
+question-resolution workflows remain later work; U4 shows contextual metadata.
+
+Double-click a Task or use Focus task. The URL records initiative and focused node;
+`graph.focus` returns the same canonical nodes/edges, contains descendants and
+immediate prerequisite references. Breadcrumbs return to the full graph, and an
+edit is immediately visible there. References are inspectable but read-only in
+this view; Open home initiative provides the editing location. Selecting a child
+from its checklist highlights that canonical canvas node.
+
+See [U4 review](../../docs/reviews/U4.md) and paired focused/full edit screenshots
+in `.impeccable/review/u4/`. Native launch, Keychain, packaged CSP, sync/hardware and
+owner usability are not accepted by the browser or CI checks.
