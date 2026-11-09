@@ -192,3 +192,14 @@ undo or autonomous AI authority. `Domain.preview` validates on cloned state
 without committing. The command bar adds exact-request evidence, a run ID and
 review freshness in the core; model output never chooses that metadata. One
 `change.undo` compensates the reviewed event. See ADR-0017.
+
+## U5 detail read models
+
+`initiative.list({initiativeId})` returns each canonical node once in containment
+order, with depth, role, date-bearing record, distinct source count and separate
+prerequisite references. It creates no alternative task store or ownership model.
+`initiative.history({initiativeId})` includes events touching that initiative's
+nodes, edges and contextual metadata, including deleted records. It supplies
+named before/after values, safe original evidence links and whole-run counts.
+The existing `history.list` contract is unchanged. Event/run undo still uses
+`change.undo` / `run.undo`; conflicts remain domain rejections, never UI overwrites.

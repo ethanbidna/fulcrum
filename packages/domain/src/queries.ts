@@ -1,3 +1,5 @@
+import { projectInitiativeList, projectInitiativeHistory } from './detail-projections.js';
+import type { InitiativeListRow, InitiativeHistoryEntry } from './detail-projections.js';
 import { projectInspection } from './inspector-projections.js';
 import type { Inspection, InspectionTarget } from './inspector-projections.js';
 import type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';
@@ -18,6 +20,8 @@ export interface QueryArgs {
   'portfolio.list': Record<string, never>;
   'portfolio.board': Record<string, never>;
   'portfolio.rail': { since?: string };
+  'initiative.list': { initiativeId: string };
+  'initiative.history': { initiativeId: string };
   'graph.get': { initiativeId: string };
   'graph.focus': { nodeId: string };
   'initiative.get': { id: string };
@@ -31,6 +35,8 @@ export interface QueryResults {
   'portfolio.list': PortfolioCard[];
   'portfolio.board': PortfolioBoard;
   'portfolio.rail': PortfolioRail;
+  'initiative.list': InitiativeListRow[];
+  'initiative.history': InitiativeHistoryEntry[];
   'graph.get': GraphView;
   'graph.focus': GraphView;
   'initiative.get': Initiative;
@@ -41,6 +47,7 @@ export interface QueryResults {
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
   'search': ['text', 'scope'], 'status.index': [],
+  'initiative.list': ['initiativeId'], 'initiative.history': ['initiativeId'],
   'portfolio.board': [], 'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
   'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'], 'inspector.get': ['target'],
 };
@@ -66,6 +73,8 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
     case 'portfolio.board': result = projectBoard(state, projectHistory(replay), { now: now() }); break;
     case 'portfolio.list': result = projectPortfolio(state); break;
     case 'portfolio.rail': result = projectRail(state, projectHistory(replay), { now: now(), ...(value.since === undefined ? {} : { since: text(value.since) }) }); break;
+    case 'initiative.list': result = projectInitiativeList(state,text(value.initiativeId)); break;
+    case 'initiative.history': result = projectInitiativeHistory(replay,text(value.initiativeId)); break;
     case 'graph.get': result = projectGraph(state, text(value.initiativeId)); break;
     case 'graph.focus': result = projectFocus(state, text(value.nodeId)); break;
     case 'history.list': result = projectHistory(replay, args as HistoryFilter); break;
