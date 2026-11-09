@@ -50,6 +50,10 @@ For U3, the owner delegated agent review/merge of U2 and continuation on
 2026-11-08. Merged #53 satisfies the implementation prerequisite; portfolio
 usability and native checks remain pending, with no Owner box completed.
 
+For U4, the owner delegated agent review/merge of U3 and continuation on
+2026-11-08. Merged #54 satisfies the implementation prerequisite; owner usability
+and native checks remain pending. No Owner checkbox is completed by this exception.
+
 ## Phase C — context and ingestion (M2)
 
 | Step | Item | Issue | Needs | Owner action | Extra instructions |

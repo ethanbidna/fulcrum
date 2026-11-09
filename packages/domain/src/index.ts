@@ -19,3 +19,6 @@ export { projectPortfolio, projectRail, projectBoard } from './projections.js';
 export type { PortfolioBoard, PortfolioCard, PortfolioRail, RailOptions, WaitingItem } from './projections.js';
 export type { QueryName, QueryArgs, QueryResults } from './queries.js';
 export type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';
+
+export { projectInspection } from './inspector-projections.js';
+export type { Inspection, InspectionTarget } from './inspector-projections.js';

@@ -163,6 +163,11 @@ components:
     backgroundColor: "{colors.surface-navigation}"
     textColor: "{colors.text}"
     padding: "3px 6px"
+  object-inspector:
+    textColor: "{colors.text}"
+    padding: "0 0 16px 20px"
+    width: "300px"
+    typography: "{typography.caption}"
   rank-control:
     textColor: "{colors.text-secondary}"
     rounded: "{rounded.control}"
@@ -179,7 +184,7 @@ components:
 
 A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.
 
-This records the implemented U1 shell, U2 active-initiative portfolio and U3 editable initiative flow. Full inspector and focused navigation (U4), priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
+This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector and Task focus. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
 
 **Key Characteristics:**
 
@@ -188,6 +193,7 @@ This records the implemented U1 shell, U2 active-initiative portfolio and U3 edi
 - Inline connection recovery and honest workflow notices.
 - Initiative cards with one meaningful state and a quiet optional context rail.
 - A readable flow canvas with distinct object marks and explicit relationship labels.
+- A collapsible inspector and Task focus that preserve the same graph context.
 
 ## Colors
 
@@ -229,7 +235,7 @@ Blocked red, waiting amber and completed green retain semantic roles from the hi
 - **Caption:** question and initiative counts; question counts use tabular numerals.
 - **Status:** connection text.
 
-The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size.
+The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size. U4 reuses the same ramp: caption-sized inspector fields and breadcrumbs, label-sized inspector heading, 17px object titles, 13px section headings and a title-sized focused Task heading. Counts and draft notes remain secondary.
 
 ## Layout
 
@@ -244,6 +250,8 @@ Portfolio content uses wrapping toolbar controls above grouped card grids. Each 
 The open context rail occupies 232px beside the cards with a 32px gap. At 1150px and below it moves beneath the board, replacing its left separator with a top separator. Hiding context removes the rail and lets the cards use the width. Inline creation uses a two-column 2:1 form with a 140px minimum secondary column; it becomes one column at 700px and below.
 
 The initiative flow places a quiet attribute row and wrapping local toolbar above one neutral canvas. The canvas fills available width with a desktop height of max(560px, 100dvh minus 290px); at 640px and below its height is 560px and selection controls wrap. ELK arranges the same graph downward, with 40px between nodes and 72px between layers. Initial and auto-layout views begin at zoom 1 with the first top-row object inset 24px; Fit graph explicitly provides an overview. Panning and zooming retain access to the rest of the graph rather than shrinking initial text to fit everything. Positions and zoom are ephemeral view state.
+
+With the inspector open, the flow workspace has a flexible canvas column and a 300px inspector column separated by 20px. The inspector uses a left separator and 20px left padding. At 1040px and below it follows the canvas in normal flow, with a top separator and 20px top padding. Above that breakpoint the canvas stays sticky with a 20px top inset while inspector content scrolls with the page. Hiding the inspector returns its width to the canvas. Focus breadcrumbs run horizontally and wrap; they do not inherit the shell navigation's column layout.
 
 ## Elevation & Depth
 
@@ -291,13 +299,25 @@ New initiative opens a labeled form beneath the toolbar, above the cards. Name i
 
 ### Initiative flow
 
-An initiative card title opens its flow beneath an Initiatives breadcrumb and the initiative heading; the initiative is the canvas container, never a graph node. Add node and Connect nodes reveal inline forms above the canvas. Selected nodes expose Rename locally; selection also exposes deletion in the toolbar. Auto-layout, Undo, labeled zoom controls and Fit graph remain visible. Full inspection and focused navigation belong to U4.
+An initiative card title opens its flow beneath an Initiatives breadcrumb and the initiative heading; the initiative is the canvas container, never a graph node. Add node and Connect nodes reveal inline forms above the canvas. Selected nodes expose Rename locally; selection also exposes deletion in the toolbar. Auto-layout, Undo, labeled zoom controls and Fit graph remain visible. Selection opens the contextual inspector; when nothing is selected it shows the initiative context. The toolbar can hide or show it in place.
 
 White flow objects use the stronger control border, 12px by 16px padding and a 224px by 108px base size. Titles clamp to two lines. Kind marks and labels distinguish Task, Dependency, Decision and Milestone. State text uses the reserved semantic colors; selection adds an accent border and outline. Shared references use the navigation surface, an explicit Shared reference label and an Open home initiative link; they are read-only here. Inferred nodes add an explicit Inferred label and dashed outline.
 
 Relationship strokes use relationship slate and accent selection. Prerequisite and leads-to paths have arrowheads; containment is dotted and related-to is long-dashed. Inferred paths add a dashed treatment. Labels name relationships; conditional leads-to paths display the decision option label centered over their target, with a 24px gap before the target handle. Label backgrounds match the canvas and long route text wraps within 200px. This preserves route separation without introducing colored badges.
 
 Flow edit fields reuse the control radius and stronger control border. Rename stays inside the selected node. Errors are inline and use alert semantics. Semantic edits and Undo pass through the core commands; dragging changes presentation only.
+
+### Contextual inspector
+
+The narrow, flat inspector uses thin section separators and caption-sized labeled native fields. Node title and details are explicit drafts with Save attributes and an Unsaved attributes note; state has its own control. Decision outcomes use a separate labeled selection and Record decision action. Relationship inspection names both endpoints and the relationship, edits its label, and shows a conditional route label when present. Pending controls disable and failures appear inline with alert semantics.
+
+Facts pair secondary labels with values, including due date when available, external responsibility or decider where applicable, and a direct Evidence sources count. Contextual Questions has its own direct count and prompts or a factual empty message. These counts do not imply rollups. Shared references show their state and home-initiative link without edit, focus or child-checklist controls.
+
+Child Tasks use explicit checkboxes beside selectable Task titles and quiet state labels. A checkbox changes only that canonical Task between open and done; cancelled Tasks cannot be toggled. The containment explanation remains beside the checklist: it organizes work without creating prerequisites or completing the parent.
+
+### Task focus
+
+Focus task in the inspector and double-clicking a canonical Task open a filtered view of the same graph. A horizontal wrapping breadcrumb links back to the initiative and names the current Task, followed by its heading. Focus never creates a nested graph or a duplicate Task. Shared prerequisite references retain their read-only treatment and home-initiative navigation.
 
 ### Keyboard access
 
@@ -318,6 +338,9 @@ A skip link appears on focus. Destination changes focus the main heading; all in
 - **Do** open flow at readable scale, with Fit graph as an explicit overview action.
 - **Do** distinguish object types and inferred or shared records with labels and shape cues.
 - **Do** keep graph editing inline and visual groups within the same graph.
+- **Do** keep the inspector collapsible and reflow it below the canvas at narrow widths.
+- **Do** keep focused Tasks and checklist items canonical within the same graph.
+- **Do** show direct evidence and contextual-question counts with explicit labels.
 
 ### Don't:
 

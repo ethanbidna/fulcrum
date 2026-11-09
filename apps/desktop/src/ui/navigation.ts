@@ -11,5 +11,9 @@ export function destinationFromHash(hash: string): Destination {
 }
 
 export function initiativeFromHash(hash: string): string | undefined {
-  return /^#initiatives\/([0-9a-f-]{36})$/i.exec(hash)?.[1];
+  return /^#initiatives\/([0-9a-f-]{36})(?:\/focus\/[0-9a-f-]{36})?$/i.exec(hash)?.[1];
+}
+
+export function focusedNodeFromHash(hash: string): string | undefined {
+  return /^#initiatives\/[0-9a-f-]{36}\/focus\/([0-9a-f-]{36})$/i.exec(hash)?.[1];
 }
