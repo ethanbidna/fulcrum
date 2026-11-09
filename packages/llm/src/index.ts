@@ -26,3 +26,12 @@ export class OllamaJsonRuntime implements JsonModelRuntime {
     return JSON.parse(content) as unknown;
   }
 }
+
+import { StructuredModelRuntime } from './extraction.js';
+export { StructuredModelRuntime, CANDIDATE_SCHEMA, EXTRACTION_SYSTEM, validateCandidates } from './extraction.js';
+export type { Candidate, Span, ExtractionInput, ExtractionResult, ModelRuntime } from './extraction.js';
+export class OllamaModelRuntime extends StructuredModelRuntime {
+  constructor(model: string, origin = DEFAULT_ORIGIN, request = fetch) {
+    super(new OllamaJsonRuntime(model, origin, request));
+  }
+}

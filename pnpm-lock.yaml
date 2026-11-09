@@ -153,11 +153,18 @@ importers:
 
   packages/ingest:
     dependencies:
+      '@fulcrum/llm':
+        specifier: workspace:*
+        version: link:../llm
       '@fulcrum/sources':
         specifier: workspace:*
         version: link:../sources
 
-  packages/llm: {}
+  packages/llm:
+    dependencies:
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
 
   packages/mcp:
     dependencies:

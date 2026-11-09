@@ -113,3 +113,24 @@ the ingestion portion of scenario 1. Real extraction, thread-context batching,
 superseded assertions, reconciliation, Settings controls, native sleep/resource
 hooks and live connectors remain later steps. No actual sleep/wake or account
 behavior is accepted by these tests.
+
+## Implemented I3 boundary
+
+`ModelRuntime.extract` returns validated typed candidates or explicit
+invalid-output/unavailable/deadline/aborted/input-limit failures. The Ollama
+driver wraps the existing local JSON runtime; callers must select a model
+explicitly. The same structured wrapper accepts other configured generators
+without changing candidate types. No hosted adapter or automatic model choice
+is enabled. See [runtime/evaluation contract](../packages/llm/README.md).
+
+The frozen S2 candidate schema and prompt are checked for parity. Invalid JSON,
+schema or evidence spans get one repair using unchanged source text and a fixed
+repair instruction; invalid model output never becomes trusted instructions.
+A second invalid result returns no candidates. Syntactically valid wrong
+predictions are preserved as results and never repaired to improve scores.
+
+The 48-case oracle mock suite checks plumbing, not learned quality. A bounded
+local smoke run is recorded in [I3 review](reviews/I3.md). Model quality and
+hardware tiers remain provisional under ADR-0018. Queue acknowledgement,
+canonical source/evidence writes, entity resolution and reconciliation remain
+I4/I5; these candidates cannot yet change the portfolio unattended.
