@@ -129,7 +129,7 @@ describe('autonomy policy', () => {
     f.initiative.protectedFields.push('title'); f.intent.actor = 'ai';
     expect(checkPolicy(f.intent, f.context)).toMatchObject({ disposition: 'suggest', rule: PolicyRule.ProtectedFields });
     f.intent.actor = 'mcp';
-    expect(checkPolicy(f.intent, f.context)).toMatchObject({ ok: true, tagMcpWrite: true, protect: [] });
+    expect(checkPolicy(f.intent, f.context)).toMatchObject({ ok: true, tagMcpWrite: true, protect: f.intent.writes });
   });
   test('commitment must match user, target, source and live assertion', () => {
     for (const mutate of [a => { a.value.speakerEntityId = missingId; }, a => { a.target.id = newEdgeId; }, a => { a.evidenceRefs = [{ sourceId: missingId }]; }, a => { a.status = 'rejected'; }]) {

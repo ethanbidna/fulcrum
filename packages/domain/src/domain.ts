@@ -191,7 +191,7 @@ export class Domain {
     if (/^(category|entity|objective|source|device|settings|suggestion)\./.test(name)) throw new DomainFault('POLICY_DENIED', 'Portfolio command requires unrestricted MCP scope', { rule: PolicyRule.McpScope });
   }
   private addManualProtection(tx: Transaction, command: CommandEnvelope, requested: Transaction['requested']) {
-    if (command.actor !== 'user' || command.name === 'field.unprotect') return;
+    if (!['user', 'mcp'].includes(command.actor) || command.name === 'field.unprotect') return;
     for (const { kind, id, field } of requested) {
       if (!['initiative', 'node'].includes(kind) || ['protectedFields', 'updatedAt', 'createdAt'].includes(field)) continue;
       let record;

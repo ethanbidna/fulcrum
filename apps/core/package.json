@@ -11,7 +11,9 @@
     "@fulcrum/domain": "workspace:*",
     "@fulcrum/store": "workspace:*",
     "@fulcrum/schema": "workspace:*",
-    "@fulcrum/index": "workspace:*"
+    "@fulcrum/index": "workspace:*",
+    "@fulcrum/mcp": "workspace:*",
+    "@modelcontextprotocol/server": "2.4.0"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

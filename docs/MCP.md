@@ -62,3 +62,10 @@ Fulcrum cannot stop a client model from following injected text, but it never pl
 ## Protected fields via MCP
 
 `set_moscow` from MCP is treated as the user's intent (the user asked their client). It is applied, tagged `actor: mcp`, highlighted in Meaningful changes, and undoable. Clients that support MCP elicitation get a confirmation prompt first; if a client does not, the write still requires Read-and-write mode.
+
+## Command adapter preview
+
+The current command adapter is documented in [packages/mcp](../packages/mcp/README.md).
+It brings current desktop command parity forward under ADR-0015. The settings,
+scopes, automatic core startup, one-click installation and resource notifications
+above remain the full P1 target; the preview does not claim them implemented.

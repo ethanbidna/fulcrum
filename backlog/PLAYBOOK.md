@@ -89,3 +89,12 @@ and native checks remain pending. No Owner checkbox is completed by this excepti
 ## Audit (recurring)
 
 After every 5 steps marked `done`, the next run is an audit instead of a step: check the code and UI against the [AGENTS.md product invariants](../AGENTS.md#product-invariants-you-must-not-break) and the spec's non-goals (progress displays, status columns, Task owners, nested graphs, chat, AI-written summaries, wrong MoSCoW values, unprotected AI writes, data outside the workspace layout, real personal data). Open GitHub issues for violations, fix nothing, and record the audit in PROGRESS.md.
+
+### Owner priority: conversational parity
+
+On 2026-11-09 the owner asked that every manual addition also be generatable
+from an AI command, before continuing the list. Bring the command adapter portion
+of P1 forward after U4; preserve the exclusive MCP conversational interface.
+P1 remains incomplete until its scoped settings, installation, headless startup,
+packaging and owner client checks pass. U5 follows the command-parity review;
+existing owner/native checks remain pending. See ADR-0015.

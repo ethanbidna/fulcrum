@@ -15,7 +15,7 @@ function isTypeOnly(node) {
 
 function allowsPackage(source, target, subpath, node) {
   if (subpath && subpath !== 'interfaces') return false;
-  if (source === 'core' && ['domain', 'store', 'index'].includes(target)) return !subpath;
+  if (source === 'core' && ['domain', 'store', 'index', 'mcp'].includes(target)) return !subpath;
   if (target === 'schema') return !subpath && isTypeOnly(node);
   if (['desktop', 'mcp', 'ingest'].includes(source) && target === 'domain') return !subpath;
   return interfaceDependencies[source]?.has(target) && subpath === 'interfaces' && isTypeOnly(node);
