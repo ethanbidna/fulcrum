@@ -171,7 +171,7 @@ interface SourceAdapter {
 // packages/llm
 interface ModelRuntime {
   status(): Promise<RuntimeStatus>;                                // installed? model pulled? busy? paused?
-  extract<T>(prompt: ExtractionPrompt, schema: JsonSchema): Promise<Validated<T> | ExtractionFailure>;
+  extract(input: ExtractionInput): Promise<ExtractionResult>;     // typed candidates or explicit failure
   embed?(texts: string[]): Promise<number[][]>;
 }
 
