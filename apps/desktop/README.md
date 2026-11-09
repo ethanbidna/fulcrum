@@ -126,3 +126,33 @@ it with --locked.
 
 Record portfolio observations in docs/reviews/U2.md, then tick the Owner box for
 step 17 after review. Existing U1 and feasibility owner checks remain separate.
+
+## U3 flow canvas
+
+Open a portfolio title to enter its one canonical graph. React Flow supplies
+pan/zoom/fit, keyboard selection/movement and drag-connect; ELK layered layout
+arranges nodes and presentation groups. The editor loads separately from the
+portfolio. Prerequisite arrows point prerequisite → dependent while storage keeps
+`dependent depends_on prerequisite`. Contains remains organizational only.
+
+Add node is inline; Decisions require two user-entered routes. Select a node for
+inline Rename, or a relationship for Delete. Connecting proposes an inline typed
+relationship form before saving; Connect nodes also works without dragging.
+Human domain invariant messages appear in place, and failed drafts remain.
+Every semantic mutation uses the existing core commands; only acknowledged reads
+update canonical content. Undo/⌘Z restores the last acknowledged user event from
+this UI session, including a node's deleted edges. Text inputs retain native undo.
+No redo or cross-session undo history UI is supplied by U3.
+
+Node positions and viewport are ephemeral presentation state: dragging or
+Auto-layout creates no workspace events and does not survive reopening. Canonical
+schemas have no coordinates, and no schema change is introduced here. Shared
+prerequisites are read-only references linking to their home initiative. Full
+attribute/evidence inspector and focused navigation are U4, not another graph.
+
+Verified against the real synthetic file-backed core in the browser; see
+[U3 review](../../docs/reviews/U3.md) and the screenshots under
+`.impeccable/review/u3/`. Native visible launch/Keychain and packaged CSP behavior
+remain unverified. Source status/connector/model behavior is not accepted here.
+Libraries: [React Flow](https://reactflow.dev/learn/customization/custom-nodes)
+and [ELK layered](https://eclipse.dev/elk/reference/algorithms/org-eclipse-elk-layered.html).

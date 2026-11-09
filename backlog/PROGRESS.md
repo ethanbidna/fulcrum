@@ -27,7 +27,7 @@ Steps done since last audit: 3
 | 15 | C7 SQLite index and search | done | n/a | #51 | Machine-local FTS5, incremental snapshot-derived updates, scoped/excerpt-aware search, count progress and cache rebuild recovery |
 | 16 | U1 app shell | waiting-owner | [ ] | #52 | Merged; Intel/ARM native tests/compile and browser review pass; actual native launch and owner feel pending |
 | 17 | U2 portfolio board | waiting-owner | [ ] | #53 | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
-| 18 | U3 flow canvas | todo | [ ] | | |
+| 18 | U3 flow canvas | waiting-owner | [ ] | | Editable canonical flow with typed relationships and session undo; browser/native review limits recorded |
 | 19 | U4 inspector and focused view | todo | [ ] | | |
 | 20 | U5 list and history | todo | [ ] | | Owner: use the app for a week |
 | 21 | I1 adapters, queue, scheduler | todo | n/a | | |
@@ -51,6 +51,14 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 18 — U3 flow review
+
+1. With Node 22 LTS and pnpm 10.11.0, run `corepack enable`, `pnpm install --frozen-lockfile`, `pnpm check`, then `pnpm dev`. Wait for the synthetic fixture, then open `http://127.0.0.1:5173` and select Vendor evaluation.
+2. Check top-to-bottom flow, four primitive glyphs, named light group frames, dashed inferred relationships and labelled Decision routes. Pan/zoom/fit, drag a node, and use Auto-layout. Positions/viewport are ephemeral and do not alter canonical records or sync.
+3. Add a synthetic Task; select it, Rename, save and reload to confirm durability. Drag between handles, choose a relationship and submit. Also try Connect nodes with the keyboard. Attempt Contains between a Task and Dependency and confirm the inline domain message. Delete a synthetic node/relationship; use Undo and ⌘Z outside text inputs. Native text-input undo stays local to its field.
+4. Check narrow-window layout and back navigation. Record observations in `docs/reviews/U3.md`. Full inspector/focused navigation belongs to U4; native launch/Keychain/CSP and sync/hardware acceptance remain separately unverified. Ctrl-C stops the disposable session.
+5. Tick only the Owner box for step 18 after review. Prior owner boxes remain pending; owner-delegated agent review/merge allowed continuation after U2.
 
 ### Step 17 — U2 portfolio review
 

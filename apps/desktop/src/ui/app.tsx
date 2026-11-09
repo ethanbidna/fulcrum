@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type { Platform } from '../platform/platform.js';
-import { destinationFromHash, destinations } from './navigation.js';
+import { destinationFromHash, initiativeFromHash, destinations } from './navigation.js';
 import type { Destination } from './navigation.js';
 import { useCore } from './use-core.js';
 import type { CoreState } from './use-core.js';
 import { Portfolio } from './portfolio.js';
 import { Icon } from './icon.js';
+const FlowCanvas = lazy(async () => ({ default: (await import('./flow-canvas.js')).FlowCanvas }));
 const mark = new URL('../../../../assets/fulcrum-mark.svg', import.meta.url).href;
 const descriptions: Record<Destination, string> = {
   initiatives: 'Your work, organized around outcomes.',
@@ -25,14 +26,16 @@ function Connection({ state, retry }: { state: CoreState; retry: () => void }) {
 }
 export function App({ platform }: { platform: Platform }) {
   const [destination, setDestination] = useState(() => destinationFromHash(window.location.hash));
+  const [initiativeId, setInitiativeId] = useState(() => initiativeFromHash(window.location.hash));
   const heading = useRef<HTMLHeadingElement>(null);
-  const { state, retry, execute } = useCore(platform);
+  const { state, retry, execute, query, undo, canUndo } = useCore(platform);
   useEffect(() => {
-    const navigate = () => { setDestination(destinationFromHash(window.location.hash)); };
+    const navigate = () => { setDestination(destinationFromHash(window.location.hash)); setInitiativeId(initiativeFromHash(window.location.hash)); };
     window.addEventListener('hashchange', navigate);
     return () => window.removeEventListener('hashchange', navigate);
   }, []);
-  useEffect(() => { document.title = `${destinations.find(item => item.id === destination)!.label} · Fulcrum`; heading.current?.focus(); }, [destination]);
+  const initiative = state.phase === 'connected' ? state.board.cards.find(card => card.initiative.id === initiativeId)?.initiative : undefined;
+  useEffect(() => { document.title = `${initiative?.title ?? destinations.find(item => item.id === destination)!.label} · Fulcrum`; heading.current?.focus(); }, [destination, initiative?.title]);
   const page = destinations.find(item => item.id === destination)!;
   return <div className="app-shell">
     <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); heading.current?.focus(); }}>Skip to content</a>
@@ -45,10 +48,10 @@ export function App({ platform }: { platform: Platform }) {
       <Connection state={state} retry={retry} />
     </aside>
     <main id="main-content">
-      <header className="page-header"><h1 ref={heading} tabIndex={-1}>{page.label}</h1><p>{descriptions[destination]}</p></header>
+      <header className="page-header">{initiativeId && destination === 'initiatives' && <a className="breadcrumb" href="#initiatives">Initiatives</a>}<h1 ref={heading} tabIndex={-1}>{initiative?.title ?? page.label}</h1>{!initiativeId && <p>{descriptions[destination]}</p>}</header>
       {state.phase === 'unavailable' ? <section className="view-message" aria-labelledby="connection-heading"><Icon name={destination} /><h2 id="connection-heading">Connect to your workspace</h2><p>Open the local core, then retry the connection.</p><button className="primary-button" onClick={retry}>Retry connection</button></section>
         : state.phase === 'connecting' ? <section className="view-message" aria-busy="true"><div className="loading-lines" aria-hidden="true"><span /><span /></div><p>Opening your workspace…</p></section>
-          : destination === 'initiatives' ? <Portfolio board={state.board} execute={execute} /> : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p></section>}
+          : destination === 'initiatives' && initiativeId ? initiative ? <Suspense fallback={<p role="status">Opening the flow editor…</p>}><FlowCanvas key={initiativeId} initiative={initiative} board={state.board} query={query} execute={execute} undo={undo} canUndo={canUndo} /></Suspense> : <section className="view-message"><h2>Initiative unavailable</h2><p>It may have been archived or removed.</p><a href="#initiatives">Return to initiatives</a></section> : destination === 'initiatives' ? <Portfolio board={state.board} execute={execute} /> : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p></section>}
     </main>
   </div>;
 }

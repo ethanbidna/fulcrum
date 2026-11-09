@@ -1,3 +1,4 @@
+import { invariantMessage } from './invariant-messages.js';
 import type { ChangeEvent, CommandInvocation, Op, RecordKind, Target, WorkspaceStateDoc } from '@fulcrum/schema';
 import { checkAffectedInvariants } from './affected.js';
 import { checkInvariants } from './invariants.js';
@@ -210,7 +211,7 @@ export class Domain {
   private validateTransaction(before: WorkspaceState, tx: Transaction) {
     this.validateErrors(this.ports.validateState({ ...this.replay.document, state: tx.state }));
     const violations = checkAffectedInvariants(before, tx.state, tx.ops.map(op => op.id));
-    if (violations.length) throw new DomainFault('INVARIANT_VIOLATION', 'Command violates graph invariants', { invariant: violations[0]!.code, violations });
+    if (violations.length) throw new DomainFault('INVARIANT_VIOLATION', invariantMessage(violations[0]!.code), { invariant: violations[0]!.code, violations });
   }
   private validateErrors(errors: unknown[]) { if (errors.length) throw new DomainFault('VALIDATION_FAILED', 'Schema validation failed', errors); }
   private draft(command: CommandEnvelope, tx: Transaction, at: string): EventDraft {
