@@ -26,7 +26,7 @@ Steps done since last audit: 3
 | 14 | C6 core process and transports | done | n/a | #50 | Authenticated Unix core, Keychain driver, durable domain binding, UI transport and separate dev bridge; real Keychain/Tauri/signing remain unverified |
 | 15 | C7 SQLite index and search | done | n/a | #51 | Machine-local FTS5, incremental snapshot-derived updates, scoped/excerpt-aware search, count progress and cache rebuild recovery |
 | 16 | U1 app shell | waiting-owner | [ ] | #52 | Merged; Intel/ARM native tests/compile and browser review pass; actual native launch and owner feel pending |
-| 17 | U2 portfolio board | waiting-owner | [ ] | | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
+| 17 | U2 portfolio board | waiting-owner | [ ] | #53 | Grouped fixture cards, independent sorting, atomic manual ordering and contextual rail; owner review pending |
 | 18 | U3 flow canvas | todo | [ ] | | |
 | 19 | U4 inspector and focused view | todo | [ ] | | |
 | 20 | U5 list and history | todo | [ ] | | Owner: use the app for a week |
