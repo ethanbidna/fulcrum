@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@fulcrum/sources": "workspace:*",
-    "@fulcrum/llm": "workspace:*"
+    "@fulcrum/llm": "workspace:*",
+    "@fulcrum/schema": "workspace:*",
+    "@fulcrum/context": "workspace:*"
   }
 }

@@ -134,3 +134,19 @@ local smoke run is recorded in [I3 review](reviews/I3.md). Model quality and
 hardware tiers remain provisional under ADR-0018. Queue acknowledgement,
 canonical source/evidence writes, entity resolution and reconciliation remain
 I4/I5; these candidates cannot yet change the portfolio unattended.
+
+## Implemented I4 boundary
+
+The native `ContextIndex` in `packages/context` resolves canonical entities by
+exact aliases and scoped external IDs, retrieves related temporal claims and
+uses FTS5 for titles/aliases/permitted excerpts. The core refreshes its separate
+machine-local cache from acknowledged folded state. It is rebuildable and has
+no domain write authority; Graphiti/model adoption remains pending.
+
+Scenario 6's synthetic person/project aliases resolve, or a material Dependency
+ambiguity produces a fixed contextual question plan. The integration test sends
+repeated plans through `Domain.execute`, verifies one question, chooses an
+identity and undoes the choice. This does not enable unattended processing.
+See [API, bounds and failure behavior](../packages/context/README.md). I5 still
+owns candidate reconciliation and queue acknowledgement. Audit issue #63's
+handover hash mismatch remains open and must be fixed before unattended work.

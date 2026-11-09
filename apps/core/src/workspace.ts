@@ -8,6 +8,7 @@ import type { McpAccess } from './mcp-access.js';
 import { randomUUID } from 'node:crypto';
 import { Domain } from '@fulcrum/domain';
 import type { CommandEnvelope, AppliedChange, QueryName, QueryArgs } from '@fulcrum/domain';
+import { SqliteContextIndex, snapshotEpisodes } from '@fulcrum/context';
 import { SqliteReadIndex } from '@fulcrum/index';
 import type { IndexProgress } from '@fulcrum/index';
 import { FileWorkspaceStore, loadStoreValidators } from '@fulcrum/store';
@@ -33,6 +34,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const opened = await store.open(options.workspaceDirectory);
   const listeners = new Set<(change: AppliedChange) => void>();
   let index: SqliteReadIndex | undefined;
+  let context: SqliteContextIndex | undefined;
   let domain: Domain; let unsubscribe: (() => void) | undefined; let fingerprint = ''; let manifestFingerprint = ''; let unavailable = false; let closing = false;
   let knownEventIds = new Set<string>();
   let tail: Promise<unknown> = Promise.resolve();
@@ -67,6 +69,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
         for (const listener of listeners) { try { listener(structuredClone(change)); } catch { continue; } }
       });
       if (index) await index.rebuild(domain.getSnapshot()).catch(() => undefined);
+      await refreshContext();
       fingerprint = next; manifestFingerprint = nextManifest; unavailable = false;
       const incoming = read.events.filter(event => !knownEventIds.has(event.eventId));
       knownEventIds = new Set(read.events.map(event => event.eventId));
@@ -74,6 +77,11 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
         try { listener({ eventId: event.eventId, actor: event.actor, ops: structuredClone(event.ops), raisedQuestionIds: event.ops.filter(op => op.kind === 'question' && op.op === 'create').map(op => op.id) }); } catch { continue; }
       }
     } catch (error) { unavailable = true; throw error; }
+  };
+  const refreshContext = async () => {
+    if (!context) return;
+    try { await context.rebuild(snapshotEpisodes(domain.getSnapshot())); }
+    catch { const unavailableContext = context; context = undefined; await unavailableContext.close().catch(() => undefined); }
   };
   let stopWatching: (() => void) | undefined;
   try {
@@ -88,14 +96,19 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       index = await SqliteReadIndex.open({ localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory,
         getSnapshot: () => domain.getSnapshot(), ...(options.onIndexProgress ? { onProgress: options.onIndexProgress } : {}) });
     } catch { index = undefined; }
+    try {
+      context = await SqliteContextIndex.open({ localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, workspaceId: domain!.getSnapshot().workspaceId });
+      await refreshContext();
+    } catch { await context?.close(); context = undefined; }
     store.setCheckpointProvider(async () => domain.getSnapshot());
     stopWatching = store.watch(() => { void enqueue(reload).catch(() => { unavailable = true; }); });
-  } catch (error) { await index?.close(); await store.close(); throw error; }
+  } catch (error) { await context?.close(); await index?.close(); await store.close(); throw error; }
   const requireAvailable = async () => { await reload(); if (unavailable) throw new Error('WORKSPACE_UNAVAILABLE'); };
   let closePromise: Promise<void> | undefined;
   const executeCurrent = async (command: unknown, actor: 'user' | 'mcp') => {
       const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor });
       if (result.ok && index) await index.apply({ eventId: result.eventId, ops: result.ops }).catch(() => undefined);
+      if (result.ok) await refreshContext();
       knownEventIds = new Set(domain.history().map(event => event.eventId));
       fingerprint = JSON.stringify([...knownEventIds]); return result;
   };
@@ -105,7 +118,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
   try {
     if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
-  } catch (error) { stopWatching?.(); unsubscribe?.(); await index?.close(); await store.close(); throw error; }
+  } catch (error) { stopWatching?.(); unsubscribe?.(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable();
     if (name === 'status.freshness') {
       if (!args || typeof args !== 'object' || Object.keys(args).length) throw new Error('INVALID_FRESHNESS_QUERY');
@@ -130,7 +143,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     ingestionActive: () => ingestion?.scheduler.active() ?? false,
     close: () => {
       closing = true; jobs.close(); stopWatching?.();
-      return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await index?.close(); listeners.clear(); } })();
+      return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
     },
   };
 }

@@ -16,7 +16,8 @@
     "@modelcontextprotocol/server": "2.4.0",
     "@fulcrum/llm": "workspace:*",
     "@fulcrum/sources": "workspace:*",
-    "@fulcrum/ingest": "workspace:*"
+    "@fulcrum/ingest": "workspace:*",
+    "@fulcrum/context": "workspace:*"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

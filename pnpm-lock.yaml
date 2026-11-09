@@ -47,6 +47,9 @@ importers:
 
   apps/core:
     dependencies:
+      '@fulcrum/context':
+        specifier: workspace:*
+        version: link:../../packages/context
       '@fulcrum/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -134,7 +137,11 @@ importers:
         specifier: 8.3.6
         version: 8.3.6(@types/node@22.15.29)(esbuild@0.28.2)
 
-  packages/context: {}
+  packages/context:
+    dependencies:
+      '@fulcrum/schema':
+        specifier: workspace:*
+        version: link:../schema
 
   packages/domain:
     dependencies:
@@ -153,9 +160,15 @@ importers:
 
   packages/ingest:
     dependencies:
+      '@fulcrum/context':
+        specifier: workspace:*
+        version: link:../context
       '@fulcrum/llm':
         specifier: workspace:*
         version: link:../llm
+      '@fulcrum/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@fulcrum/sources':
         specifier: workspace:*
         version: link:../sources
