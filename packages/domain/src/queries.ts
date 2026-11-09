@@ -7,13 +7,14 @@ import { projectFocus, projectGraph } from './graph-projections.js';
 import type { GraphView } from './graph-projections.js';
 import { projectHistory } from './history-projections.js';
 import type { HistoryEntry, HistoryFilter } from './history-projections.js';
-import { projectPortfolio, projectRail } from './projections.js';
-import type { PortfolioCard, PortfolioRail } from './projections.js';
+import { projectPortfolio, projectRail, projectBoard } from './projections.js';
+import type { PortfolioCard, PortfolioRail, PortfolioBoard } from './projections.js';
 
 export interface QueryArgs {
   'search': { text: string; scope?: SearchScope };
   'status.index': Record<string, never>;
   'portfolio.list': Record<string, never>;
+  'portfolio.board': Record<string, never>;
   'portfolio.rail': { since?: string };
   'graph.get': { initiativeId: string };
   'graph.focus': { nodeId: string };
@@ -25,6 +26,7 @@ export interface QueryResults {
   'search': SearchHit[];
   'status.index': IndexProgress;
   'portfolio.list': PortfolioCard[];
+  'portfolio.board': PortfolioBoard;
   'portfolio.rail': PortfolioRail;
   'graph.get': GraphView;
   'graph.focus': GraphView;
@@ -35,7 +37,7 @@ export interface QueryResults {
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
   'search': ['text', 'scope'], 'status.index': [],
-  'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
+  'portfolio.board': [], 'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
   'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'],
 };
 export function validateQuery(name: QueryName, args: unknown) {
@@ -55,6 +57,7 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
   const value = args as Record<string, unknown>; const state = replay.document.state as WorkspaceState;
   let result: QueryResults[QueryName];
   switch (name) {
+    case 'portfolio.board': result = projectBoard(state, projectHistory(replay), { now: now() }); break;
     case 'portfolio.list': result = projectPortfolio(state); break;
     case 'portfolio.rail': result = projectRail(state, projectHistory(replay), { now: now(), ...(value.since === undefined ? {} : { since: text(value.since) }) }); break;
     case 'graph.get': result = projectGraph(state, text(value.initiativeId)); break;

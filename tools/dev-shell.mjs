@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { mkdtemp, rm, mkdir } from 'node:fs/promises';
+import { mkdtemp, rm, mkdir, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +16,8 @@ let fixture; let server;
 const close = async () => { await server?.close(); await fixture?.close(); await rm(directory, { recursive: true, force: true }); };
 try {
   const { startFixture } = await import(output);
-  fixture = await startFixture(directory, new URL('../schemas/v1/', import.meta.url));
+  const snapshot = JSON.parse(await readFile(new URL('../fixtures/states/portfolio.state.json', import.meta.url), 'utf8'));
+  fixture = await startFixture(directory, new URL('../schemas/v1/', import.meta.url), snapshot);
   process.env.FULCRUM_DEV_SESSION = fixture.sessionFile;
   server = await createServer({ root: path.join(root, 'apps/desktop'), configFile: path.join(root, 'apps/desktop/vite.config.ts') });
   await server.listen();

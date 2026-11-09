@@ -34,6 +34,7 @@ const passed = result => { expect(result, JSON.stringify(result)).toMatchObject(
 const denied = (result, code) => expect(result).toMatchObject({ ok: false, error: { code } });
 
 const catalogCases = {
+  'initiative.rerank': () => ({ ranks: [{ id: id('01', 1), manualRank: 'a1' }, { id: id('01', 3), manualRank: 'a0' }] }),
   'initiative.create': () => ({ record: { id: nextRecordId('01'), title: 'Synthetic initiative' } }),
   'initiative.propose': () => ({ record: { id: nextRecordId('01'), title: 'Synthetic proposal' } }),
   'initiative.approve': () => ({ id: id('01', 2) }), 'initiative.reject': () => ({ id: id('01', 2) }),
