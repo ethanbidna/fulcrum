@@ -1,12 +1,13 @@
 import { expect, test, vi } from 'vitest';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { SqliteIngestionQueue, SyntheticSourceAdapter } from '../../packages/sources/src/index.ts';
 import { IngestionScheduler } from '../../packages/ingest/src/index.ts';
 const NOW = '2026-01-08T12:00:00.000Z';
 const DAY_MS = 24 * 60 * 60 * 1000;
 async function setup(run) {
-  const directory = await mkdtemp('/private/tmp/fi1-');
+  const directory = await mkdtemp(path.join(tmpdir(), 'fi1-'));
   const localDirectory = path.join(directory, 'local'); const workspaceDirectory = path.join(directory, 'workspace');
   await mkdir(localDirectory); await mkdir(workspaceDirectory);
   const options = { localDirectory, workspaceDirectory, workspaceId: 'synthetic-workspace' };
@@ -106,7 +107,7 @@ test('queue refuses workspace paths, symlinks and foreign-workspace reuse', asyn
   expect(await readFile(sentinel, 'utf8')).toBe('synthetic sentinel');
 }));
 test('core defaults off and exposes freshness without changing the portfolio or enabling inference', async () => {
-  const { openWorkspaceHost } = await import('../../apps/core/src/workspace.ts'); const directory = await mkdtemp('/private/tmp/fi1-core-'); let host;
+  const { openWorkspaceHost } = await import('../../apps/core/src/workspace.ts'); const directory = await mkdtemp(path.join(tmpdir(), 'fi1-core-')); let host;
   try {
     host = await openWorkspaceHost({ workspaceDirectory: path.join(directory, 'workspace'), localDirectory: path.join(directory, 'local'), userEntityId: '08000000-0000-7000-8000-000000000001', deviceLabel: 'Synthetic Mac', create: true });
     expect(await host.query('status.freshness', {})).toMatchObject({ state: 'disabled', pending: 0 }); expect(host.ingestionActive()).toBe(false);
