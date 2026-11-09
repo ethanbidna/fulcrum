@@ -68,7 +68,7 @@ export function checkPolicy(intent: PolicyIntent, context: PolicyContext): Polic
     return deny(PolicyRule.MaterialQuestions);
   }
   const existing = question && context.state.questions.find(q => q.dedupeKey === question.dedupeKey && ['open', 'deferred'].includes(q.state));
-  const protect = intent.actor === 'user' && intent.name !== 'field.unprotect' ? intent.writes : [];
+  const protect = ['user', 'mcp'].includes(intent.actor) && intent.name !== 'field.unprotect' ? intent.writes : [];
   return { ok: true, protect, tagMcpWrite: intent.actor === 'mcp', ...(existing ? { updateQuestionId: existing.id } : {}) };
 }
 

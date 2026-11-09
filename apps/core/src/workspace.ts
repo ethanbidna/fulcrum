@@ -1,3 +1,5 @@
+import { createMcpAccess, validateMcpAccess } from './mcp-access.js';
+import type { McpAccess } from './mcp-access.js';
 import { randomUUID } from 'node:crypto';
 import { Domain } from '@fulcrum/domain';
 import type { CommandEnvelope, AppliedChange, QueryName, QueryArgs } from '@fulcrum/domain';
@@ -10,12 +12,14 @@ import type { CoreHost } from './host.js';
 export interface WorkspaceOptions {
   workspaceDirectory: string; localDirectory: string; userEntityId: string;
   onIndexProgress?: (progress: IndexProgress) => void;
+  mcp?: McpAccess;
   deviceLabel: string; create?: boolean; schemaDirectory?: URL;
 }
 function emptyState(workspaceId: string): WorkspaceStateDoc {
   return { v: 1, workspaceId, frontier: {}, state: { initiatives: [], categories: [], nodes: [], edges: [], groups: [], objectives: [], entities: [], sources: [], assertions: [], questions: [], rejections: [], devices: [], settings: {} } };
 }
 export async function openWorkspaceHost(options: WorkspaceOptions): Promise<CoreHost> {
+  if (options.mcp) validateMcpAccess(options.mcp);
   const schema = options.schemaDirectory ? { schemaDirectory: options.schemaDirectory } : {};
   if (options.create) await FileWorkspaceStore.create(options.workspaceDirectory, new Date(), schema);
   const store = new FileWorkspaceStore({ localDirectory: options.localDirectory, deviceLabel: options.deviceLabel, ...schema });
@@ -47,6 +51,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
           },
           status: () => index?.status() ?? { phase: 'unavailable', completed: 0, total: 0 },
         },
+        ...(options.mcp ? { mcp: options.mcp } : {}),
         readOnly: opened.readOnly || read.manifest.schemaVersion > 1, commit: drafts => store.commit(drafts),
         validateState: value => validators.checkpoint(value) ? [] : validators.checkpoint.errors ?? [],
         validateEvent: value => validators.event(value) ? [] : validators.event.errors ?? [],
@@ -81,15 +86,19 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   } catch (error) { await index?.close(); await store.close(); throw error; }
   const requireAvailable = async () => { await reload(); if (unavailable) throw new Error('WORKSPACE_UNAVAILABLE'); };
   let closePromise: Promise<void> | undefined;
-  return {
-    query: (name, args) => enqueue(async () => { await requireAvailable(); return domain.query(name as QueryName, args as QueryArgs[QueryName]); }),
-    execute: command => enqueue(async () => {
+  const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => {
       await requireAvailable();
-      const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor: 'user' });
+      const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor });
       if (result.ok && index) await index.apply({ eventId: result.eventId, ops: result.ops }).catch(() => undefined);
       knownEventIds = new Set(domain.history().map(event => event.eventId));
       fingerprint = JSON.stringify([...knownEventIds]); return result;
-    }),
+  });
+  const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable(); return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
+  const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
+  return {
+    mcpQuery: mcp.query, mcpExecute: mcp.execute,
+    query,
+    execute: command => executeAs(command, 'user'),
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
     ingestionActive: () => false,
     close: () => {

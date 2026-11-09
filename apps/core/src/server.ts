@@ -67,6 +67,8 @@ export async function startCoreServer(options: ServerOptions) {
           case 'health': result = { ready: true }; break;
           case 'query': result = await host.query(String(params.name), params.args); break;
           case 'execute': result = await host.execute(validateCommand(params)); break;
+          case 'mcp.query': if (!host.mcpQuery) throw new Error('MCP_DISABLED'); result = await host.mcpQuery(String(params.name), params.args); break;
+          case 'mcp.execute': if (!host.mcpExecute) throw new Error('MCP_DISABLED'); result = await host.mcpExecute(validateCommand(params)); break;
           case 'subscribe': subscribed = true; result = {}; break;
           case 'unsubscribe': subscribed = false; result = {}; break;
           default: throw new Error('METHOD_NOT_FOUND');

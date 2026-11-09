@@ -53,12 +53,18 @@ importers:
       '@fulcrum/index':
         specifier: workspace:*
         version: link:../../packages/index
+      '@fulcrum/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@fulcrum/schema':
         specifier: workspace:*
         version: link:../../packages/schema
       '@fulcrum/store':
         specifier: workspace:*
         version: link:../../packages/store
+      '@modelcontextprotocol/server':
+        specifier: 2.4.0
+        version: 2.4.0
     devDependencies:
       '@types/ws':
         specifier: 8.18.1
@@ -140,7 +146,17 @@ importers:
 
   packages/llm: {}
 
-  packages/mcp: {}
+  packages/mcp:
+    dependencies:
+      '@fulcrum/domain':
+        specifier: workspace:*
+        version: link:../domain
+      '@modelcontextprotocol/server':
+        specifier: 2.4.0
+        version: 2.4.0
+      zod:
+        specifier: 4.6.7
+        version: 4.6.7
 
   packages/schema: {}
 

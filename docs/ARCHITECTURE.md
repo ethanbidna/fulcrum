@@ -75,7 +75,7 @@ Rules (enforced by lint import boundaries once the monorepo exists):
 
 | Layer | May import | Must not |
 |---|---|---|
-| `apps/core` (composition root) | public `domain` and driver APIs, generated types, Node | domain/driver private modules |
+| `apps/core` (composition root) | public `domain`, `mcp` and driver APIs, generated types, Node | domain/driver private modules |
 | `apps/desktop`, `packages/mcp` | `domain` public API, generated types | `store`, `index`, any driver |
 | `packages/domain` | generated schema types, `store` and `index` **interfaces** | Node/Tauri APIs, network, model calls |
 | `packages/ingest` | `domain` commands, driver interfaces | write workspace files directly |
