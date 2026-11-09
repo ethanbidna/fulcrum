@@ -42,7 +42,7 @@ export async function startDevBridge(options: BridgeOptions) {
             if (ws.readyState !== ws.OPEN) { client.close(); return; }
             client.subscribe(send); authenticated = true; clearTimeout(timer); result = { authenticated: true };
           } else {
-            if (!['query', 'execute', 'subscribe', 'unsubscribe', 'health'].includes(message.method)) throw new Error('INVALID_REQUEST');
+            if (!['query', 'execute', 'subscribe', 'unsubscribe', 'health', 'planCommand', 'commandPlanStatus', 'cancelCommandPlan', 'applyCommandPlan'].includes(message.method)) throw new Error('INVALID_REQUEST');
             result = await client!.request(message.method, message.params ?? {});
           }
           send({ jsonrpc: '2.0', id, result });

@@ -22,3 +22,7 @@ export type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/inter
 
 export { projectInspection } from './inspector-projections.js';
 export type { Inspection, InspectionTarget } from './inspector-projections.js';
+
+export type { CommandRequest, CommandPlan, CommandChange } from './command-plans.js';
+
+export { MAX_COMMAND_PROMPT_LENGTH } from './command-plans.js';

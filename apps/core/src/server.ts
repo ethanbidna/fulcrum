@@ -45,6 +45,7 @@ export async function startCoreServer(options: ServerOptions) {
     if (stopping || clients.size >= MAX_CLIENTS) { client.destroy(); return; }
     clients.add(client); clearTimeout(idleTimer);
     let authenticated = false; let subscribed = false; let buffer = ''; let queued = 0;
+    const planningJobs = new Set<string>();
     let sequence: Promise<void> = Promise.resolve();
     const authTimer = setTimeout(() => client.destroy(), options.authTimeoutMs ?? AUTH_TIMEOUT_MS);
     const send = (message: unknown) => {
@@ -54,7 +55,7 @@ export async function startCoreServer(options: ServerOptions) {
     };
     const unsubscribe = host.subscribe(change => { if (authenticated && subscribed) send({ jsonrpc: '2.0', method: 'AppliedChange', params: change }); });
     client.setEncoding('utf8'); client.on('error', () => client.destroy());
-    client.on('close', () => { clearTimeout(authTimer); unsubscribe(); clients.delete(client); scheduleIdle(); });
+    client.on('close', () => { for (const id of planningJobs) host.cancelCommandPlan?.(id); clearTimeout(authTimer); unsubscribe(); clients.delete(client); scheduleIdle(); });
     const respond = async (line: string) => {
       let id: Request['id'] | null = null;
       try {
@@ -67,6 +68,10 @@ export async function startCoreServer(options: ServerOptions) {
           case 'health': result = { ready: true }; break;
           case 'query': result = await host.query(String(params.name), params.args); break;
           case 'execute': result = await host.execute(validateCommand(params)); break;
+          case 'planCommand': if (!host.planCommand) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = await host.planCommand(params); if (result && typeof result === 'object' && 'id' in result && typeof result.id === 'string') planningJobs.add(result.id); break;
+          case 'commandPlanStatus': if (!host.commandPlanStatus) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = host.commandPlanStatus(String(params.id)); break;
+          case 'cancelCommandPlan': host.cancelCommandPlan?.(String(params.id)); result = {}; break;
+          case 'applyCommandPlan': if (!host.applyCommandPlan) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = await host.applyCommandPlan(String(params.id)); break;
           case 'mcp.query': if (!host.mcpQuery) throw new Error('MCP_DISABLED'); result = await host.mcpQuery(String(params.name), params.args); break;
           case 'mcp.execute': if (!host.mcpExecute) throw new Error('MCP_DISABLED'); result = await host.mcpExecute(validateCommand(params)); break;
           case 'subscribe': subscribed = true; result = {}; break;

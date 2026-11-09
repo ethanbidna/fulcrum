@@ -157,6 +157,17 @@ Depends on: U3
 - [ ] Double-click a Task opens the focused view (filtered same graph) with breadcrumbs back; edits reflect everywhere immediately.
 - [ ] Simple Tasks with child Tasks can be shown as a checklist in the inspector.
 
+### U4a · In-app command bar
+Labels: ui
+Depends on: U4
+Owner priority before U5; issue #57; ADR-0017.
+**Acceptance criteria**
+- [ ] Inline natural-language entry and contextual structured review; keyboard-first.
+- [ ] Local model drafts only; no writes until explicit approval through Domain.
+- [ ] Atomic apply with exact-request evidence, field protection and one undo.
+- [ ] Stale/ambiguous/invalid/cancelled/unavailable drafts retain input without writes.
+- [ ] Manual editing remains secondary; external MCP remains available independently.
+
 ### U5 · List and History views
 Labels: ui
 Depends on: U4

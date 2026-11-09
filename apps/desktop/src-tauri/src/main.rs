@@ -56,7 +56,7 @@ fn keychain_secret() -> Result<String, String> {
 }
 #[tauri::command]
 async fn core_request(state: tauri::State<'_, Arc<CoreSocket>>, method: String, params: Value) -> Result<Value, String> {
-    if !["health", "query", "execute"].contains(&method.as_str()) { return Err("METHOD_NOT_ALLOWED".into()); }
+    if !["health", "query", "execute", "planCommand", "commandPlanStatus", "cancelCommandPlan", "applyCommandPlan"].contains(&method.as_str()) { return Err("METHOD_NOT_ALLOWED".into()); }
     let client = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || client.connect()?.request(&method, params)).await.map_err(|_| "CORE_UNAVAILABLE".to_string())?
 }

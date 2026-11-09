@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
-import type { CommandEnvelope, PortfolioBoard } from '@fulcrum/domain';
+import type { CommandEnvelope, PortfolioBoard, CommandRequest } from '@fulcrum/domain';
 import type { CoreTransport } from '../core-transport.js';
 import type { Platform } from '../platform/platform.js';
 export type CoreState =
@@ -46,7 +46,11 @@ export function useCore(platform: Platform) {
     const transport = currentTransport.current;
     if (!transport) throw new Error('CORE_UNAVAILABLE');
     const result = await transport.execute(command);
-    if (result.ok && command.name !== 'change.undo') { undoEvents.current.push(result.eventId); setUndoVersion(value => value + 1); }
+    if (result.ok) {
+      if (command.name === 'change.undo') undoEvents.current = undoEvents.current.filter(id => id !== command.args.eventId);
+      else undoEvents.current.push(result.eventId);
+      setUndoVersion(value => value + 1);
+    }
     if (currentTransport.current === transport) await refreshCurrent.current();
     return result;
   }, []);
@@ -57,8 +61,21 @@ export function useCore(platform: Platform) {
   const undo = useCallback(async () => {
     const eventId = undoEvents.current.at(-1); if (!eventId) return null;
     const result = await execute({ name: 'change.undo', args: { eventId } });
-    if (result.ok) { undoEvents.current.pop(); setUndoVersion(value => value + 1); }
     return result;
   }, [execute]);
-  return { state, execute, query, undo, canUndo: undoVersion > 0 && undoEvents.current.length > 0, retry: useCallback(() => setAttempt(value => value + 1), []) };
+  const planCommand = useCallback((request: CommandRequest) => {
+    const transport = currentTransport.current;
+    if (!transport?.planCommand) return Promise.reject(new Error('Local command planning is unavailable in this build.'));
+    return transport.planCommand(request);
+  }, []);
+  const cancelCommandPlan = useCallback(async () => { await currentTransport.current?.cancelCommandPlan?.(); }, []);
+  const applyCommandPlan = useCallback(async (id: string) => {
+    const transport = currentTransport.current;
+    if (!transport?.applyCommandPlan) throw new Error('Local command planning is unavailable in this build.');
+    const result = await transport.applyCommandPlan(id);
+    if (result.ok) { undoEvents.current.push(result.eventId); setUndoVersion(value => value + 1); }
+    if (currentTransport.current === transport) await refreshCurrent.current();
+    return result;
+  }, []);
+  return { state, execute, query, planCommand, cancelCommandPlan, applyCommandPlan, undo, canUndo: undoVersion > 0 && undoEvents.current.length > 0, retry: useCallback(() => setAttempt(value => value + 1), []) };
 }

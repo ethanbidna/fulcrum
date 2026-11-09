@@ -184,7 +184,7 @@ components:
 
 A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.
 
-This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector and Task focus. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
+This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
 
 **Key Characteristics:**
 
@@ -194,6 +194,7 @@ This records the implemented U1 shell, U2 active-initiative portfolio, U3 editab
 - Initiative cards with one meaningful state and a quiet optional context rail.
 - A readable flow canvas with distinct object marks and explicit relationship labels.
 - A collapsible inspector and Task focus that preserve the same graph context.
+- One inline command request followed by a structured review and explicit apply.
 
 ## Colors
 
@@ -235,7 +236,7 @@ Blocked red, waiting amber and completed green retain semantic roles from the hi
 - **Caption:** question and initiative counts; question counts use tabular numerals.
 - **Status:** connection text.
 
-The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size. U4 reuses the same ramp: caption-sized inspector fields and breadcrumbs, label-sized inspector heading, 17px object titles, 13px section headings and a title-sized focused Task heading. Counts and draft notes remain secondary.
+The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size. U4 reuses the same ramp: caption-sized inspector fields and breadcrumbs, label-sized inspector heading, 17px object titles, 13px section headings and a title-sized focused Task heading. Counts and draft notes remain secondary. The command entry uses regular-weight 17px text, reducing to 16px at 640px and below for readable entry. Review headings reuse 17px heading styling, change names use body text, and before/after values, hints and results use caption text; this is a local component treatment, not a new global type scale.
 
 ## Layout
 
@@ -252,6 +253,8 @@ The open context rail occupies 232px beside the cards with a 32px gap. At 1150px
 The initiative flow places a quiet attribute row and wrapping local toolbar above one neutral canvas. The canvas fills available width with a desktop height of max(560px, 100dvh minus 290px); at 640px and below its height is 560px and selection controls wrap. ELK arranges the same graph downward, with 40px between nodes and 72px between layers. Initial and auto-layout views begin at zoom 1 with the first top-row object inset 24px; Fit graph explicitly provides an overview. Panning and zooming retain access to the rest of the graph rather than shrinking initial text to fit everything. Positions and zoom are ephemeral view state.
 
 With the inspector open, the flow workspace has a flexible canvas column and a 300px inspector column separated by 20px. The inspector uses a left separator and 20px left padding. At 1040px and below it follows the canvas in normal flow, with a top separator and 20px top padding. Above that breakpoint the canvas stays sticky with a 20px top inset while inspector content scrolls with the page. Hiding the inspector returns its width to the canvas. Focus breadcrumbs run horizontally and wrap; they do not inherit the shell navigation's column layout.
+
+The inline command region follows the page heading and precedes the current workspace content. Its maximum width is 1080px with 24px bottom spacing. Review stays in normal flow, with 20px top spacing and vertical padding; it preserves the graph below. Change rows use 12px vertical padding and fine separators. Before/after values use a 36px label column beside a flexible value column. At 640px and below the shortcut hint hides and the review-heading gap reduces from 16px to 8px.
 
 ## Elevation & Depth
 
@@ -309,7 +312,7 @@ Flow edit fields reuse the control radius and stronger control border. Rename st
 
 ### Contextual inspector
 
-The narrow, flat inspector uses thin section separators and caption-sized labeled native fields. Node title and details are explicit drafts with Save attributes and an Unsaved attributes note; state has its own control. Decision outcomes use a separate labeled selection and Record decision action. Relationship inspection names both endpoints and the relationship, edits its label, and shows a conditional route label when present. Pending controls disable and failures appear inline with alert semantics.
+The narrow, flat inspector uses thin section separators and caption-sized labeled native fields. Node attribute and state controls sit behind the inline Edit directly disclosure, whose blue summary identifies a secondary action. Node title and details are explicit drafts with Save attributes and an Unsaved attributes note; state has its own control. Decision outcomes use a separate labeled selection and Record decision action. Relationship inspection names both endpoints and the relationship, edits its label, and shows a conditional route label when present. Pending controls disable and failures appear inline with alert semantics.
 
 Facts pair secondary labels with values, including due date when available, external responsibility or decider where applicable, and a direct Evidence sources count. Contextual Questions has its own direct count and prompts or a factual empty message. These counts do not imply rollups. Shared references show their state and home-initiative link without edit, focus or child-checklist controls.
 
@@ -319,9 +322,15 @@ Child Tasks use explicit checkboxes beside selectable Task titles and quiet stat
 
 Focus task in the inspector and double-clicking a canonical Task open a filtered view of the same graph. A horizontal wrapping breadcrumb links back to the initiative and names the current Task, followed by its heading. Focus never creates a nested graph or a duplicate Task. Shared prerequisite references retain their read-only treatment and home-initiative navigation.
 
+### Inline command review
+
+The leading request field uses an unfilled, square-edged input over a single control-gray underline. Focus changes the underline to blue and preserves the shared keyboard outline. The 36px square submit button uses the control radius, muted blue fill, white outline arrow and deeper-blue hover; unavailable submission uses half opacity. Supporting status and local-planning copy remain caption-sized and secondary.
+
+A request produces a flat review below the input: a heading and quiet change count, named changes, explicit From/To values for field updates, and descriptive details for created or removed records. The review uses separators rather than nested cards, badges or a conversation transcript. Apply changes is the primary action; Dismiss is an unfilled blue text action. Planning, apply failures and the applied result remain inline. The applied result exposes Undo command for that event.
+
 ### Keyboard access
 
-A skip link appears on focus. Destination changes focus the main heading; all interactive elements retain the shared visible focus outline. Reduced-motion preferences remove transitions.
+A skip link appears on focus. Destination changes focus the main heading; all interactive elements retain the shared visible focus outline. Reduced-motion preferences remove transitions. Command-K focuses and selects the command entry; Enter requests review, Command-Enter applies a visible review, and Escape dismisses planning or review. Control-key equivalents also work. Applying keeps controls disabled; a successful apply focuses its result status.
 
 ## Do's and Don'ts
 

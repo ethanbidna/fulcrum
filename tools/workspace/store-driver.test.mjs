@@ -222,7 +222,9 @@ describe('workspace store', () => {
 let compiled;
 beforeAll(async () => {
   compiled = await fs.mkdtemp(path.join(os.tmpdir(), 'fulcrum-c4-compiled-'));
-  await promisify(execFile)(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'), '--project', path.join(root, 'tsconfig.json'), '--noEmit', 'false', '--outDir', compiled], { cwd: root });
+  const configuration = path.join(compiled, 'tsconfig.json');
+  await fs.writeFile(configuration, JSON.stringify({ extends: path.join(root, 'tsconfig.json'), compilerOptions: { rootDir: root }, include: [path.join(root, 'packages/store/src/**/*.ts')] }));
+  await promisify(execFile)(process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'), '--project', configuration, '--noEmit', 'false', '--outDir', compiled], { cwd: root });
   await fs.writeFile(path.join(compiled, 'package.json'), '{"type":"module"}'); await fs.symlink(path.join(root, 'node_modules'), path.join(compiled, 'node_modules'), 'dir');
   await fs.symlink(path.join(root, 'packages/store/node_modules'), path.join(compiled, 'packages/store/node_modules'), 'dir');
   // Runtime schema assets are packaged beside the compiled driver.

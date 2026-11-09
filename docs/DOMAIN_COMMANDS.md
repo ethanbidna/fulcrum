@@ -182,3 +182,13 @@ The inspector reuses `node.update`, `node.setState`, `decision.decide` and
 `edge.update`; child checkboxes write only their child Task. Focus uses the existing
 `graph.focus` query and canonical command IDs; no focused-copy records are stored.
 References are read-only in the focused UI until navigation to their home graph.
+
+## Reviewed command plans
+
+`command.apply {commands}` atomically applies a bounded, non-nested collection
+of ordinary commands under explicit user/MCP authority. Each child uses the same
+validation and policy; any failure rejects the entire event. It cannot embed
+undo or autonomous AI authority. `Domain.preview` validates on cloned state
+without committing. The command bar adds exact-request evidence, a run ID and
+review freshness in the core; model output never chooses that metadata. One
+`change.undo` compensates the reviewed event. See ADR-0017.

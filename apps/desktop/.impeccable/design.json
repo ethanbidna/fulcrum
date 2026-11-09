@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-09T01:06:59.112884+00:00",
+  "generatedAt": "2026-11-09T16:30:57.142095+00:00",
   "title": "Design System: Fulcrum desktop",
   "extensions": {
     "colorMeta": {
@@ -387,18 +387,26 @@
       "description": "A wrapping return path from a canonical Task focus to its initiative.",
       "html": "<nav class=\"ds-focus\" aria-label=\"Focused view\"><a href=\"#initiative\">Synthetic initiative</a><span aria-hidden=\"true\">/</span><span aria-current=\"page\">Synthetic Task</span></nav>",
       "css": ".ds-focus { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; color: var(--text-secondary); font-size: 12px; line-height: 1.5; } .ds-focus a { color: var(--accent); text-decoration: none; text-underline-offset: 3px; } .ds-focus a:hover { text-decoration: none; } .ds-focus a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Inline command entry",
+      "kind": "custom",
+      "description": "One request above the workspace, followed by a structured review before explicit apply.",
+      "html": "<form class=\"ds-command\"><label class=\"ds-command-label\" for=\"ds-request\">What would you like to change?</label><div class=\"ds-command-input\"><input id=\"ds-request\" placeholder=\"Describe a change to your work\u2026\" /><span class=\"ds-command-shortcut\" aria-hidden=\"true\">\u2318K</span><button aria-label=\"Review command\"><svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path d=\"M4 10h12M11 5l5 5-5 5\"/></svg></button></div><p>Enter to review changes \u00b7 planned locally</p></form>",
+      "css": ".ds-command { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif; color: var(--text); line-height: 1.5; max-width: 1080px; margin-bottom: 24px; } .ds-command-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .ds-command-input { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--line-control); padding: 8px 0; } .ds-command-input:focus-within { border-bottom-color: var(--accent); } .ds-command input { flex: 1; min-width: 0; border: 0; border-radius: 0; padding: 8px 0; background: transparent; color: var(--text); font: inherit; font-size: 17px; } .ds-command input::placeholder { color: var(--text-secondary); opacity: 1; } .ds-command-shortcut, .ds-command p { color: var(--text-secondary); font-size: 12px; } .ds-command p { margin: 8px 0 0; } .ds-command button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--radius-control); background: var(--accent); color: var(--surface); cursor: pointer; } .ds-command button:hover:not(:disabled) { background: var(--accent-hover); } .ds-command button:disabled { opacity: .5; cursor: default; } .ds-command svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; } .ds-command input:focus-visible, .ds-command button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; } @media(max-width: 640px) { .ds-command input { font-size: 16px; } .ds-command-shortcut { display: none; } }"
     }
   ],
   "narrative": {
     "northStar": "Four stable destinations",
-    "overview": "A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.\n\nThis records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector and Task focus. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.",
+    "overview": "A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.\n\nThis records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.",
     "keyCharacteristics": [
       "White work area with cool neutral navigation.",
       "Muted blue selection and visible keyboard focus.",
       "Inline connection recovery and honest workflow notices.",
       "Initiative cards with one meaningful state and a quiet optional context rail.",
       "A readable flow canvas with distinct object marks and explicit relationship labels.",
-      "A collapsible inspector and Task focus that preserve the same graph context."
+      "A collapsible inspector and Task focus that preserve the same graph context.",
+      "One inline command request followed by a structured review and explicit apply."
     ],
     "rules": [
       {

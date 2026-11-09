@@ -1,3 +1,6 @@
+import { CommandPlanner, CommandJobs } from './command-planner.js';
+import { OllamaJsonRuntime } from '@fulcrum/llm';
+import type { JsonModelRuntime } from '@fulcrum/llm';
 import { createMcpAccess, validateMcpAccess } from './mcp-access.js';
 import type { McpAccess } from './mcp-access.js';
 import { randomUUID } from 'node:crypto';
@@ -12,6 +15,7 @@ import type { CoreHost } from './host.js';
 export interface WorkspaceOptions {
   workspaceDirectory: string; localDirectory: string; userEntityId: string;
   onIndexProgress?: (progress: IndexProgress) => void;
+  commandRuntime?: JsonModelRuntime;
   mcp?: McpAccess;
   deviceLabel: string; create?: boolean; schemaDirectory?: URL;
 }
@@ -86,23 +90,34 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   } catch (error) { await index?.close(); await store.close(); throw error; }
   const requireAvailable = async () => { await reload(); if (unavailable) throw new Error('WORKSPACE_UNAVAILABLE'); };
   let closePromise: Promise<void> | undefined;
-  const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => {
-      await requireAvailable();
+  const executeCurrent = async (command: unknown, actor: 'user' | 'mcp') => {
       const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor });
       if (result.ok && index) await index.apply({ eventId: result.eventId, ops: result.ops }).catch(() => undefined);
       knownEventIds = new Set(domain.history().map(event => event.eventId));
       fingerprint = JSON.stringify([...knownEventIds]); return result;
-  });
+  };
+  const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
+  const planner = new CommandPlanner(() => domain, options.commandRuntime ?? new OllamaJsonRuntime());
+  const jobs = new CommandJobs(planner);
   const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable(); return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
   const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
+    planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
+    commandPlanStatus: id => jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
+    applyCommandPlan: id => enqueue(async () => {
+      await requireAvailable();
+      let command;
+      try { const previous = planner.result(id); if (previous) return previous; command = planner.approved(id); }
+      catch { return { ok: false, error: { code: 'STALE_BASE', message: 'Your workspace changed or this plan expired. Review a fresh plan before applying.' } }; }
+      const result = await executeCurrent(command, 'user'); planner.remember(id, result); return result;
+    }),
     mcpQuery: mcp.query, mcpExecute: mcp.execute,
     query,
     execute: command => executeAs(command, 'user'),
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
     ingestionActive: () => false,
     close: () => {
-      closing = true; stopWatching?.();
+      closing = true; jobs.close(); stopWatching?.();
       return closePromise ??= (async () => { await tail; unsubscribe?.(); try { await store.close(); } finally { await index?.close(); listeners.clear(); } })();
     },
   };
