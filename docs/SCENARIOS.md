@@ -31,7 +31,7 @@ All data is synthetic. People, companies and messages in fixtures are invented.
 
 | # | Scenario | Verified by | Status |
 |---|---|---|---|
-| 1 | Seven days asleep → wake → clear portfolio, no admin backlog | Ingestion catch-up integration test with a synthetic adapter producing 7 days of items | Backlog (M2) |
+| 1 | Seven days asleep → wake → clear portfolio, no admin backlog | `tools/workspace/ingestion.test.mjs`: 7 days, newest-first, durable resume, truthful status; extraction/reconciliation later | Partly (I1 ingestion) |
 | 2 | "I'll test the vendor" → one Task + clickable source | Fixture shape ✅; extraction eval (S2) + reconciler test | Partly (shape only) |
 | 3 | Colleague's promised review → Dependency, not Task | Schema forbids owned Tasks ✅; reconciler test | Partly |
 | 4 | New idea proposed, not activated without approval | Fixture ✅; policy P1 test | Partly |

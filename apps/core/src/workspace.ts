@@ -1,3 +1,5 @@
+import { openIngestion } from './ingestion.js';
+import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
 import { OllamaJsonRuntime } from '@fulcrum/llm';
 import type { JsonModelRuntime } from '@fulcrum/llm';
@@ -16,6 +18,7 @@ export interface WorkspaceOptions {
   workspaceDirectory: string; localDirectory: string; userEntityId: string;
   onIndexProgress?: (progress: IndexProgress) => void;
   commandRuntime?: JsonModelRuntime;
+  ingestion?: WorkspaceIngestion;
   mcp?: McpAccess;
   deviceLabel: string; create?: boolean; schemaDirectory?: URL;
 }
@@ -99,7 +102,16 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
   const planner = new CommandPlanner(() => domain, options.commandRuntime ?? new OllamaJsonRuntime());
   const jobs = new CommandJobs(planner);
-  const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable(); return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
+  let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
+  try {
+    if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
+  } catch (error) { stopWatching?.(); unsubscribe?.(); await index?.close(); await store.close(); throw error; }
+  const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable();
+    if (name === 'status.freshness') {
+      if (!args || typeof args !== 'object' || Object.keys(args).length) throw new Error('INVALID_FRESHNESS_QUERY');
+      return ingestion?.scheduler.status() ?? { state: 'disabled', pending: 0, failed: 0, checkedAt: null, label: 'No source scopes enabled' };
+    }
+    return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
   const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
@@ -115,10 +127,10 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     query,
     execute: command => executeAs(command, 'user'),
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
-    ingestionActive: () => false,
+    ingestionActive: () => ingestion?.scheduler.active() ?? false,
     close: () => {
       closing = true; jobs.close(); stopWatching?.();
-      return closePromise ??= (async () => { await tail; unsubscribe?.(); try { await store.close(); } finally { await index?.close(); listeners.clear(); } })();
+      return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await index?.close(); listeners.clear(); } })();
     },
   };
 }

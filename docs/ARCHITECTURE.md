@@ -163,7 +163,8 @@ interface ReadIndex {
 interface SourceAdapter {
   id: string;                                                      // 'gmail' | 'slack' | 'granola' | ...
   scopes(): Promise<SourceScope[]>;                                // accounts/channels/folders the user can opt into
-  pull(scope: SourceScope, cursor: Cursor | null, limits: PullLimits): Promise<{ items: SourceItem[]; next: Cursor | null }>;
+  pull(scope: SourceScope, cursor: Cursor | null, limits: PullLimits): Promise<{ items: SourceItem[]; next: Cursor | null; checkpoint: Cursor }>;
+  read(item: SourceItemRef, signal: AbortSignal): Promise<SourceItem | null>; // transient text; queue retains refs only
   permalink(item: SourceItemRef): string | null;
 }
 

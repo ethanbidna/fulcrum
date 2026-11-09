@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 3
+Steps done since last audit: 4
 
 ## Steps
 
@@ -31,7 +31,7 @@ Steps done since last audit: 3
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
 | 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
 | 20 | U5 list and history | waiting-owner | [ ] | #59 | Merged; canonical List and evidence-linked History; 405 tests and Intel/ARM builds pass; owner week-long usage pending |
-| 21 | I1 adapters, queue, scheduler | todo | n/a | | |
+| 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler, restart/dedupe and seven-day freshness tests; real extraction/connectors/native sleep remain later |
 | 22 | I3 extraction | todo | n/a | | |
 | 23 | I4 native ContextIndex | todo | n/a | | |
 | 24 | I5 reconciler | todo | n/a | | |
