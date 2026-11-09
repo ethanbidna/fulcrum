@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { mkdtemp, rm, readFile, chmod } from 'node:fs/promises';
+import { mkdtemp, rm, readFile, chmod, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { Client } from '@modelcontextprotocol/client';
 import { CONVERSATIONAL_COMMANDS } from '../../packages/mcp/src/index.ts';
@@ -33,10 +33,10 @@ async function fixture(run, mcp = ENABLED) {
 }
 const call = (client, name, args, key = name) => client.callTool({ name, arguments: { args, idempotencyKey: `synthetic:${key}` } });
 test('every current manual domain action has a conversational tool', async () => {
-  const files = ['flow-canvas.tsx', 'flow-model.ts', 'inspector.tsx', 'new-initiative.tsx', 'portfolio-model.ts'];
+  const files = (await readdir(new URL('../../apps/desktop/src/ui/', import.meta.url))).filter(file => /\.tsx?$/.test(file) && !file.includes('.test.'));
   for (const file of files) {
     const source = await readFile(new URL(`../../apps/desktop/src/ui/${file}`, import.meta.url), 'utf8');
-    for (const match of source.matchAll(/name: ['"]([\w.]+)['"]/g)) expect(CONVERSATIONAL_COMMANDS).toContain(match[1]);
+    for (const match of source.matchAll(/name: ['"](\w+\.\w+)['"]/g)) expect(CONVERSATIONAL_COMMANDS).toContain(match[1]);
   }
 });
 test('MCP protocol creates, reads, edits and undoes through the authenticated core', async () => fixture(async ({ client, host, socket, localDirectory }) => {

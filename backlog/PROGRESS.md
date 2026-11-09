@@ -42,7 +42,7 @@ Steps done since last audit: 3
 | 30 | A2 priorities and KPIs | todo | n/a | | |
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
-| 33 | P1 MCP server | todo | [ ] | | Command parity brought forward at owner request; adapter in progress, full P1/owner acceptance pending |
+| 33 | P1 MCP server | todo | [ ] | #56 | Command adapter brought forward; full P1 scoped setup, packaging and owner acceptance pending |
 | 34 | P2 first-run wizard | todo | [ ] | | |
 | 35 | P6 encryption — design | todo | n/a | | Merging the PR is the approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
