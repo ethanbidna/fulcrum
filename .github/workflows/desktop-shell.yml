@@ -32,7 +32,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: rustup toolchain install stable --profile minimal
       - run: pnpm --filter @fulcrum/desktop build
-      - run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
       - run: pnpm --filter @fulcrum/desktop tauri build --debug --no-bundle
       - uses: actions/upload-artifact@v4
         with:

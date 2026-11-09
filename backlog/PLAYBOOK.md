@@ -41,6 +41,11 @@ build order, not the criteria for accepting a runtime or driver.
 | 19 | U4 inspector and focused view | #18 | 18 | Review | Demonstrate that an edit in the focused view appears in the full canvas. |
 | 20 | U5 list and history | #19 | 19 | Use the app by hand for about a week; file issues for anything that bothers you | — |
 
+For U2, the owner explicitly delegated U1 review/merge and asked to proceed on
+2026-11-08. Its U1 implementation prerequisite is satisfied by merged #52;
+subjective usability and native launch checks remain pending in step 16. This
+exception does not complete any Owner checkbox or accept a model/runtime.
+
 ## Phase C — context and ingestion (M2)
 
 | Step | Item | Issue | Needs | Owner action | Extra instructions |

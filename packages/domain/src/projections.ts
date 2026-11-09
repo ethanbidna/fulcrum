@@ -2,7 +2,7 @@ import type { FlowEdge, Initiative } from '@fulcrum/schema';
 import type { Node, WorkspaceState } from './types.js';
 import { buildGraph, deriveCardState, isSatisfied, isOnLivePath, nextAvailableActions } from './card-state.js';
 import type { DerivedCardState, Graph } from './card-state.js';
-import type { HistoryEntry } from './history-projections.js';
+import type { HistoryEntry, HistoryChange } from './history-projections.js';
 import { timestamp } from './history-projections.js';
 
 export interface PortfolioCard { initiative: Initiative; cardState: DerivedCardState }
@@ -11,7 +11,7 @@ export interface RailOptions { now: string; since?: string }
 export interface PortfolioRail {
   nextAvailableActions: { initiativeId: string; node: Node }[];
   waitingOn: WaitingItem[];
-  meaningfulChanges: HistoryEntry[];
+  meaningfulChanges: (HistoryEntry & { context: string })[];
   questionCount: number;
 }
 const RECENT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -53,7 +53,43 @@ export function projectRail(state: WorkspaceState, history: HistoryEntry[], opti
   return {
     nextAvailableActions: nextAvailableActions(state).map(action => ({ initiativeId: action.initiativeId, node: state.nodes.find(node => node.id === action.nodeId)! })),
     waitingOn: waitingOn(state),
-    meaningfulChanges: history.filter(entry => timestamp(entry.at) >= since && timestamp(entry.at) <= now && isMeaningful(entry)).slice(0, RECENT_CHANGE_LIMIT),
+    meaningfulChanges: history.filter(entry => timestamp(entry.at) >= since && timestamp(entry.at) <= now && isMeaningful(entry)).slice(0, RECENT_CHANGE_LIMIT).map(entry => ({ ...entry, context: historyContext(state, entry.changes.find(change => MEANINGFUL_RECORDS.has(change.kind) && (change.operation !== 'set' || MEANINGFUL_FIELDS.has(change.field!)))) })),
     questionCount: state.questions.filter(question => question.state === 'open').length,
   };
+}
+
+export interface PortfolioBoard {
+  cards: PortfolioCard[];
+  categories: WorkspaceState['categories'];
+  teams: WorkspaceState['entities'];
+  objectives: WorkspaceState['objectives'];
+  questionCounts: Record<string, number>;
+  rail: PortfolioRail;
+}
+export function projectBoard(state: WorkspaceState, history: HistoryEntry[], options: RailOptions): PortfolioBoard {
+  const questionCounts: Record<string, number> = {};
+  for (const question of state.questions) {
+    if (question.state === 'open') questionCounts[question.initiativeId] = (questionCounts[question.initiativeId] ?? 0) + 1;
+  }
+  return { cards: projectPortfolio(state), categories: state.categories,
+    teams: state.entities.filter(entity => entity.type === 'team'), objectives: state.objectives,
+    questionCounts, rail: projectRail(state, history, options) };
+}
+
+function historyContext(state: WorkspaceState, change: HistoryChange | undefined): string {
+  if (!change) return 'Workspace';
+  const current = [...state.initiatives, ...state.nodes, ...state.edges, ...state.questions, ...state.objectives].find(record => record.id === change.id);
+  const record = current ?? (change.operation === 'tombstone' ? change.before : change.after);
+  if (!record || typeof record !== 'object') return 'Workspace item';
+  for (const field of ['title', 'prompt', 'label'] as const) {
+    const value = (record as Record<string, unknown>)[field];
+    if (typeof value === 'string') return value;
+  }
+  if ('fromId' in record && 'toId' in record && 'type' in record) {
+    const from = state.nodes.find(node => node.id === record.fromId); const to = state.nodes.find(node => node.id === record.toId);
+    const relationships: Record<string, string> = { depends_on: 'depends on', contains: 'contains', leads_to: 'leads to', related_to: 'relates to' };
+    if (from && to && typeof record.type === 'string') return `${from.title} ${relationships[record.type] ?? 'links to'} ${to.title}`;
+  }
+  if ('initiativeId' in record) return state.initiatives.find(item => item.id === record.initiativeId)?.title ?? 'Initiative relationship';
+  return 'Workspace item';
 }

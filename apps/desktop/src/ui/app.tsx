@@ -4,6 +4,7 @@ import { destinationFromHash, destinations } from './navigation.js';
 import type { Destination } from './navigation.js';
 import { useCore } from './use-core.js';
 import type { CoreState } from './use-core.js';
+import { Portfolio } from './portfolio.js';
 import { Icon } from './icon.js';
 const mark = new URL('../../../../assets/fulcrum-mark.svg', import.meta.url).href;
 const descriptions: Record<Destination, string> = {
@@ -25,7 +26,7 @@ function Connection({ state, retry }: { state: CoreState; retry: () => void }) {
 export function App({ platform }: { platform: Platform }) {
   const [destination, setDestination] = useState(() => destinationFromHash(window.location.hash));
   const heading = useRef<HTMLHeadingElement>(null);
-  const { state, retry } = useCore(platform);
+  const { state, retry, execute } = useCore(platform);
   useEffect(() => {
     const navigate = () => { setDestination(destinationFromHash(window.location.hash)); };
     window.addEventListener('hashchange', navigate);
@@ -47,7 +48,7 @@ export function App({ platform }: { platform: Platform }) {
       <header className="page-header"><h1 ref={heading} tabIndex={-1}>{page.label}</h1><p>{descriptions[destination]}</p></header>
       {state.phase === 'unavailable' ? <section className="view-message" aria-labelledby="connection-heading"><Icon name={destination} /><h2 id="connection-heading">Connect to your workspace</h2><p>Open the local core, then retry the connection.</p><button className="primary-button" onClick={retry}>Retry connection</button></section>
         : state.phase === 'connecting' ? <section className="view-message" aria-busy="true"><div className="loading-lines" aria-hidden="true"><span /><span /></div><p>Opening your workspace…</p></section>
-          : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p>{destination === 'initiatives' && <p className="workspace-count">{state.initiativeCount === 0 ? 'No active initiatives in this workspace.' : `${state.initiativeCount} active ${state.initiativeCount === 1 ? 'initiative' : 'initiatives'} in this workspace.`}</p>}</section>}
+          : destination === 'initiatives' ? <Portfolio board={state.board} execute={execute} /> : <section className="view-message" aria-labelledby="view-heading"><Icon name={destination} /><h2 id="view-heading">{unavailableViews[destination].title}</h2><p>{unavailableViews[destination].detail}</p></section>}
     </main>
   </div>;
 }

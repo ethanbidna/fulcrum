@@ -50,6 +50,7 @@ export function handleCommand(tx: Transaction, command: CommandInvocation, conte
     case 'entity.addAlias': return addAlias(tx, text(args.id), text(args.alias));
     case 'entity.merge': return mergeEntities(tx, text(args.id), text(args.intoId));
     case 'entity.split': return splitEntity(tx, args, context);
+    case 'initiative.rerank': return rerankInitiatives(tx, args.ranks);
     case 'objective.rerank': return rerank(tx, args.ranks);
     case 'objective.delete': return deleteObjective(tx, text(args.id));
     case 'alignment.set': return setAlignment(tx, args, context.actor);
@@ -203,4 +204,15 @@ export function recordRejection(tx: Transaction, args: DataRecord, now: string) 
   const existing = tx.list('rejection').find(record => record.signature === signature);
   if (existing) { tx.set('rejection', signature, 'rejectedAt', now); tx.set('rejection', signature, 'untilNewEvidence', args.untilNewEvidence); }
   else tx.create('rejection', { signature, rejectedAt: now, untilNewEvidence: args.untilNewEvidence });
+}
+
+function rerankInitiatives(tx: Transaction, value: unknown) {
+  if (!Array.isArray(value) || !value.length) throw new DomainFault('VALIDATION_FAILED', 'Expected initiative ranks');
+  const seenIds = new Set<string>(); const seenRanks = new Set<string>();
+  for (const item of value) {
+    const entry = object(item); const id = text(entry.id); const rank = text(entry.manualRank);
+    if (seenIds.has(id) || seenRanks.has(rank) || Object.keys(entry).some(key => !['id', 'manualRank'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Duplicate initiative, rank or unsupported field');
+    if (tx.get('initiative', id).lifecycle !== 'active') throw new DomainFault('VALIDATION_FAILED', 'Only active initiatives can be reordered');
+    seenIds.add(id); seenRanks.add(rank); tx.set('initiative', id, 'manualRank', rank);
+  }
 }

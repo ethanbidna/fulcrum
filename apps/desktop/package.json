@@ -7,8 +7,11 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@dnd-kit/dom": "0.5.3",
+    "@dnd-kit/react": "0.5.3",
     "@fulcrum/domain": "workspace:*",
     "@tauri-apps/api": "2.12.4",
+    "fractional-indexing": "4.0.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },

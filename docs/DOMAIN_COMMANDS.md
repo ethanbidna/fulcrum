@@ -42,7 +42,7 @@ Execution order: schema-validate args → load affected records → policy check
 
 | Area | Commands |
 |---|---|
-| Initiative | `initiative.create` (user/mcp only, lifecycle `active`) · `initiative.propose` (ai: lifecycle `proposed`) · `initiative.approve` · `initiative.reject` · `initiative.update` (title, description, targetDate, teamEntityId) · `initiative.setMoscow` · `initiative.setLifecycle` · `initiative.setCategories` · `initiative.rank` (manual order) |
+| Initiative | `initiative.create` (user/mcp only, lifecycle `active`) · `initiative.propose` (ai: lifecycle `proposed`) · `initiative.approve` · `initiative.reject` · `initiative.update` (title, description, targetDate, teamEntityId) · `initiative.setMoscow` · `initiative.setLifecycle` · `initiative.setCategories` · `initiative.rank` · `initiative.rerank` (manual order) |
 | Category | `category.create` · `category.rename` · `category.rank` · `category.delete` |
 | Node | `node.create` · `node.update` (title, details, targetDate, kind, responsibleEntityId, decider, options) · `node.setState` · `node.setGroup` · `node.setPrerequisiteGroups` · `node.supersede` · `node.delete` (tombstone) · `decision.decide` (sets `outcome` + `state: decided`) |
 | Edge | `edge.create` · `edge.update` (label, condition, prerequisiteGroupId) · `edge.delete` |
@@ -143,3 +143,18 @@ matching/snippets are off by default. `status.index({})` returns local cache
 availability and document counts, independent of initiative completion. Cache
 failures report `INDEX_UNAVAILABLE` without revoking domain writes. The core
 rebuilds missing caches from canonical state on open; see ADR-0015.
+
+### Portfolio board (U2)
+
+`portfolio.board({})` returns one isolated acknowledged projection containing
+active cards, category/team/objective grouping labels, per-initiative open
+question counts and the contextual rail. Recent changes carry a derived
+`context` label from the affected record; relationship labels retain the stored
+sentence direction. Proposed initiatives remain absent from active cards.
+
+`initiative.rerank({ranks: [{id, manualRank}]})` atomically updates active
+initiative rank strings. IDs and supplied ranks must be unique; any invalid
+record rejects the whole command. Existing schema, protection, evidence, MCP
+scope and compensating undo rules apply. The UI uses maintained fractional
+indexing to assign an ordered batch, including missing/duplicate old ranks.
+Only rank fields change; categories, teams, objectives and MoSCoW remain intact.

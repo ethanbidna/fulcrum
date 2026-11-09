@@ -5,7 +5,7 @@ import type { PolicyContext } from './policy.js';
 export const COMMAND_ARGUMENTS = {
   'initiative.create': ['record'], 'initiative.propose': ['record'], 'initiative.approve': ['id'], 'initiative.reject': ['id'],
   'initiative.update': ['id', 'patch'], 'initiative.setMoscow': ['id', 'moscow'], 'initiative.setLifecycle': ['id', 'lifecycle'],
-  'initiative.setCategories': ['id', 'categoryIds'], 'initiative.rank': ['id', 'manualRank'],
+  'initiative.setCategories': ['id', 'categoryIds'], 'initiative.rank': ['id', 'manualRank'], 'initiative.rerank': ['ranks'],
   'category.create': ['record'], 'category.rename': ['id', 'label'], 'category.rank': ['id', 'manualRank'], 'category.delete': ['id'],
   'node.create': ['record'], 'node.update': ['id', 'patch'], 'node.setState': ['id', 'state'], 'node.setGroup': ['id', 'groupId'],
   'node.setPrerequisiteGroups': ['id', 'prerequisiteGroups'], 'node.supersede': ['id', 'supersededBy'], 'node.delete': ['id'],

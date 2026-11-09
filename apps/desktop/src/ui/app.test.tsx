@@ -5,21 +5,21 @@ import { App } from './app.js';
 import type { CoreTransport } from '../core-transport.js';
 import { destinationFromHash } from './navigation.js';
 afterEach(() => { cleanup(); window.location.hash = ''; vi.useRealTimers(); });
+function emptyBoard(questionCount = 3) { return { cards: [], categories: [], teams: [], objectives: [], questionCounts: {}, rail: { questionCount, nextAvailableActions: [], waitingOn: [], meaningfulChanges: [] } }; }
 function session() {
   let changed = () => {};
   const stop = vi.fn();
   const transport = { query: vi.fn(), execute: vi.fn(), subscribe: vi.fn(async listener => { changed = () => listener({}); return stop; }), close: vi.fn() };
-  transport.query.mockImplementation(async name => name === 'portfolio.rail' ? { questionCount: 3 } : []);
+  transport.query.mockResolvedValue(emptyBoard());
   const platform = { connectCore: vi.fn(async () => transport as CoreTransport) };
   return { transport, platform, stop, changed: () => changed() };
 }
 test('four destinations, live quiet question count and canonical reads only', async () => {
   const f = session(); render(<App platform={f.platform} />);
   await screen.findByText('Connected to local core');
-  expect(screen.getAllByRole('link').map(link => link.textContent)).toEqual(['Skip to content', 'Initiatives', 'Priorities', 'Questions3', 'Settings']);
+  expect(Array.from(screen.getByRole('navigation').querySelectorAll('a')).map(link => link.textContent)).toEqual(['Initiatives', 'Priorities', 'Questions3', 'Settings']);
   expect(screen.getByLabelText('3 open questions').textContent).toBe('3');
-  expect(f.transport.query).toHaveBeenCalledWith('portfolio.rail', {});
-  expect(f.transport.query).toHaveBeenCalledWith('portfolio.list', {});
+  expect(f.transport.query).toHaveBeenCalledWith('portfolio.board', {});
   expect(f.transport.execute).not.toHaveBeenCalled();
 });
 test('navigation follows history, marks current location and focuses the heading', async () => {
@@ -38,7 +38,7 @@ test('connection failure offers retry without showing stale counts', async () =>
 });
 test('change notifications refresh counts and release subscription on unmount', async () => {
   const f = session(); const view = render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
-  f.transport.query.mockImplementation(async name => name === 'portfolio.rail' ? { questionCount: 0 } : []);
+  f.transport.query.mockResolvedValue(emptyBoard(0));
   act(() => f.changed()); await waitFor(() => expect(screen.queryByLabelText('3 open questions')).toBeNull());
   view.unmount(); expect(f.stop).toHaveBeenCalledOnce(); expect(f.transport.close).toHaveBeenCalledOnce();
 });
@@ -56,4 +56,17 @@ test('periodic reads detect a lost idle connection', async () => {
   await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
   expect(screen.getByText('Local core unavailable')).toBeTruthy();
   expect(screen.queryByLabelText('3 open questions')).toBeNull();
+});
+test('an obsolete delayed connection cannot replace the current command channel', async () => {
+  const old = session(); const next = session(); let finish!: (value: CoreTransport) => void;
+  old.platform.connectCore.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  const { renderHook } = await import('@testing-library/react');
+  const { useCore } = await import('./use-core.js');
+  const hook = renderHook(({ platform }) => useCore(platform), { initialProps: { platform: old.platform } });
+  hook.rerender({ platform: next.platform });
+  await waitFor(() => expect(hook.result.current.state.phase).toBe('connected'));
+  await act(async () => { finish(old.transport as CoreTransport); });
+  next.transport.execute.mockResolvedValue({ ok: true, eventId: 'synthetic', ops: [], raisedQuestionIds: [], suggestedAssertionIds: [] });
+  await act(async () => { await hook.result.current.execute({ name: 'initiative.rank', args: { id: 'synthetic', manualRank: 'a0' } }); });
+  expect(next.transport.execute).toHaveBeenCalledOnce(); expect(old.transport.execute).not.toHaveBeenCalled();
 });
