@@ -4,7 +4,7 @@
 
 1. Work content from connected sources (messages, emails, transcripts, files) and excerpts derived from them.
 2. Initiative state and the event log (the user's plans, priorities, people they wait on).
-3. Connector credentials (OAuth refresh tokens, API keys).
+3. Connector credentials and optional model-provider keys (OAuth refresh tokens, API keys).
 4. The user's machine resources (CPU, battery, disk).
 5. The public repository's integrity and cleanliness.
 
@@ -45,13 +45,14 @@ flowchart LR
 | T9 | Resource exhaustion / overheating | Resource policy in [OPERATIONS.md](OPERATIONS.md#resource-policy); pause controls always visible. |
 | T10 | Supply chain (npm, crates, models) | Lockfiles committed; Dependabot; minimal dependency set; models only from Ollama registry with digest shown; releases signed and notarized before any download is offered. |
 | T11 | Diagnostics leak content | Diagnostics contain counts and statuses only; paths redacted. No telemetry. |
+| T12 | Work content reaches a hosted model without consent | Local default; explicit provider/sharing scope and usage budget; no silent cloud fallback; API keys in Keychain; developer origin and processing location shown separately (ADR-0018). |
 
 ## Permissions model
 
 - **Sources:** per-scope opt-in; stored machine-local with the ingestion device. Revoking a source stops pulls and offers to delete its excerpts (pointers and assertions remain for history unless the user chooses "forget source entirely", which tombstones sources and strips excerpts).
 - **macOS:** no Full Disk Access, Accessibility, or Screen Recording. File sources use user-picked folders (security-scoped bookmarks if sandboxed).
 - **MCP:** off by default; read-only by default; scoped; logged ([MCP.md](MCP.md)).
-- **Network:** outbound only to opted-in source APIs, Ollama (localhost), and update checks (disabled until signed releases exist).
+- **Network:** outbound only to opted-in source APIs, local runtime, user-started official runtime/model downloads, explicitly enabled hosted model endpoints within their sharing scope, and signed update checks (disabled until signed releases exist). No model output or source content can change destinations or credentials.
 
 ## Public code / data boundary
 

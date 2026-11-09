@@ -82,7 +82,7 @@ and native checks remain pending. No Owner checkbox is completed by this excepti
 | 31 | P3 background, sleep/wake, resources | #32 | 21 | Run the Intel manual test (scenario 12) | — |
 | 32 | P4 settings, backup, hand-over | #33 | 12, 31 | — | — |
 | 33 | P1 MCP server | #30 | 14, 5 | Test in Claude Desktop | Build on the S6 shim. |
-| 34 | P2 first-run wizard | #31 | 17, 22 | Run it on a clean macOS user account | — |
+| 34 | P2 first-run wizard | #31 | 17, 22 | Run it on a clean macOS user account | ADR-0018: hardware suggestions, model/origin choices, managed downloads, optional API keys; no Terminal |
 | 35 | P6 encryption — design | #35 | 12 | Approve the design PR (merging it = approval) | Design doc + ADR only; no implementation. |
 | 36 | P6 encryption — implement | #35 | 35 | — | Implement the approved design. |
 | 37 | P5 signing, notarization, updates | #34 | 4 | Get an Apple Developer ID and add the GitHub Actions secrets Codex lists | Write the workflow; never commit secrets; no public downloads until signing works. |

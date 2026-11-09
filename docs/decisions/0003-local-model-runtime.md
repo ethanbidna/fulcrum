@@ -1,6 +1,7 @@
 # ADR-0003: Meta Llama via Ollama, hardware-tiered, behind a ModelRuntime interface
 
-- **Status:** **Provisional** — tiers set by spike S2
+- **Status:** Superseded in part by [ADR-0018](0018-model-choice-and-setup.md):
+  model/provider selection and guided setup; no model tier accepted by this ADR
 - **Date:** 2026-11-07
 
 ## Context
