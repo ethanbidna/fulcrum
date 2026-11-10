@@ -1,5 +1,5 @@
 import type { Assertion, EvidenceRef, Question, Target } from '@fulcrum/schema';
-import { suggestionSignature } from '@fulcrum/domain';
+import { suggestionSignature, planQuestion } from '@fulcrum/domain';
 import type { CommandEnvelope } from '@fulcrum/domain';
 import type { Candidate } from '@fulcrum/llm/interfaces';
 import type { CanonicalRecord, ClaimInput, Invocation, ReconciliationInput, ReconciliationPlan, ReconciliationProof } from './reconciliation-types.js';
@@ -29,6 +29,12 @@ export class PlanBuilder {
       idempotencyKey: `reconcile:${this.id(`command:${this.source.id}:${this.source.contentHash}:${suggestionSignature(invocation)}`)}` };
   }
   emit(invocation: Invocation, evidenceRefs: EvidenceRef[], lane: 'commands' | 'questions' | 'suggestions' = 'commands', proof?: ReconciliationProof): boolean {
+    if (invocation.name === 'question.raise') {
+      const record = planQuestion(this.snapshot, invocation.args.record as Question, this.input.idForKey, this.input.observedAt);
+      if (!record) return false;
+      const stableRecord = Object.fromEntries(Object.entries(record).filter(([field]) => !['createdAt', 'state'].includes(field)));
+      invocation = { name: 'question.raise', args: { record: stableRecord } };
+    }
     if (this.rejected(invocation)) return false;
     const command = this.envelope(invocation, evidenceRefs);
     if (this.plan[lane].some(existing => existing.idempotencyKey === command.idempotencyKey)) return false;

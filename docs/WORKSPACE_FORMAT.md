@@ -66,7 +66,7 @@ Reference: [`tools/reference/workspace-reader.mjs`](../tools/reference/workspace
 
 - **Field-level last-writer-wins** in total order. Commutative and idempotent, so every device converges.
 - **Conflict detection**: when a `set` op's `baseEventId` is not the field's current writer, the author had not seen that write ⇒ concurrent edit. The fold records `{kind, id, field, values, eventIds, winner, material}`.
-- **Material fields** (`initiative.moscow|lifecycle|title`, `node.state|outcome|title|type`, `edge` endpoints/type/condition): the device that notices raises a `sync_conflict` Question with `dedupeKey = sync:<kind>:<id>:<field>` (deterministic ID ⇒ no duplicate questions if both Macs notice). Resolutions: keep the winner / take the other value.
+- **Material fields** (`initiative.moscow|lifecycle|title`, `node.state|outcome|title|type`, `edge` endpoints/type/condition): the device that notices raises a `sync_conflict` Question with `dedupeKey = sync:<kind>:<id>:<field>` (deterministic ID ⇒ no duplicate questions if both Macs notice). Resolutions: keep the winner / take the other value. After a closed occurrence, a new collision adds its winning-event occurrence to the key ([ADR-0019](decisions/0019-question-lifecycle-and-sync.md)).
 - **Non-material fields**: winner stands silently; the conflict appears in History.
 - `set` after `tombstone` ⇒ `write_after_delete` (material; question offers restore). Duplicate live `create` ⇒ first wins. A compensating `create` with `undoOf` may restore a tombstoned record ([ADR-0012](decisions/0012-command-transactions-and-undo.md)).
 

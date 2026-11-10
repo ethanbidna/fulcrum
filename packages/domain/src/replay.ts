@@ -5,7 +5,16 @@ import type { BeforeOp } from './transaction.js';
 import type { WorkspaceState } from './types.js';
 
 export interface EventBefore { ops: BeforeOp[]; writers: Map<string, string>; protections: Set<string>; protectionKeys: string[] }
+export interface ReplayConflict {
+  type: 'concurrent_write' | 'write_after_delete' | 'missing_record' | 'duplicate_create';
+  kind: RecordKind; id: string; field?: string; material: boolean;
+  values?: unknown[]; eventIds?: (string | null)[]; winner?: string; eventId?: string;
+}
+const MATERIAL_FIELDS: Partial<Record<RecordKind, readonly string[]>> = {
+  initiative: ['moscow', 'lifecycle', 'title'], node: ['state', 'outcome', 'title', 'type'], edge: ['type', 'fromId', 'toId', 'condition'],
+};
 export interface Replay {
+  conflicts: ReplayConflict[];
   document: WorkspaceStateDoc;
   writers: Map<string, string>;
   before: Map<string, EventBefore>;
@@ -22,7 +31,7 @@ export function replayEvents(snapshot: WorkspaceStateDoc, input: ChangeEvent[]):
     seen.set(event.eventId, event);
   }
   const events = [...seen.values()].sort((a, b) => a.hlc.localeCompare(b.hlc) || a.deviceId.localeCompare(b.deviceId) || a.seq - b.seq);
-  const replay: Replay = { document, writers, before: new Map(), protections: new Set(), events };
+  const replay: Replay = { conflicts: [], document, writers, before: new Map(), protections: new Set(), events };
   const deleted = new Set<string>();
   const sequences = new Map<string, Set<number>>();
   for (const event of events) {
@@ -60,7 +69,7 @@ function applyReplayOp(replay: Replay, deleted: Set<string>, event: ChangeEvent,
   const records = op.kind === 'settings' ? [] : list(state, op.kind);
   const record = op.kind === 'settings' ? state.settings as DataRecord : records.find(record => (op.kind === 'rejection' ? record.signature : record.id) === op.id);
   if (op.op === 'create') {
-    if (record || (deleted.has(key) && !event.undoOf)) return;
+    if (record || (deleted.has(key) && !event.undoOf)) { replay.conflicts.push({ type: 'duplicate_create', kind: op.kind, id: op.id, eventId: event.eventId, material: false }); return; }
     const created = clone(object(op.record)); records.push(created); deleted.delete(key);
     before.push({ op, previous: null, existed: false });
     for (const field of Object.keys(created)) replay.writers.set(writerKey(op.kind, op.id, field), event.eventId);
@@ -69,8 +78,15 @@ function applyReplayOp(replay: Replay, deleted: Set<string>, event: ChangeEvent,
     if (record) records.splice(records.indexOf(record), 1);
     deleted.add(key);
   } else {
-    if (!record) return;
+    if (!record) {
+      replay.conflicts.push({ type: deleted.has(key) ? 'write_after_delete' : 'missing_record', kind: op.kind, id: op.id, field: op.field!, eventId: event.eventId, material: true });
+      return;
+    }
     const field = op.field!;
+    const currentWriter = replay.writers.get(writerKey(op.kind, op.id, field)) ?? null;
+    if (currentWriter !== op.baseEventId) replay.conflicts.push({ type: 'concurrent_write', kind: op.kind, id: op.id, field,
+      values: [record[field] === undefined ? undefined : clone(record[field]), clone(op.value)], eventIds: [currentWriter, event.eventId], winner: event.eventId,
+      material: (MATERIAL_FIELDS[op.kind] ?? []).includes(field) });
     before.push({ op, previous: clone(record[field] ?? null), existed: Object.hasOwn(record, field) });
     if (op.value === null && !(op.kind === 'initiative' && field === 'moscow')) delete record[field];
     else record[field] = clone(op.value);

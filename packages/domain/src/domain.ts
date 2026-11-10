@@ -1,5 +1,5 @@
 import { invariantMessage } from './invariant-messages.js';
-import type { ChangeEvent, CommandInvocation, Op, RecordKind, Target, WorkspaceStateDoc } from '@fulcrum/schema';
+import type { ChangeEvent, CommandInvocation, Question, Op, RecordKind, Target, WorkspaceStateDoc } from '@fulcrum/schema';
 import { checkAffectedInvariants } from './affected.js';
 import { checkInvariants } from './invariants.js';
 import { checkPolicy, PolicyRule } from './policy.js';
@@ -11,11 +11,16 @@ import { replayEvents } from './replay.js';
 import type { Replay } from './replay.js';
 import { Transaction } from './transaction.js';
 import type { WorkspaceState } from './types.js';
+import { syncQuestions } from './sync-questions.js';
+import { obsoleteQuestions, executableChoices } from './questions.js';
+import type { QuestionIdentity } from './questions.js';
 import { queryProjection, validateQuery } from './queries.js';
 import type { QueryName, QueryArgs, QueryResults } from './queries.js';
 
 const SCHEMA_VERSION = 1;
 const MAX_RESOLUTION_COMMANDS = 64;
+const PREVIEW_SEQUENCE = 1;
+const PREVIEW_HLC = '9999999999999-0000';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const ACTORS = ['user', 'ai', 'connector', 'mcp', 'system'];
 export class Domain {
@@ -50,6 +55,21 @@ export class Domain {
     return queryProjection(this.replay, name, args, () => this.ports.now());
   }
   getSnapshot(): WorkspaceStateDoc { return clone(this.replay.document); }
+  questionMaintenance(identify: QuestionIdentity): CommandEnvelope[] {
+    const questions = syncQuestions(this.replay, identify).filter(command => this.canPrepareQuestion(command.args.record as unknown as Question));
+    const obsolete: CommandEnvelope[] = this.state.questions.flatMap(question => {
+      if (questions.some(command => object(command.args.record).id === question.id)) return [];
+      if (question.reason !== 'sync_conflict' || !['open', 'deferred'].includes(question.state)) return [];
+      const choice = question.resolutions.flatMap(choice => choice.commands).find(command => command.name === 'sync.chooseValue');
+      if (!choice) return [];
+      const target = object(choice.args.target);
+      if (this.replay.writers.get(`${String(target.kind)}:${String(target.id)}:${String(choice.args.field)}`) === choice.args.baseEventId) return [];
+      return [{ name: 'question.markObsolete', args: { id: question.id }, actor: 'system' }];
+    });
+    const due: CommandEnvelope[] = this.state.questions.filter(question => question.state === 'deferred' && question.deferredUntil && Date.parse(question.deferredUntil) <= Date.parse(this.ports.now()) && !obsolete.some(command => command.args.id === question.id) && this.canPrepareQuestion(question))
+      .map(question => ({ name: 'question.raise', args: { record: clone(question) }, actor: 'system' }));
+    return [...due, ...questions, ...obsolete, ...obsoleteQuestions(this.replay.document)];
+  }
   history(): ChangeEvent[] { return clone(this.replay.events); }
   subscribe(listener: (change: AppliedChange) => void): () => void { this.listeners.add(listener); return () => this.listeners.delete(listener); }
   execute(command: CommandEnvelope): Promise<CommandResult> {
@@ -71,7 +91,7 @@ export class Domain {
         return this.originalResult(previous);
       }
       this.checkBases(command);
-      const drafts = command.name === 'change.undo' || command.name === 'run.undo' ? this.prepareUndo(command) : [this.prepare(command)];
+      const drafts = command.name === 'change.undo' || command.name === 'run.undo' ? this.prepareUndo(command) : [this.prepareRestoreResolution(command) ?? this.prepare(command)];
       return await this.commit(drafts);
     } catch (error) {
       if (error instanceof DomainFault) return { ok: false, error: { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) } };
@@ -99,6 +119,44 @@ export class Domain {
       if (actual !== expected) throw new DomainFault('STALE_BASE', 'Field changed since it was read', { field: key, expected, actual });
     }
   }
+  private canPrepareQuestion(question: Question): boolean {
+    try { this.validateQuestionChoices(question, 'system'); return true; }
+    catch (error) { if (error instanceof DomainFault) return false; throw error; }
+  }
+  private validateQuestionChoices(question: Question, actor: CommandEnvelope['actor']) {
+    if (!executableChoices(question.resolutions)) throw new DomainFault('VALIDATION_FAILED', 'Question requires two or three executable choices');
+    for (const choice of question.resolutions) {
+      if (!choice.commands.length) continue;
+      const authority = actor === 'mcp' ? 'mcp' : 'user';
+      const undo = choice.commands[0];
+      if (undo?.name === 'change.undo') {
+        const original = this.replay.events.find(event => event.eventId === undo.args.eventId);
+        if (question.reason !== 'sync_conflict' || !original?.ops.some(op => op.op === 'tombstone')) throw new DomainFault('VALIDATION_FAILED', 'Restore choice requires a deleted record');
+        this.prepareUndo({ ...validateInvocation(undo), actor: authority });
+        continue;
+      }
+      this.prepare({ name: 'command.apply', args: { commands: choice.commands }, actor: authority });
+    }
+  }
+  private prepareRestoreResolution(command: CommandEnvelope): EventDraft | undefined {
+    if (command.name !== 'question.resolve') return;
+    const question = this.state.questions.find(question => question.id === command.args.id);
+    const resolution = question?.resolutions.find(resolution => resolution.id === command.args.resolutionId);
+    if (resolution?.commands.length !== 1 || resolution.commands[0]?.name !== 'change.undo') return;
+    if (!question || !['open', 'deferred'].includes(question.state)) throw new DomainFault('VALIDATION_FAILED', 'Question is already closed');
+    const invocation = validateInvocation(resolution.commands[0]);
+    const original = this.replay.events.find(event => event.eventId === invocation.args.eventId);
+    if (question.reason !== 'sync_conflict' || !original?.ops.some(op => op.op === 'tombstone')) throw new DomainFault('VALIDATION_FAILED', 'Restore choice requires a deleted record');
+    const undo: CommandEnvelope = { ...command, name: 'change.undo', args: invocation.args };
+    const draft = this.prepareUndo(undo)[0]!;
+    const restored = replayEvents(this.replay.document, [{ ...draft, seq: PREVIEW_SEQUENCE, hlc: PREVIEW_HLC }]);
+    const tx = new Transaction(clone(restored.document.state) as WorkspaceState, new Map(restored.writers), draft.eventId);
+    tx.set('question', question.id, 'state', 'resolved');
+    tx.set('question', question.id, 'resolvedWith', resolution.id);
+    this.authorize(command, command, this.state, tx.state, tx.ops, tx.requested);
+    this.validateTransaction(this.state, tx);
+    return { ...draft, command: { name: command.name, args: clone(command.args) }, ops: [...draft.ops, ...tx.ops] };
+  }
   private prepare(command: CommandEnvelope): EventDraft {
     const id = this.ports.newId(); const now = this.ports.now();
     const tx = new Transaction(clone(this.state), new Map(this.replay.writers), id);
@@ -123,6 +181,7 @@ export class Domain {
       const before = clone(tx.state); const start = tx.ops.length; const writeStart = tx.requested.length;
       const proof = command.actor === 'ai' ? this.ports.reconciliationProof?.(invocation) : undefined;
       if (proof?.commitmentAssertion) tx.create('assertion', proof.commitmentAssertion);
+      if (invocation.name === 'question.raise') this.validateQuestionChoices(object(invocation.args.record) as unknown as Question, command.actor);
       handleCommand(tx, invocation, { actor: command.actor, now, apply });
       this.validateErrors(this.ports.validateState({ ...this.replay.document, state: tx.state }));
       const ops = tx.ops.slice(start);
@@ -190,7 +249,7 @@ export class Domain {
       const dedupeKey = `protected:${write.kind}:${write.id}:${write.field}`;
       const existing = tx.state.questions.find(question => question.dedupeKey === dedupeKey && ['open', 'deferred'].includes(question.state));
       const initiativeId = write.kind === 'initiative' ? write.id : text(record.initiativeId);
-      handleCommand(tx, { name: 'question.raise', args: { record: { id: existing?.id ?? this.ports.newId(), initiativeId, target, prompt: 'Keep your value or apply the source-backed suggestion?', reason: 'protected_field_challenge', evidenceRefs: command.evidenceRefs, materiality: 'medium', dedupeKey, resolutions: [{ id: 'keep', label: 'Keep my value', commands: [] }, { id: 'apply', label: 'Apply the suggestion', commands: [{ name: command.name, args: command.args }] }] } } }, { actor: 'ai', now, apply: () => { throw new DomainFault('VALIDATION_FAILED', 'Unexpected nested suggestion'); } });
+      handleCommand(tx, { name: 'question.raise', args: { record: { id: existing?.id ?? this.ports.questionId?.(dedupeKey) ?? this.ports.newId(), initiativeId, target, prompt: 'Keep your value or apply the source-backed suggestion?', reason: 'protected_field_challenge', evidenceRefs: command.evidenceRefs, materiality: 'medium', dedupeKey, resolutions: [{ id: 'keep', label: 'Keep my value', commands: [] }, { id: 'apply', label: 'Apply the suggestion', commands: [{ name: command.name, args: command.args }] }] } } }, { actor: 'ai', now, apply: () => { throw new DomainFault('VALIDATION_FAILED', 'Unexpected nested suggestion'); } });
     }
     if (!tx.ops.length) throw new DomainFault('PROTECTED_FIELD', 'Protected field cannot be changed');
     this.validateTransaction(this.state, tx);
