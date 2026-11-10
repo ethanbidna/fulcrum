@@ -1,5 +1,7 @@
+import type { AdministrationArgs, AdministrationName, AdministrationResults } from '@fulcrum/domain';
 import type { AppliedChange, CommandEnvelope, CommandResult, QueryName, QueryArgs, QueryResults, CommandRequest, CommandPlan } from '@fulcrum/domain';
 export interface CoreTransport {
+  administer?<N extends AdministrationName>(name: N, args: AdministrationArgs[N]): Promise<AdministrationResults[N]>;
   query<Q extends QueryName>(name: Q, args: QueryArgs[Q]): Promise<QueryResults[Q]>;
   execute(command: Omit<CommandEnvelope, 'actor'>): Promise<CommandResult>;
   planCommand?(request: CommandRequest): Promise<CommandPlan>;
@@ -21,6 +23,7 @@ export class ShellCoreTransport implements CoreTransport {
   private planningJob: string | undefined;
   constructor(private readonly channel: RpcChannel) {}
   async query<Q extends QueryName>(name: Q, args: QueryArgs[Q]): Promise<QueryResults[Q]> { return await this.channel.request('query', { name, args }) as QueryResults[Q]; }
+  async administer<N extends AdministrationName>(name: N, args: AdministrationArgs[N]): Promise<AdministrationResults[N]> { return await this.channel.request('administration', {name, args}) as AdministrationResults[N]; }
   async execute(command: Omit<CommandEnvelope, 'actor'>): Promise<CommandResult> { return await this.channel.request('execute', command) as CommandResult; }
   async planCommand(request: CommandRequest): Promise<CommandPlan> {
     if (this.planningJob !== undefined) throw new Error('A request is already being planned.');

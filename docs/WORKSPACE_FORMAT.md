@@ -97,7 +97,7 @@ The app must detect online-only placeholders (read fails / zero-length) and show
 
 ## Backup and restore
 
-- **Automatic**: daily zip of `workspace.json`, `log/`, latest checkpoint into machine-local `backups/` (keep 14 daily, 8 weekly). Optional second backup location chosen by the user.
+- **Automatic**: opt-in daily or weekly verified directory copies of `workspace.json`, retained `log/` and checkpoints into machine-local `backups/` (keep 14 daily, 8 weekly; manual copies are retained). The original zip proposal is refined by [ADR-0022](decisions/0022-verified-directory-backups.md); a second destination remains deferred until a native destination flow is available.
 - **Restore**: always into a *new* workspace folder (new `workspaceId`) — never overwrite in place, so a synced bad state cannot clobber a good one.
 - **Point-in-time view**: History can fold events up to any HLC for inspection without restoring.
 - Sync-provider version history (Dropbox/Drive) is a secondary safety net, not relied upon.

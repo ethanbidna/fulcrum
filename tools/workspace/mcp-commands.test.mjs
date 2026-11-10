@@ -37,8 +37,8 @@ test('every current manual domain action has a conversational tool', async () =>
   for (const file of files) {
     const source = await readFile(new URL(`../../apps/desktop/src/ui/${file}`, import.meta.url), 'utf8');
     for (const match of source.matchAll(/name: ['"](\w+\.\w+)['"]/g)) {
-      // Batch wrappers are internal; their nested business commands are checked too.
-      if (match[1] === 'command.apply') continue;
+      // Batches check their children; trusted settings stay unavailable to AI/MCP.
+      if (['command.apply', 'settings.setIngestionDevice', 'settings.setDefaultCachePolicy'].includes(match[1])) continue;
       expect(CONVERSATIONAL_COMMANDS).toContain(match[1]);
     }
   }

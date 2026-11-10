@@ -127,7 +127,7 @@ export class IngestionScheduler {
   }
   private recorded(item: SourceItem): boolean {
     const hash = this.options.queue.digest(item.text);
-    return this.options.recordedSources?.().some(source => source.connector === item.connector && source.remoteId === item.remoteId && source.contentHash === hash) ?? false;
+    return this.options.recordedSources?.().some(source => source.connector === item.connector && source.remoteId === item.remoteId && source.contentHash === `sha256:${hash}`) ?? false;
   }
   private async pull(scope: ScopeProgress): Promise<void> {
     const now = this.options.now();

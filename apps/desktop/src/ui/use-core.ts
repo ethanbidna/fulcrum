@@ -1,3 +1,4 @@
+import type { AdministrationArgs, AdministrationName, AdministrationResults } from '@fulcrum/domain';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import type { CommandEnvelope, PortfolioBoard, CommandRequest } from '@fulcrum/domain';
 import type { CoreTransport } from '../core-transport.js';
@@ -58,6 +59,11 @@ export function useCore(platform: Platform) {
     if (!currentTransport.current) return Promise.reject(new Error('Local core unavailable. Retry the connection.'));
     return currentTransport.current.query(name, args);
   }, []);
+  const administer = useCallback(async <N extends AdministrationName>(name: N, args: AdministrationArgs[N]): Promise<AdministrationResults[N]> => {
+    const transport = currentTransport.current;
+    if (!transport?.administer) throw new Error('Local settings are unavailable in this build.');
+    return transport.administer(name, args);
+  }, []);
   const undo = useCallback(async () => {
     const eventId = undoEvents.current.at(-1); if (!eventId) return null;
     const result = await execute({ name: 'change.undo', args: { eventId } });
@@ -77,5 +83,5 @@ export function useCore(platform: Platform) {
     if (currentTransport.current === transport) await refreshCurrent.current();
     return result;
   }, []);
-  return { state, execute, query, planCommand, cancelCommandPlan, applyCommandPlan, undo, canUndo: undoVersion > 0 && undoEvents.current.length > 0, retry: useCallback(() => setAttempt(value => value + 1), []) };
+  return { state, execute, query, administer, planCommand, cancelCommandPlan, applyCommandPlan, undo, canUndo: undoVersion > 0 && undoEvents.current.length > 0, retry: useCallback(() => setAttempt(value => value + 1), []) };
 }

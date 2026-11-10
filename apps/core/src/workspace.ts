@@ -1,3 +1,4 @@
+import { openAdministration } from './administration.js';
 import { BackgroundPolicy } from '@fulcrum/ingest';
 import type { BackgroundSettings } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
@@ -152,6 +153,13 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   try {
     if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, policy: background, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
   } catch (error) { stopWatching?.(); unsubscribe?.(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  let administration: Awaited<ReturnType<typeof openAdministration>>;
+  try { administration = await openAdministration(options, opened.deviceId, () => domain, background, () => ingestion?.scheduler.enabled() ?? false); }
+  catch (error) { jobs.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  const BACKUP_CHECK_INTERVAL_MS = 60_000;
+  const backupTimer = setInterval(() => { void enqueue(() => administration.tick()).catch(() => undefined); }, BACKUP_CHECK_INTERVAL_MS);
+  backupTimer.unref();
+  void enqueue(() => administration.tick()).catch(() => undefined);
   const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable();
     if (name === 'status.background') {
       if (!args || typeof args !== 'object' || Object.keys(args).length) throw new Error('INVALID_BACKGROUND_QUERY');
@@ -164,6 +172,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
   const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
+    administer: (name, args) => enqueue(async () => { await requireAvailable(); return administration.request(name as import('@fulcrum/domain').AdministrationName, args as never); }),
     observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },
     configureBackground: settings => { background.configure(settings as Partial<BackgroundSettings>); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); return background.status(Date.now()); },
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
@@ -181,7 +190,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
     ingestionActive: () => ingestion?.scheduler.enabled() ?? false,
     close: () => {
-      closing = true; jobs.close(); stopWatching?.();
+      closing = true; clearInterval(backupTimer); jobs.close(); stopWatching?.();
       return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
     },
   };
