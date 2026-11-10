@@ -18,8 +18,9 @@ idempotency key, and must use that key for its Domain writes. Delivery is at
 least once across a crash between processing and receipt acknowledgement.
 Successful receipts and canonical source hashes suppress duplicate work.
 Failed items remain explicit; they are not silently retried or called current.
-Model extraction, contextual thread batching, canonical source recording and
-reconciliation are subsequent steps, not a dummy implementation here.
+Typed extraction and pure reconciliation planning are available through separate
+APIs. This scheduler enables neither automatically. Contextual thread batching,
+canonical source recording and model acceptance remain separate work.
 
 `status()` reports counts and last fully checked time. Pending work without an
 extraction consumer says Local AI unavailable, never Up to date. A paused,
@@ -33,3 +34,9 @@ explicit scopes and an optional trusted processing callback. No configuration
 means no queue, timer, connector or inference. With configuration the existing
 core runs a background timer; no additional service is introduced. Close cancels
 active requests before closing the local queue and workspace.
+
+
+`reconcile` and `proofFor` expose I5's pure planning boundary. See
+[reconciliation](RECONCILIATION.md) for candidate mapping, temporal conflicts,
+manual precedence and the required Domain execution boundary. No default
+processing consumer or unattended writes are enabled.

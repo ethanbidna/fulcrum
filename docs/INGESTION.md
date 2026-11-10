@@ -150,3 +150,19 @@ identity and undoes the choice. This does not enable unattended processing.
 See [API, bounds and failure behavior](../packages/context/README.md). I5 still
 owns candidate reconciliation and queue acknowledgement. Audit issue #63's
 handover hash mismatch remains open and must be fixed before unattended work.
+
+
+## Implemented I5 boundary
+
+`packages/ingest.reconcile` produces pure command/question/suggestion plans from
+typed candidates and canonical context. Synthetic integrations exercise scenarios
+2, 3, 4, 5 and 8 through the real Domain: update before create, explicit personal
+Tasks, external Dependencies, proposed initiatives, protected MoSCoW, conflicting
+assertions, user choices, chronology, question obsolescence and whole-run undo.
+All S2 injection cases exercise the fixed candidate-to-command boundary with a
+mock extractor; this tests plumbing and allowed effects, not model quality.
+
+The production scheduler still has no automatic reconciliation consumer. The
+planner neither records sources nor acknowledges queue items. Model adoption
+and the #63 handover-dedupe correction remain prerequisites for unattended
+processing. [API, execution requirements and limits](../packages/ingest/RECONCILIATION.md).

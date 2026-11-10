@@ -10,6 +10,7 @@
     "@fulcrum/sources": "workspace:*",
     "@fulcrum/llm": "workspace:*",
     "@fulcrum/schema": "workspace:*",
-    "@fulcrum/context": "workspace:*"
+    "@fulcrum/context": "workspace:*",
+    "@fulcrum/domain": "workspace:*"
   }
 }

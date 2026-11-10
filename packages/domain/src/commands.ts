@@ -12,7 +12,7 @@ export const COMMAND_ARGUMENTS = {
   'node.setPrerequisiteGroups': ['id', 'prerequisiteGroups'], 'node.supersede': ['id', 'supersededBy'], 'node.delete': ['id'],
   'decision.decide': ['id', 'outcome'], 'edge.create': ['record'], 'edge.update': ['id', 'patch'], 'edge.delete': ['id'],
   'group.create': ['record'], 'group.rename': ['id', 'label'], 'group.delete': ['id'], 'source.record': ['record'],
-  'assertion.record': ['record'], 'assertion.reject': ['id'], 'evidence.attach': ['target', 'evidenceRef'], 'evidence.detach': ['target', 'sourceId'],
+  'assertion.record': ['record'], 'assertion.reject': ['id'], 'assertion.setStatus': ['id', 'status', 'supersededBy'], 'evidence.attach': ['target', 'evidenceRef'], 'evidence.detach': ['target', 'sourceId'],
   'entity.create': ['record'], 'entity.update': ['id', 'patch'], 'entity.addAlias': ['id', 'alias'],
   'entity.merge': ['id', 'intoId'], 'entity.split': ['id', 'record', 'aliases'],
   'objective.create': ['record'], 'objective.update': ['id', 'patch'], 'objective.rerank': ['ranks'], 'objective.delete': ['id'],
