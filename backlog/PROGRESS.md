@@ -45,7 +45,7 @@ Steps done since last audit: 4
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
 | 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
 | 34 | P2 first-run wizard | todo | [ ] | | ADR-0018 adds model/origin choices, managed downloads and optional API keys; requirements only, implementation pending |
-| 35 | P6 encryption — design | done | n/a | | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
+| 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
 | 37 | P5 signing, notarization, updates | todo | [ ] | | |
 
