@@ -37,3 +37,6 @@ export type { ReplayConflict } from './replay.js';
 
 export { projectQuestionReview } from './question-review.js';
 export type { QuestionReview, QuestionReviewScope, QuestionEvidence } from './question-review.js';
+
+export { projectEvidence } from './evidence-projections.js';
+export type { ContextEvidence, EvidenceScope, EvidenceTarget } from './evidence-projections.js';

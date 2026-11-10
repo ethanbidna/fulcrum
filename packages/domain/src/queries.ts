@@ -1,3 +1,5 @@
+import { projectEvidence } from './evidence-projections.js';
+import type { ContextEvidence, EvidenceScope } from './evidence-projections.js';
 import { projectQuestionReview } from './question-review.js';
 import type { QuestionReview, QuestionReviewScope } from './question-review.js';
 import { projectInitiativeList, projectInitiativeHistory } from './detail-projections.js';
@@ -17,6 +19,7 @@ import { projectPortfolio, projectRail, projectBoard } from './projections.js';
 import type { PortfolioCard, PortfolioRail, PortfolioBoard } from './projections.js';
 
 export interface QueryArgs {
+  'evidence.list': EvidenceScope;
   'questions.review': QuestionReviewScope;
   'questions.list': { initiativeId?: string; state?: Question['state'] };
   'search': { text: string; scope?: SearchScope };
@@ -34,6 +37,7 @@ export interface QueryArgs {
   'history.list': HistoryFilter;
 }
 export interface QueryResults {
+  'evidence.list': ContextEvidence[];
   'questions.review': QuestionReview[];
   'questions.list': Question[];
   'search': SearchHit[];
@@ -52,6 +56,7 @@ export interface QueryResults {
 }
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
+  'evidence.list': ['initiativeId', 'target'],
   'questions.list': ['initiativeId', 'state'], 'questions.review': ['initiativeId', 'target', 'state'],
   'search': ['text', 'scope'], 'status.index': [],
   'initiative.list': ['initiativeId'], 'initiative.history': ['initiativeId'],
@@ -79,6 +84,7 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
   const value = args as Record<string, unknown>; const state = replay.document.state as WorkspaceState;
   let result: QueryResults[QueryName];
   switch (name) {
+    case 'evidence.list': result = projectEvidence(state, args as EvidenceScope); break;
     case 'questions.review': result = projectQuestionReview(state, args as QuestionReviewScope); break;
     case 'questions.list': result = state.questions.filter(question => (!value.initiativeId || question.initiativeId === value.initiativeId) && (!value.state || question.state === value.state)); break;
     case 'portfolio.board': result = projectBoard(state, projectHistory(replay), { now: now() }); break;

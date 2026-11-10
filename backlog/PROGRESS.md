@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 4
+Steps done since last audit: 5
 
 ## Steps
 
@@ -36,7 +36,7 @@ Steps done since last audit: 4
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
 | 25 | I2 first real connector | blocked | [ ] | #67 | S4 / step 6 owner results and selected Activepieces execution route are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
-| 26 | U6 context view | todo | n/a | | |
+| 26 | U6 context view | done | n/a | #73 | Canonical aggregate/object evidence, provenance/claims/two clocks, safe links, stale-response guards and Storybook keyboard/accessibility checks; synthetic only |
 | 27 | U7 timeline | todo | n/a | | |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
 | 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |

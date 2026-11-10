@@ -12,16 +12,16 @@ export function destinationFromHash(hash: string): Destination {
 }
 
 export function initiativeFromHash(hash: string): string | undefined {
-  return /^#initiatives\/([0-9a-f-]{36})(?:\/focus\/[0-9a-f-]{36}|\/(?:list|history)|\/inspect\/(?:node|edge)\/[0-9a-f-]{36})?$/i.exec(hash)?.[1];
+  return /^#initiatives\/([0-9a-f-]{36})(?:\/focus\/[0-9a-f-]{36}|\/(?:list|history|context)|\/inspect\/(?:node|edge)\/[0-9a-f-]{36})?$/i.exec(hash)?.[1];
 }
 
 export function focusedNodeFromHash(hash: string): string | undefined {
   return /^#initiatives\/[0-9a-f-]{36}\/focus\/([0-9a-f-]{36})$/i.exec(hash)?.[1];
 }
 
-export type InitiativeView = 'flow' | 'list' | 'history';
+export type InitiativeView = 'flow' | 'list' | 'history' | 'context';
 export function initiativeViewFromHash(hash: string): InitiativeView {
-  return /\/list$/.test(hash) ? 'list' : /\/history$/.test(hash) ? 'history' : 'flow';
+  return /\/context$/.test(hash) ? 'context' : /\/list$/.test(hash) ? 'list' : /\/history$/.test(hash) ? 'history' : 'flow';
 }
 
 export function questionInitiativeFromHash(hash: string): string | undefined {
