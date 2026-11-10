@@ -314,3 +314,13 @@ test('assertion supersession cannot form a cycle', async () => {
   passed(await f.execute('assertion.setStatus', { id: original.id, status: 'superseded', supersededBy: replacement.id }));
   denied(await f.execute('assertion.setStatus', { id: replacement.id, status: 'superseded', supersededBy: original.id }), 'VALIDATION_FAILED');
 });
+
+test('alignment retains supporting evidence on the link and leaves MoSCoW intact', async () => {
+  const f = setup(); const before = state(f).initiatives.find(item=>item.id===id('01'));
+  const evidenceRefs = [{sourceId:state(f).sources[0].id}]; const objectiveId=state(f).objectives[0].id;
+  const result = await f.execute('alignment.set',{initiativeId:before.id,objectiveId,alignment:4},{actor:'ai',evidenceRefs});
+  expect(result.ok).toBe(true);
+  const after=state(f).initiatives.find(item=>item.id===before.id);
+  expect(after.objectiveLinks.find(link=>link.objectiveId===objectiveId)).toMatchObject({alignment:4,setBy:'ai',evidenceRefs});
+  expect(after.moscow).toBe(before.moscow);
+});

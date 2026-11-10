@@ -36,7 +36,11 @@ test('every current manual domain action has a conversational tool', async () =>
   const files = (await readdir(new URL('../../apps/desktop/src/ui/', import.meta.url))).filter(file => /\.tsx?$/.test(file) && !file.includes('.test.'));
   for (const file of files) {
     const source = await readFile(new URL(`../../apps/desktop/src/ui/${file}`, import.meta.url), 'utf8');
-    for (const match of source.matchAll(/name: ['"](\w+\.\w+)['"]/g)) expect(CONVERSATIONAL_COMMANDS).toContain(match[1]);
+    for (const match of source.matchAll(/name: ['"](\w+\.\w+)['"]/g)) {
+      // Batch wrappers are internal; their nested business commands are checked too.
+      if (match[1] === 'command.apply') continue;
+      expect(CONVERSATIONAL_COMMANDS).toContain(match[1]);
+    }
   }
 });
 test('MCP protocol creates, reads, edits and undoes through the authenticated core', async () => fixture(async ({ client, host, socket, localDirectory }) => {

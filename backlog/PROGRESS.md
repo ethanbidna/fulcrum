@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 1
+Steps done since last audit: 2
 
 ## Steps
 
@@ -40,7 +40,7 @@ Steps done since last audit: 1
 | 27 | U7 timeline | done | n/a | #75 | Optional canonical target-date/milestone timeline, explicit undated prerequisites, simple SVG plus accessible list; synthetic browser/domain checks |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
 | 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
-| 30 | A2 priorities and KPIs | todo | n/a | | |
+| 30 | A2 priorities and KPIs | done | n/a | | Tied objective ranks, optional weights/KPIs, canonical alignment and retained AI evidence; MoSCoW isolation and browser/domain checks |
 | 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | #70 | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
 | 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |

@@ -1,3 +1,6 @@
+import { projectPriorities } from './priority-projections.js';
+import type { PriorityRow } from './priority-projections.js';
+import type { Objective } from '@fulcrum/schema';
 import { projectTimeline } from './timeline-projections.js';
 import type { TimelineView } from './timeline-projections.js';
 import { projectEvidence } from './evidence-projections.js';
@@ -21,6 +24,8 @@ import { projectPortfolio, projectRail, projectBoard } from './projections.js';
 import type { PortfolioCard, PortfolioRail, PortfolioBoard } from './projections.js';
 
 export interface QueryArgs {
+  'priorities.list': Record<string, never>;
+  'objectives.list': Record<string, never>;
   'initiative.timeline': {initiativeId: string};
   'evidence.list': EvidenceScope;
   'questions.review': QuestionReviewScope;
@@ -40,6 +45,8 @@ export interface QueryArgs {
   'history.list': HistoryFilter;
 }
 export interface QueryResults {
+  'priorities.list': PriorityRow[];
+  'objectives.list': Objective[];
   'initiative.timeline': TimelineView;
   'evidence.list': ContextEvidence[];
   'questions.review': QuestionReview[];
@@ -60,6 +67,7 @@ export interface QueryResults {
 }
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
+  'priorities.list': [], 'objectives.list': [],
   'initiative.timeline': ['initiativeId'],
   'evidence.list': ['initiativeId', 'target'],
   'questions.list': ['initiativeId', 'state'], 'questions.review': ['initiativeId', 'target', 'state'],
@@ -89,6 +97,8 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
   const value = args as Record<string, unknown>; const state = replay.document.state as WorkspaceState;
   let result: QueryResults[QueryName];
   switch (name) {
+    case 'priorities.list': result = projectPriorities(state); break;
+    case 'objectives.list': result = projectPriorities(state).map(row => row.objective); break;
     case 'initiative.timeline': result = projectTimeline(state, text(value.initiativeId)); break;
     case 'evidence.list': result = projectEvidence(state, args as EvidenceScope); break;
     case 'questions.review': result = projectQuestionReview(state, args as QuestionReviewScope); break;
