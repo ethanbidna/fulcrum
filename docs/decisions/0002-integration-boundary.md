@@ -34,6 +34,14 @@ The provisional recommendation is native APIs behind `SourceAdapter`, pending
 throwaway-account OAuth, link precision and footprint measurements. Default
 piece auth includes write scopes, so reuse requires narrowing permissions and
 providing host services. No runtime or database is adopted by this spike;
-this ADR remains Provisional until measured results and the decision checkpoint.
+this historical recommendation is superseded by ADR-0011; live measurements remain pending.
 
 Capability matrix per source × option: auth, refresh, backfill depth, cursor/incremental, threads/DMs, permalinks, rate limits, memory, install steps.
+
+
+## Engineering checkpoint (2026-11-10)
+
+This ADR remains Superseded by ADR-0011. Its native-adapter recommendation
+and execution alternatives below are historical, not permission to bypass
+Activepieces. S4 live results and execution-mode selection remain pending.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).

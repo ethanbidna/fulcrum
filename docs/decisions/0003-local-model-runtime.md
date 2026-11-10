@@ -1,7 +1,7 @@
 # ADR-0003: Meta Llama via Ollama, hardware-tiered, behind a ModelRuntime interface
 
-- **Status:** Superseded in part by [ADR-0018](0018-model-choice-and-setup.md):
-  model/provider selection and guided setup; no model tier accepted by this ADR
+- **Status:** Superseded by [ADR-0018](0018-model-choice-and-setup.md) and
+  [ADR-0023](0023-guided-setup-boundaries.md); no model tier accepted
 - **Date:** 2026-11-07
 
 ## Context
@@ -27,6 +27,15 @@ The user chose Meta Llama, run locally. The baseline device is a circa-2019 Inte
 The [benchmark harness and procedure](../spikes/S2.md) record initial and
 after-repair extraction scores, model digests, timing and sampled resources.
 Target hardware runs and manual pause/responsiveness checks are pending. This
-ADR remains Provisional; no model tier is accepted from mock tests.
+historical ADR is superseded; no model tier is accepted from mock tests.
 
 On the real Intel Mac and one Apple Silicon Mac: tokens/s, RSS, swap, thermal state, battery draw, JSON validity rate and candidate precision/recall on a synthetic eval set built from `fixtures/`.
+
+
+## Engineering checkpoint (2026-11-10)
+
+ADRs 0018/0023 replace the historical fixed Llama tiers, manual installation
+and hosted exclusion below. AI starts off; guided setup requires explicit
+terms and optional hosted scope/budget. No extraction tier or automatic model
+fallback is accepted from a compatibility test. S2 hardware/quality remains open.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).

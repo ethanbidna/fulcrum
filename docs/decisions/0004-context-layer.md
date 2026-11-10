@@ -34,3 +34,11 @@ or Apple Silicon result is claimed. Retain native as the shipping default.
 [ADR-0025](0025-isolated-graphiti-experiment.md) permits only the optional spike;
 its BSD wrapper does not accept the embedded SSPL engine for distribution.
 Graphiti tier adoption remains provisional pending measurements and review.
+
+
+## Engineering checkpoint (2026-11-10)
+
+Accepted authority/native-index direction is retained. The current embedded
+Intel wheel is no-go after a real store probe; supported-hardware Graphiti
+cost/quality and distribution review remain pending. No graph engine ships.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).

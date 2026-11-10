@@ -17,8 +17,8 @@ Columns:
 | 5 | S6 MCP shim | #6 | 2 | Add it to Claude Desktop and complete the manual checklist | Serve from `fixtures/states/portfolio.state.json`. Provide copy-paste client config and a short checklist. |
 | 6 | S4 connector capability matrix | #4 | — | Create a throwaway Slack workspace and Google account containing only fake messages; register OAuth apps as instructed; run the prototypes | Research first, then small prototypes in `spikes/s4/` for Slack and Gmail. Credentials only from environment variables; never committed. |
 | 7 | S5 Granola access | #5 | — | — | Research only; no reverse-engineering of private files. Output `docs/spikes/S5.md` with a recommendation. |
-| 8 | S3 Graphiti | #3 | 3 | Run the spike on hardware and commit results | Compare against a minimal native SQLite alias resolver on the same fixtures. |
-| 9 | Decision checkpoint | — | 1, 3, 4, 5, 6, 7, 8 | Review and approve the PR (merging it = approval) | Read every `docs/spikes/*`. Update ADRs 0001–0005 and 0007–0009 to Accepted or Superseded from measured results; update `docs/OPERATIONS.md` tiers/thresholds and `docs/RISKS.md`; adjust later backlog items and this playbook's extra instructions where assumptions changed. One PR summarizing every decision change. |
+| 8 | S3 Graphiti | #3 | 3 | Run the spike on hardware and commit results | Compare against the production native SQLite alias resolver on the same fixtures. Harness preparation may precede S2 acceptance under the batch authorization; resource/model measurements wait for S2 and a supported store. |
+| 9 | Decision checkpoint | — | 1, 3, 4, 5, 6, 7, 8 | Merge engineering checkpoint, then review measured adoption results and tick step 9 | Read every `docs/spikes/*`. Record Accepted/Superseded architecture decisions separately from pending empirical gates; after owner results, accept/decline each tier/feature in a final adoption PR; update `docs/OPERATIONS.md` tiers/thresholds and `docs/RISKS.md`; adjust later backlog items and this playbook's extra instructions where assumptions changed. One PR summarizing every decision change. |
 
 ## Phase B — core product on fixtures (M1)
 
@@ -129,3 +129,11 @@ The owner clarified on 2026-11-10: “Just do them; we'll test later.” Prepare
 all nine implementations and provisional decision work without waiting for
 measurement prerequisites. Keep actual hardware/client/signing/model results
 open; no unrun test is promoted to a pass and no model is adopted from mocks.
+
+The 2026-11-10 checkpoint is split under the owner's “Just do them; we'll test
+later” instruction. Merging ADR-0026 approves the engineering direction; step 9
+remains waiting-owner until the final adoption review in docs/CHECKPOINT.md.
+Do not convert missing results into Accepted hardware/model/provider claims.
+For P5, use ADR-0024's actual production core/MCP release workflow; S7's small
+health-only executable is not the shipped core. I2 still requires the S4
+Activepieces execution result. P6 implementation remains a separate step 36.

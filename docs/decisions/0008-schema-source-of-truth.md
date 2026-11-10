@@ -15,3 +15,11 @@ The same records are read by the TypeScript core, the UI, MCP tool definitions, 
 ## Consequences
 - Language-neutral contract; fixtures validated in CI today (`npm test`).
 - Some TypeScript ergonomics (discriminated unions) depend on generator quality; acceptable, or hand-write thin wrappers that are type-checked against the generated types.
+
+
+## Engineering checkpoint (2026-11-10)
+
+Schema generation/runtime validation and reference replay checks support this
+accepted contract. The batch changes no persisted v1 schema. P6 design is
+separate; its encryption implementation and v2 migration remain todo.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).
