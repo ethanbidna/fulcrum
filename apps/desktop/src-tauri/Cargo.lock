@@ -788,6 +788,7 @@ dependencies = [
 name = "fulcrum-desktop"
 version = "0.1.0"
 dependencies = [
+ "cc",
  "serde_json",
  "tauri",
  "tauri-build",

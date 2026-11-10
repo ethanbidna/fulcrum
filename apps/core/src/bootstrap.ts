@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { prepareBackgroundProcess } from './background-priority.js';
 import { chmod, lstat, unlink } from 'node:fs/promises';
 import { openWorkspaceHost } from './workspace.js';
 import type { WorkspaceOptions } from './workspace.js';
@@ -12,7 +13,11 @@ export async function startCore(options: WorkspaceOptions & { idleMs?: number },
     const local = await lstat(options.localDirectory);
     if (local.isSymbolicLink() || !local.isDirectory() || local.uid !== process.getuid?.()) throw new Error('LOCAL_DIRECTORY_UNSAFE');
   } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
-  const host = await openWorkspaceHost(options);
+  let backgroundUnavailableReason = options.backgroundUnavailableReason;
+  if (options.ingestion) {
+    backgroundUnavailableReason ??= await prepareBackgroundProcess() ?? undefined;
+  }
+  const host = await openWorkspaceHost({ ...options, ...(backgroundUnavailableReason ? { backgroundUnavailableReason } : {}) });
   try {
     await chmod(options.localDirectory, 0o700);
     const secret = await secrets.getOrCreate();

@@ -1,9 +1,9 @@
 import { IngestionScheduler } from '@fulcrum/ingest';
-import type { IngestionOptions } from '@fulcrum/ingest';
+import type { BackgroundPolicy, IngestionOptions } from '@fulcrum/ingest';
 import { SqliteIngestionQueue } from '@fulcrum/sources';
 import type { SourceAdapter } from '@fulcrum/sources';
 import type { WorkspaceStateDoc } from '@fulcrum/schema';
-const POLL_MS = 60_000;
+const POLL_MS = 1000;
 export interface WorkspaceIngestion {
   adapters: SourceAdapter[];
   scopes: Record<string, string[]>;
@@ -11,10 +11,11 @@ export interface WorkspaceIngestion {
 }
 export async function openIngestion(options: {
   configuration: WorkspaceIngestion; localDirectory: string; workspaceDirectory: string; deviceId: string; userEntityId: string;
-  snapshot(): WorkspaceStateDoc;
+  snapshot(): WorkspaceStateDoc; policy: BackgroundPolicy;
 }) {
   const queue = await SqliteIngestionQueue.open({ ...options, workspaceId: options.snapshot().workspaceId });
   const scheduler = new IngestionScheduler({ queue, adapters: options.configuration.adapters, deviceId: options.deviceId,
+    pauseReason: phase => options.policy.reason(Date.now(), phase), extractionStarted: () => options.policy.started(Date.now()),
     now: () => new Date().toISOString(), ingestionDeviceId: () => options.snapshot().state.settings.ingestionDeviceId ?? undefined,
     recordedSources: () => options.snapshot().state.sources,
     relevance: () => ({ userId: options.userEntityId, terms: options.snapshot().state.initiatives.map(initiative => initiative.title), linkedThreadIds: [], excludedAuthorIds: [] }),

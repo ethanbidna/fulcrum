@@ -41,7 +41,7 @@ Steps done since last audit: 3
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
 | 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
 | 30 | A2 priorities and KPIs | todo | n/a | | |
-| 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
+| 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | #70 | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
 | 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
 | 34 | P2 first-run wizard | todo | [ ] | | ADR-0018 adds model/origin choices, managed downloads and optional API keys; requirements only, implementation pending |
@@ -52,6 +52,33 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 31 — P3 Intel resource review
+
+1. Wait for S2 to finish. Install Node 22 LTS, pnpm 10.11.0, stable Rust/Cargo
+   and Xcode Command Line Tools. Run:
+
+   ```sh
+   git fetch origin
+   git worktree add ../fulcrum-p3-review origin/main
+   cd ../fulcrum-p3-review
+   corepack enable
+   pnpm install --frozen-lockfile
+   pnpm check
+   pnpm --filter @fulcrum/desktop build
+   cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+   node tools/p3-review.mjs
+   ```
+
+2. Run the printed second-terminal native-shell command. Follow
+   [docs/reviews/P3.md](../docs/reviews/P3.md) for pause/resume, presentation,
+   real power, native sleep/wake, unavailable signals and the separate explicit
+   installed-model trial on its owned loopback server. Do not disturb benchmark
+   processes. Mock trials do not validate model CPU/memory or pause-to-idle.
+3. Record versions, CPU/RSS/swap/thermal, pause-to-idle time, UI response,
+   sleep/wake/grace, power and idle unload in `docs/reviews/P3.md`, with untested
+   checks/blockers explicit; then tick the Owner box for step 31. Model adoption,
+   connector, packaging and other Owner checks remain pending.
 
 ### Step 29 — U8 Questions Center review
 

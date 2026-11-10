@@ -1,4 +1,5 @@
 mod socket;
+mod system;
 use serde_json::Value;
 use std::net::Shutdown;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
@@ -17,6 +18,7 @@ struct CoreSocket {
 }
 impl CoreSocket {
     fn connect(&self) -> Result<socket::Client, String> {
+        if !self.profile.is_absolute() { return Err("UNSAFE_CORE_PROFILE".into()); }
         let directory = std::fs::symlink_metadata(&self.profile).map_err(|_| "CORE_UNAVAILABLE")?;
         let socket_path = self.profile.join("core.sock");
         let entry = std::fs::symlink_metadata(&socket_path).map_err(|_| "CORE_UNAVAILABLE")?;
@@ -56,7 +58,7 @@ fn keychain_secret() -> Result<String, String> {
 }
 #[tauri::command]
 async fn core_request(state: tauri::State<'_, Arc<CoreSocket>>, method: String, params: Value) -> Result<Value, String> {
-    if !["health", "query", "execute", "planCommand", "commandPlanStatus", "cancelCommandPlan", "applyCommandPlan"].contains(&method.as_str()) { return Err("METHOD_NOT_ALLOWED".into()); }
+    if !["health", "query", "execute", "planCommand", "commandPlanStatus", "cancelCommandPlan", "applyCommandPlan", "background.configure"].contains(&method.as_str()) { return Err("METHOD_NOT_ALLOWED".into()); }
     let client = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || client.connect()?.request(&method, params)).await.map_err(|_| "CORE_UNAVAILABLE".to_string())?
 }
@@ -85,15 +87,38 @@ async fn core_subscribe(app: tauri::AppHandle, state: tauri::State<'_, Arc<CoreS
 }
 #[tauri::command]
 fn core_unsubscribe(state: tauri::State<'_, Arc<CoreSocket>>) { state.stop(); }
+fn core_profile(home: &std::path::Path) -> PathBuf {
+    #[cfg(debug_assertions)]
+    if let Some(profile) = std::env::var_os("FULCRUM_DEV_PROFILE") { return PathBuf::from(profile); }
+    home.join("Library/Application Support/Fulcrum")
+}
 fn main() {
     let app = tauri::Builder::default()
         .setup(|app| {
             let home = app.path().home_dir()?;
             let owner = std::fs::metadata(&home)?.uid();
-            app.manage(Arc::new(CoreSocket { profile: home.join("Library/Application Support/Fulcrum"), owner, subscription: Mutex::new(None), generation: AtomicU64::new(0) }));
+            let core = Arc::new(CoreSocket { profile: core_profile(&home), owner, subscription: Mutex::new(None), generation: AtomicU64::new(0) });
+            app.manage(system::SystemObserver::start(core.clone()));
+            app.manage(core);
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
+            }
         })
         .invoke_handler(tauri::generate_handler![core_request, core_subscribe, core_unsubscribe])
         .build(tauri::generate_context!()).expect("Fulcrum shell startup failed");
-    app.run(|app, event| { if let tauri::RunEvent::Exit = event { app.state::<Arc<CoreSocket>>().stop(); } });
+    app.run(|app, event| {
+        match event {
+            tauri::RunEvent::Exit => { app.state::<system::SystemObserver>().stop(); app.state::<Arc<CoreSocket>>().stop(); }
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen { .. } => {
+                if let Some(window) = app.get_webview_window("main") { let _ = window.show(); let _ = window.set_focus(); }
+            }
+            _ => {}
+        }
+    });
 }

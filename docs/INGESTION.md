@@ -166,3 +166,14 @@ The production scheduler still has no automatic reconciliation consumer. The
 planner neither records sources nor acknowledges queue items. Model adoption
 and the #63 handover-dedupe correction remain prerequisites for unattended
 processing. [API, execution requirements and limits](../packages/ingest/RECONCILIATION.md).
+
+### P3 resource admission
+
+The core binds the scheduler to [ADR-0020's native admission policy](decisions/0020-background-control-plane.md).
+Signals and trusted session settings can interrupt an in-flight request without
+acknowledging its queue item. Memory/profile/Intel throughput checks apply before
+each extraction; resource pause leaves source/queue freshness explicit. A source
+scan alone cannot claim current state while extraction is pending. The scheduler
+checks observation expiry every second; enabled paused ingestion keeps the core
+alive. The callback must honor AbortSignal before any atomic Domain.execute;
+no unattended consumer is introduced and #63 remains unresolved.

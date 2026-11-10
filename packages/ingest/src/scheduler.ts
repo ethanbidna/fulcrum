@@ -1,3 +1,4 @@
+import type { WorkPhase } from './background-policy.js';
 import type { IngestionQueue, SourceAdapter, SourceItem, ScopeProgress } from '@fulcrum/sources/interfaces';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const BACKFILL_DAYS = 14;
@@ -7,6 +8,7 @@ const REQUEST_DEADLINE_MS = 60_000;
 const RETRY_BASE_MS = 30_000;
 const RETRY_MAX_MS = 30 * 60 * 1000;
 const POLL_INTERVAL_MS = 60_000;
+class IngestionInterrupted extends Error {}
 export interface RelevanceContext {
   userId: string; terms: string[]; linkedThreadIds: string[]; excludedAuthorIds: string[];
 }
@@ -16,6 +18,8 @@ export interface IngestionOptions {
   relevance(): RelevanceContext;
   recordedSources?(): { connector: string; remoteId: string; contentHash: string }[];
   now(): string;
+  pauseReason?(phase: WorkPhase): string | null;
+  extractionStarted?(): void;
   process?: (item: SourceItem, context: { signal: AbortSignal; idempotencyKey: string }) => Promise<void>;
 }
 export interface IngestionStatus {
@@ -40,13 +44,15 @@ export class IngestionScheduler {
     if (scopeIds.some(id => !available.some(scope => scope.id === id))) throw new Error('UNKNOWN_SOURCE_SCOPE');
     this.options.queue.configure(connector, scopeIds.map(id => available.find(scope => scope.id === id)!));
   }
-  pause(): void { this.paused = true; this.controller?.abort(); }
+  pause(): void { this.paused = true; this.controller?.abort(new IngestionInterrupted()); }
   resume(): void { if (!this.stopped) this.paused = false; }
-  active(): boolean { return !this.stopped && !this.paused && this.designated() && this.options.queue.scopes().length > 0; }
-  async close(): Promise<void> { this.stopped = true; this.controller?.abort(); await this.running; }
+  enabled(): boolean { return !this.stopped && this.designated() && this.options.queue.scopes().length > 0; }
+  interrupt(): void { this.controller?.abort(new IngestionInterrupted()); }
+  active(): boolean { return this.enabled() && !this.paused && !this.options.pauseReason?.('sources'); }
+  async close(): Promise<void> { this.stopped = true; this.controller?.abort(new IngestionInterrupted()); await this.running; }
   tick(): Promise<void> {
+    if (!this.active()) { this.interrupt(); return this.running ?? Promise.resolve(); }
     if (this.running) return this.running;
-    if (!this.active()) return Promise.resolve();
     this.running = this.run().finally(() => { this.running = undefined; });
     return this.running;
   }
@@ -57,6 +63,8 @@ export class IngestionScheduler {
     if (!this.designated()) return result('viewer', 'Viewer/editor — sources checked on the ingestion Mac');
     if (!scopes.length) return result('disabled', 'No source scopes enabled');
     if (this.paused || this.stopped) return result('paused', 'Local ingestion paused');
+    const pauseReason = this.options.pauseReason?.('sources') ?? (!this.running && counts.pending && this.options.process ? this.options.pauseReason?.('extraction') : null);
+    if (pauseReason) return result('paused', pauseReason);
     if (scopes.some(scope => scope.error)) return result('reconnect', 'Source unavailable — check connection');
     if (counts.failed) return result('failed', `${counts.failed} items need attention`);
     if (scopes.some(scope => scope.scanning) || this.running) return result('catching-up', `Catching up — ${counts.pending} known items`);
@@ -80,6 +88,9 @@ export class IngestionScheduler {
       const aborted = new Promise<never>((_, reject) => controller.signal.addEventListener('abort', () => reject(controller.signal.reason), { once: true }));
       const result = await Promise.race([operation(controller.signal), aborted]);
       controller.signal.throwIfAborted(); this.allowed(); return result;
+    } catch (error) {
+      if (controller.signal.reason instanceof IngestionInterrupted) throw controller.signal.reason;
+      throw error;
     } finally { clearTimeout(timer); this.controller = undefined; }
   }
   private async run(): Promise<void> {
@@ -104,10 +115,12 @@ export class IngestionScheduler {
         }
         if (this.recorded(source) || !relevant(source, this.options.relevance())) { this.options.queue.finish(item, 'ignored'); continue; }
         const idempotencyKey = JSON.stringify([item.connector, item.remoteId, item.contentHash]);
+        if (this.options.pauseReason?.('extraction')) return;
+        this.options.extractionStarted?.();
         await this.request(signal => this.options.process!(source, { signal, idempotencyKey }));
         this.options.queue.finish(item, 'processed');
-      } catch {
-        if (!this.active()) return;
+      } catch (error) {
+        if (error instanceof IngestionInterrupted || !this.active()) return;
         this.options.queue.finish(item, 'failed');
       }
     }
@@ -135,8 +148,8 @@ export class IngestionScheduler {
         if (page.next === null) return;
         cursor = page.next;
       }
-    } catch {
-      if (!this.active()) return;
+    } catch (error) {
+      if (error instanceof IngestionInterrupted || !this.active()) return;
       const delay = Math.min(RETRY_MAX_MS, RETRY_BASE_MS * 2 ** scope.failures);
       this.options.queue.failScope(scope.connector, scope.scope.id, new Date(Date.parse(now) + delay).toISOString(), 'SOURCE_UNAVAILABLE');
     }

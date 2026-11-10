@@ -1,5 +1,7 @@
 import type { AppliedChange } from '@fulcrum/domain';
 export interface CoreHost {
+  observeSystem?(sample: unknown): void;
+  configureBackground?(settings: unknown): unknown;
   query(name: string, args: unknown): Promise<unknown>;
   execute(command: unknown): Promise<unknown>;
   planCommand?(request: unknown): Promise<unknown>;

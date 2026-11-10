@@ -1,3 +1,5 @@
+import { BackgroundPolicy } from '@fulcrum/ingest';
+import type { BackgroundSettings } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
@@ -20,6 +22,8 @@ export interface WorkspaceOptions {
   onIndexProgress?: (progress: IndexProgress) => void;
   commandRuntime?: JsonModelRuntime;
   ingestion?: WorkspaceIngestion;
+  background?: Partial<BackgroundSettings>;
+  backgroundUnavailableReason?: string;
   mcp?: McpAccess;
   deviceLabel: string; create?: boolean; schemaDirectory?: URL;
 }
@@ -31,6 +35,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const schema = options.schemaDirectory ? { schemaDirectory: options.schemaDirectory } : {};
   if (options.create) await FileWorkspaceStore.create(options.workspaceDirectory, new Date(), schema);
   const store = new FileWorkspaceStore({ localDirectory: options.localDirectory, deviceLabel: options.deviceLabel, ...schema });
+  const background = new BackgroundPolicy(options.background, options.backgroundUnavailableReason);
   const opened = await store.open(options.workspaceDirectory);
   const listeners = new Set<(change: AppliedChange) => void>();
   let index: SqliteReadIndex | undefined;
@@ -145,9 +150,13 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
   try {
-    if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
+    if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, policy: background, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
   } catch (error) { stopWatching?.(); unsubscribe?.(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const query = (name: string, args: unknown) => enqueue(async () => { await requireAvailable();
+    if (name === 'status.background') {
+      if (!args || typeof args !== 'object' || Object.keys(args).length) throw new Error('INVALID_BACKGROUND_QUERY');
+      return background.status(Date.now());
+    }
     if (name === 'status.freshness') {
       if (!args || typeof args !== 'object' || Object.keys(args).length) throw new Error('INVALID_FRESHNESS_QUERY');
       return ingestion?.scheduler.status() ?? { state: 'disabled', pending: 0, failed: 0, checkedAt: null, label: 'No source scopes enabled' };
@@ -155,6 +164,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
   const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
+    observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },
+    configureBackground: settings => { background.configure(settings as Partial<BackgroundSettings>); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); return background.status(Date.now()); },
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
     commandPlanStatus: id => jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
     applyCommandPlan: id => enqueue(async () => {
@@ -168,7 +179,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     query,
     execute: command => executeAs(command, 'user'),
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
-    ingestionActive: () => ingestion?.scheduler.active() ?? false,
+    ingestionActive: () => ingestion?.scheduler.enabled() ?? false,
     close: () => {
       closing = true; jobs.close(); stopWatching?.();
       return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
