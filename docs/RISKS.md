@@ -15,12 +15,23 @@ Likelihood/impact: H/M/L. "Spike" = backlog item that retires or confirms the ri
 | R9 | Dropbox/Google Drive behave unexpectedly with append-only logs (torn reads, delayed propagation, online-only placeholders, conflicted copies) | M | H | Single-writer files, torn-tail tolerance, dedupe, placeholder detection, restore-to-new-workspace | S1 |
 | R10 | Concurrent edits on two Macs produce confusing outcomes | M | M | Deterministic LWW + material-conflict Questions + History | S1 |
 | R11 | Packaging a Node core as a Tauri sidecar: size, startup time, native modules (SQLite), universal binary, notarization | M | M | Prefer built-in `node:sqlite` or Bun; measure; fall back to Rust core if unworkable | S7 |
-| R12 | Employer data stored in personal cloud folders violates employer policy | M | H | Onboarding notice; pointer-only cache policy; encryption roadmap; user responsibility stated plainly | — |
+| R12 | Employer data stored in personal cloud folders violates employer policy | M | H | Onboarding notice; pointer-only cache policy; P6 design (not implemented); user responsibility stated plainly | — |
 | R13 | Prompt injection via sources leads to wrong state or data exposure through MCP | M | M | Closed schemas, no outbound actions, excerpts off for MCP, undo | S6 |
 | R14 | Scope creep turns Fulcrum into a task manager / PM tool | M | H | Spec non-goals in AGENTS.md; PR checklist; consistency audit per milestone | — |
 | R15 | Background processing drains battery or annoys the user | M | M | Resource policy; visible pause; plugged-in-only default on Intel | S2 |
 | R16 | Model license terms change or a model tier is withdrawn from Ollama's registry | L | M | Capability-tagged model selection; swappable runtime | — |
 | R17 | MCP client ecosystem changes (transport/auth spec revisions) | M | L | Thin shim; pin SDK; contract tests | S6 |
+
+## Encryption design risks (P6)
+
+[ADR-0021](decisions/0021-workspace-encryption.md) and [ENCRYPTION.md](ENCRYPTION.md)
+require implementation tests before claiming protection. Lost keys without a
+saved recovery card mean permanent data loss. Migration needs enough disk for
+backup and a verified new workspace; an offline Mac can still edit the retired
+source. Provider history and local caches may retain plaintext. Native helper
+entitlements, crypto packaging, signed identity, second-Mac recovery and actual
+sync behavior are unvalidated; AEAD alone cannot prove completeness, prevent
+whole-copy rollback or revoke a key from old copies.
 
 ## Explicitly not validated in Phase 0
 

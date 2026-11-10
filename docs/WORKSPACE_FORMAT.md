@@ -106,9 +106,21 @@ The app must detect online-only placeholders (read fails / zero-length) and show
 
 Expected volume for one user: low thousands of events per month; excerpts ≤ 4 KB each. Segments are never deleted in v1. If the log grows past a threshold (e.g. 200 MB), a future **archive** command can snapshot state and move old segments to `archive/` after all devices' frontiers have passed them — design deferred until measured.
 
-## Encryption (deferred)
+## Encryption (design accepted; implementation pending)
 
-`workspace.json#encryption` is reserved. When enabled, each event line's payload is encrypted with a workspace key held in the Keychain; the key must be transferred to a second Mac out of band. Required before recommending a personal sync folder for employer data. Tracked as a backlog item, not designed in detail yet.
+Current v1 readers reject encryption; the reserved `encryption` descriptor does
+not enable it. [ENCRYPTION.md](ENCRYPTION.md) and
+[ADR-0021](decisions/0021-workspace-encryption.md) specify the proposed v2 codec,
+Keychain/recovery flow and copy migration. Step 36 must add versioned schemas
+and validate the implementation before encrypted workspaces can be opened.
+
+The plan encrypts entire events/checkpoints with authenticated encryption,
+retains canonical event bytes and merge/undo semantics, and migrates into a
+new workspace identity only after backup and full replay verification. Source
+logs stay unchanged. Old plaintext copies, provider history, exports and local
+caches are not erased or protected by enabling workspace encryption. No key
+belongs in the portable folder. Personal cloud storage still requires the
+owner's authorization; encryption is not a compliance determination.
 
 ## Executable driver
 
