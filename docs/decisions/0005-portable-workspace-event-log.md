@@ -27,3 +27,11 @@ Option 3, specified in [WORKSPACE_FORMAT.md](../WORKSPACE_FORMAT.md):
 
 ## Validation (S1)
 Two Macs, Dropbox and Google Drive (mirror and stream modes): concurrent offline edits, torn tails, conflicted copies, placeholder files, propagation latency, checkpoint fallback, clone-detection after Migration Assistant.
+
+
+## Engineering checkpoint (2026-11-10)
+
+Production store tests now cover durability, replay, placeholders and crash
+recovery. They support the accepted format but do not establish Dropbox/Drive
+propagation or remote inventory completeness. S1 provider/clone gates remain.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).

@@ -55,7 +55,7 @@ supersedes the original automatic Llama 3B/1B fallback assumptions.
 | Hardware | Provisional starting point | Acceptance still required |
 |---|---|---|
 | Intel / limited memory | User-selected compatible local candidate, background use, or optional hosted setup | No default extractor accepted; check latency/resources and accuracy |
-| Apple Silicon, about 16 GB | Qwen3.5 4B as a smaller candidate | Comparable full extraction holdout and actual device test |
+| Apple Silicon, about 16 GB | Pinned Qwen3 4B Instruct 2507 candidate from the setup catalog | Comparable full extraction holdout and actual device test |
 | Apple Silicon, about 24–32 GB+ | Llama 3.1 8B quantized candidate | Device test and semantic/accuracy review |
 
 These are proposed profiles, not minimum RAM guarantees. A bounded synthetic
@@ -90,8 +90,8 @@ not establish headless background support.
 
 The core lowers its own priority when ingestion is configured; failure pauses
 work without blocking editing. The explicit managed Ollama driver uses
-`OLLAMA_NUM_PARALLEL=1`, one loaded model and background QoS; P2 production
-lifecycle wiring is pending. External servers require their owner's matching
+`OLLAMA_NUM_PARALLEL=1`, one loaded model and background QoS; P2 wires a separate owned managed runtime for explicit command setup. This does
+not enable unattended extraction or accept an extraction model. External servers require their owner's matching
 configuration. Runtime requests explicitly set five-minute `keep_alive` and
 serialize per endpoint within the core. Neither contract proves that an Ollama
 version stops CPU within five seconds after client cancellation.
@@ -99,3 +99,20 @@ version stops CPU within five seconds after client cancellation.
 Follow [P3 review](reviews/P3.md) for the disposable synthetic native harness
 and Intel scenario 12. Actual hardware checks, S2 thresholds and model adoption
 remain pending. No real connector or unattended reconciliation is enabled.
+
+## Checkpoint acceptance boundary
+
+The [2026-11-10 engineering checkpoint](CHECKPOINT.md) retains these thresholds
+as provisional policy settings. No measured replacement values exist. Viewer/
+manual editing works without AI; no background extraction tier is accepted.
+P2's current local catalog contains pinned Qwen3 4B Instruct 2507 and Llama 3.1
+8B candidates, with explicit license and resource checks. A compatibility result
+is not an extraction quality benchmark or a RAM guarantee. Unknown/insufficient
+resources must remain visible; never silently choose a smaller/hosted fallback.
+
+Native SQLite remains the context implementation on every tier. The current
+FalkorDBLite Intel wheel fails execution; Graphiti stays outside the app pending
+supported-store, quality/resource and distribution review. P5 provides a
+provisional universal Node SEA release workflow and user-started signed update
+checks, with actual signing/upgrade/clean-user acceptance pending. Only those
+measurements can close the named hardware/release gates.

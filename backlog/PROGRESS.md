@@ -18,7 +18,7 @@ Steps done since last audit: 3
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | waiting-owner | [ ] | #81 | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
-| 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
+| 9 | Decision checkpoint | waiting-owner | [ ] | #82 | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |
 | 10 | C2 invariants and policy | done | n/a | #45 | TypeScript invariants, affected validation, P1–P12 policy and golden projections; model-independent sequencing authorized |
 | 11 | C3 commands, events, undo | done | n/a | #46 | Shared command API, atomic events and question resolutions, compensating undo, retry safety and replay checks |
 | 12 | C4 store driver | done | n/a | #47 | Durable driver, atomic batches/checkpoints, locking/identity, placeholders, golden fixture and real process-crash tests; sync-provider checks remain S1 |
@@ -31,7 +31,7 @@ Steps done since last audit: 3
 | 19 | U4 inspector and focused view | waiting-owner | [ ] | #55 | Merged; contextual inspector, canonical Task focus and child checklists; owner review pending |
 | 19a | U4a in-app command bar | waiting-owner | [ ] | #58 | Merged; inline request/review/apply/undo; 398 tests and Intel/ARM builds pass; owner usability pending |
 | 20 | U5 list and history | waiting-owner | [ ] | #59 | Merged; canonical List and evidence-linked History; 405 tests and Intel/ARM builds pass; owner week-long usage pending |
-| 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler and seven-day freshness tests; audit #63 tracks canonical-hash handover dedupe defect; live connectors/native sleep remain later |
+| 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler and seven-day freshness tests; canonical-hash handover dedupe defect #63 fixed by P4 #77; live connectors/native sleep remain later |
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
@@ -52,6 +52,27 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 9 — Final feasibility/adoption review
+
+Follow [docs/CHECKPOINT.md](../docs/CHECKPOINT.md), after recording the pending
+S1/S2/S4/S6/S7/S3 and release procedures. Keep failed/unavailable results, update
+the evidence matrix and affected ADRs/Operations/Risks, open and merge the final
+adoption PR, then tick the Owner box for step 9. The engineering checkpoint PR
+approves direction only and does not complete the earlier Owner boxes.
+
+### Step 37 — P5 signed releases
+
+Follow [P5 release procedure](../docs/reviews/P5.md): configure release-environment secrets/public key, dispatch the workflow, inspect notarized universal artifacts, test clean-user launch and signed update/cancellation/failure, record results, then tick the Owner box for step 37. No release was signed or published by the implementation.
+
+### Step 8 — S3 Graphiti comparison
+
+Follow [the S3 procedure](../spikes/s3/README.md): install the isolated locked
+Python environment, run the no-inference store probe, then repeated explicit
+local-model/native comparisons only after a supported store exists and S2 is
+finished. Review count-only reports and observations in docs/spikes/S3-results,
+update docs/spikes/S3.md and ADR-0004, then tick the Owner box for step 8. The
+current Intel store failure is not a successful Graphiti measurement.
 
 ### Step 34 — P2 clean-user onboarding review
 
@@ -244,16 +265,3 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 - 2026-11-09 — Recurring audit through I3 / #62: one confirmed handover-dedupe schema mismatch filed as #63; no implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-09-product.md). Audit PR #64; owner checks and model adoption remain pending.
 
 - 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR #48; owner checks remain unchanged.
-
-### Step 37 — P5 signed releases
-
-Follow [P5 release procedure](../docs/reviews/P5.md): configure release-environment secrets/public key, dispatch the workflow, inspect notarized universal artifacts, test clean-user launch and signed update/cancellation/failure, record results, then tick the Owner box for step 37. No release was signed or published by the implementation.
-
-### Step 8 — S3 Graphiti comparison
-
-Follow [the S3 procedure](../spikes/s3/README.md): install the isolated locked
-Python environment, run the no-inference store probe, then repeated explicit
-local-model/native comparisons only after a supported store exists and S2 is
-finished. Review count-only reports and observations in docs/spikes/S3-results,
-update docs/spikes/S3.md and ADR-0004, then tick the Owner box for step 8. The
-current Intel store failure is not a successful Graphiti measurement.

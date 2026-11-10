@@ -4,7 +4,7 @@
 - **Date:** 2026-11-07
 
 ## Context
-MCP is the only conversational interface. MCP clients like Claude Desktop forward tool results to a hosted model, so "local MCP server" does not mean "data stays local". UI and MCP must use the same domain commands.
+MCP is the external conversational interface; ADR-0017 adds the in-app command bar. MCP clients like Claude Desktop forward tool results to a hosted model, so "local MCP server" does not mean "data stays local". UI and MCP must use the same domain commands.
 
 ## Decision
 - `fulcrum-mcp` speaks MCP over **stdio** to the client and forwards to the core over a `0600` Unix socket authenticated with a Keychain-held secret. No network listener.
@@ -31,3 +31,13 @@ excerpts. Declared elicitation capabilities are observable; no confirmation
 round trip or Claude Desktop session has been validated. Client behavior stays
 provisional pending the owner checklist. Production socket authentication,
 access logging and write confirmation remain C6/P1 work.
+
+
+## Engineering checkpoint (2026-11-10)
+
+P1 implements scoped live settings, disclosure, activity, confirmed install
+and headless lifecycle with shared Domain policy/parity tests. MCP is the
+external conversational interface; ADR-0017 also provides the in-app command
+bar. Claude Desktop, real Keychain dialogs and packaged headless acceptance
+remain owner checks; declared capabilities are not a rendered confirmation.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).
