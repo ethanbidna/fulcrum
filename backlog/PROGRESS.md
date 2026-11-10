@@ -18,7 +18,7 @@ Steps done since last audit: 3
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | waiting-owner | [ ] | #81 | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
-| 9 | Decision checkpoint | waiting-owner | [ ] | | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |
+| 9 | Decision checkpoint | waiting-owner | [ ] | #82 | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |
 | 10 | C2 invariants and policy | done | n/a | #45 | TypeScript invariants, affected validation, P1–P12 policy and golden projections; model-independent sequencing authorized |
 | 11 | C3 commands, events, undo | done | n/a | #46 | Shared command API, atomic events and question resolutions, compensating undo, retry safety and replay checks |
 | 12 | C4 store driver | done | n/a | #47 | Durable driver, atomic batches/checkpoints, locking/identity, placeholders, golden fixture and real process-crash tests; sync-provider checks remain S1 |
