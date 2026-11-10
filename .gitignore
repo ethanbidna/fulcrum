@@ -43,3 +43,8 @@ spikes/**/data/
 .vscode/*
 !.vscode/extensions.json
 *.swp
+
+# Local component workshop
+storybook-static/
+.storybook/cache/
+debug-storybook.log

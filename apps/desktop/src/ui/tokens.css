@@ -321,3 +321,15 @@ select { max-width: 100%; }
 @media (max-width: 700px) { .questions-toolbar { align-items: start; flex-direction: column; gap: var(--space-4); } .question-context { flex-direction: column; gap: var(--space-1); } }
 .question-scope { margin: 0 0 var(--space-6); font-size: 13px; color: var(--text-secondary); }
 .question-scope a { color: var(--accent); text-decoration: underline; }
+
+.evidence-list { list-style: none; padding: 0; margin: var(--space-6) 0; }
+.evidence-list > li { padding-block: var(--space-6); border-bottom: 1px solid var(--line); }
+.evidence-list h3 { margin: 0 0 var(--space-2); overflow-wrap: anywhere; }
+.evidence-list h4 { margin: var(--space-6) 0 var(--space-2); }
+.evidence-provenance { color: var(--text-secondary); font-size: 12px; }
+.evidence-excerpt { margin: var(--space-4) 0; padding: var(--space-4); background: var(--surface-navigation); white-space: pre-wrap; overflow-wrap: anywhere; }
+.context-view { max-width: 75ch; }
+.context-view a { overflow-wrap: anywhere; }
+
+.evidence-list a { color: var(--accent); text-decoration: underline; }
+.evidence-list a:hover { color: var(--accent-hover); }

@@ -20,6 +20,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm check:ui
       - run: git diff --exit-code -- schemas/v1 packages/schema/src
 
   secrets:

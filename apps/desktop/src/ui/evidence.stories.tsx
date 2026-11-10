@@ -1,0 +1,17 @@
+import type { CoreTransport } from '../core-transport.js';
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn } from 'storybook/test';
+import { EvidencePanel } from './evidence.js';
+import { EvidenceList } from './evidence.js';
+import type { ContextEvidence, PortfolioBoard } from '@fulcrum/domain';
+import './tokens.css';
+const initiativeId = '01000000-0000-7000-8000-000000000001';
+const rows: ContextEvidence[] = [{ sourceId:'04000000-0000-7000-8000-000000000001', source:{ id:'04000000-0000-7000-8000-000000000001',connector:'synthetic',remoteId:'example',title:'Synthetic review notes',cachePolicy:'excerpt',excerpt:'The synthetic vendor will deliver a sample on Friday.',ingestedAt:'2026-11-10T12:00:00Z',happenedAt:'2026-11-09T12:00:00Z',contentHash:'sha256:synthetic',permalink:'https://example.test/notes'},sender:'Synthetic sender',targets:[{kind:'initiative',id:initiativeId,label:'Vendor evaluation'}],assertions:[] }];
+const meta = { component:EvidenceList, title:'Context/Evidence',args:{rows,initiativeId},parameters:{layout:'padded'} } satisfies Meta<typeof EvidenceList>;
+export default meta;
+type Story=StoryObj<typeof meta>;
+export const LinkedEvidence:Story={play:async({canvas,userEvent})=>{const link=canvas.getByRole('link',{name:/Open original.*Synthetic review notes/});await expect(link).toHaveAttribute('href','https://example.test/notes');await userEvent.tab();await expect(link).toHaveFocus();}};
+export const Empty:Story={args:{rows:[]}};
+export const MissingSource:Story={args:{rows:[{sourceId:'missing',targets:rows[0]!.targets,assertions:[]}]}};
+export const Loading:Story={render:()=> <EvidencePanel scope={{initiativeId}} board={{} as PortfolioBoard} query={fn(()=>new Promise(()=>{})) as CoreTransport['query']}/>};
+export const Unavailable:Story={render:()=> <EvidencePanel scope={{initiativeId}} board={{} as PortfolioBoard} query={fn().mockRejectedValue(new Error('Unavailable'))}/>,play:async({canvas,userEvent})=>{await canvas.findByRole('alert');await userEvent.click(canvas.getByRole('button',{name:'Retry evidence'}));await canvas.findByRole('alert');}};

@@ -114,3 +114,13 @@ On 2026-11-09 the owner authorized agents to review, approve and merge plan PRs
 after required checks pass, then continue one plan unit per request. This does
 not complete Owner checkboxes or accept pending model, connector, usability or
 hardware results.
+
+### Remaining-step batch authorization — 2026-11-10
+
+The owner requested the remaining nine todo items as a batch: 8, 9, 26, 27,
+30, 32, 33, 34 and 37. Continue one logical PR per item, with the recurring
+audit when due. Merged implementation prerequisites may support engineering
+work while their owner usability/hardware checks remain pending; this does not
+complete Owner boxes or accept models, connectors, sync or signing. The decision
+checkpoint still requires recorded feasibility results. Unavailable external
+acceptance checks must be reported separately from implementation work.

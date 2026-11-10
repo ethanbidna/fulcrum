@@ -1,3 +1,4 @@
+import { EvidencePanel } from './evidence.js';
 import { useEffect, useRef, useState } from 'react';
 import type { Inspection, InspectionTarget, Node as FlowObject, PortfolioBoard } from '@fulcrum/domain';
 import type { CoreTransport } from '../core-transport.js';
@@ -26,6 +27,7 @@ function InspectionView({ value, readOnlyReference, initiativeId, board, query, 
     <dl className="inspector-facts">{value.kind === 'node' && <><dt>State</dt><dd>{value.record.state}</dd></>}{'targetDate' in value.record && typeof value.record.targetDate === 'string' && <><dt>Due</dt><dd>{value.record.targetDate}</dd></>}{value.attribution.responsible && <><dt>External responsibility</dt><dd>{value.attribution.responsible}</dd></>}{value.attribution.decider && <><dt>Decider</dt><dd>{value.attribution.decider}</dd></>}<dt>Evidence sources</dt><dd>{value.evidenceCount}</dd></dl>
     {value.kind === 'node' && value.record.type === 'task' && !reference && <button className="secondary-button focus-task" onClick={() => focus(value.record.id)}>Focus task</button>}
     {value.kind === 'node' && !reference && value.children.length > 0 && <ChildChecklist children={value.children} readOnly={reference} execute={execute} select={select} />}
+    <EvidencePanel key={`${value.kind}:${value.record.id}`} scope={{initiativeId:value.kind === 'initiative' ? value.record.id : value.record.initiativeId, target:{kind:value.kind,id:value.record.id}}} board={board} query={query} />
     <ContextualQuestions mode={reference ? 'read' : 'answer'} board={board} query={query} execute={execute} initiativeId={value.kind === 'initiative' ? value.record.id : value.record.initiativeId} target={{ kind: value.kind, id: value.record.id }} /></>;
 }
 function NodeAttributes({ node, execute }: { node: FlowObject; execute: ExecuteCommand }) {

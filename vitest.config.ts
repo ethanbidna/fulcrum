@@ -1,10 +1,2 @@
 import { defineConfig } from 'vitest/config';
-
-const MAX_TEST_WORKERS = 2;
-
-export default defineConfig({
-  test: {
-    maxWorkers: MAX_TEST_WORKERS,
-    include: ['apps/**/*.test.ts', 'apps/**/*.test.tsx', 'packages/**/*.test.ts', 'tools/workspace/**/*.test.mjs'],
-  },
-});
+export default defineConfig({ test: { maxWorkers: 2, projects: ['./vitest.unit.config.ts', './vitest.storybook.config.ts'] } });
