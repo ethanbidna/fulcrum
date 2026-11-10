@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 5
+Steps done since last audit: 0
 
 ## Steps
 
@@ -207,6 +207,8 @@ You need two Macs (or a Mac plus a macOS VM), each signed in to the same Dropbox
 Codex can keep working on steps that don't depend on this (2–7) in the meantime.
 
 ## Audit log
+
+- 2026-11-10 — Recurring audit through U6 / #73: no new confirmed violations; existing #63 remains open. See [evidence and limits](../docs/audits/2026-11-10-product.md). Owner checks unchanged.
 
 - 2026-11-09 — Recurring audit through I3 / #62: one confirmed handover-dedupe schema mismatch filed as #63; no implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-09-product.md). Audit PR #64; owner checks and model adoption remain pending.
 
