@@ -1,3 +1,5 @@
+import { projectMcpQuery, mcpInitiativeIds } from './mcp-queries.js';
+import type { McpReadScope } from './mcp-queries.js';
 import { invariantMessage } from './invariant-messages.js';
 import type { ChangeEvent, CommandInvocation, Question, Op, RecordKind, Target, WorkspaceStateDoc } from '@fulcrum/schema';
 import { checkAffectedInvariants } from './affected.js';
@@ -53,6 +55,17 @@ export class Domain {
       }
     }
     return queryProjection(this.replay, name, args, () => this.ports.now());
+  }
+  async queryMcp<Q extends QueryName>(name: Q, args: QueryArgs[Q], scope: McpReadScope): Promise<unknown> {
+    if(!this.ports.mcp?.enabled)throw new DomainFault('POLICY_DENIED','MCP_DISABLED');
+    if (name === 'search') {
+      const input = args as QueryArgs['search'];
+      const allowed = mcpInitiativeIds(this.state, scope);
+      const selected = input.scope?.initiativeIds?.filter(id => allowed.includes(id)) ?? allowed;
+      if (!selected.length) return [];
+      return this.query('search', {...input, scope:{...input.scope, initiativeIds:selected}});
+    }
+    return projectMcpQuery(this.replay, name, args, scope, () => this.ports.now());
   }
   snapshotAt(eventId: string): WorkspaceStateDoc {
     const index = this.replay.events.findIndex(event => event.eventId === eventId);

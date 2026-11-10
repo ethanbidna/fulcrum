@@ -48,3 +48,5 @@ export { projectPriorities } from './priority-projections.js';
 export type { PriorityLink, PriorityRow } from './priority-projections.js';
 
 export type { LocalConfiguration, LocalBackup, BackupFrequency, AdministrationArgs, AdministrationResults, AdministrationName } from './administration-types.js';
+
+export type { McpConfiguration, McpActivityEntry } from './administration-types.js';

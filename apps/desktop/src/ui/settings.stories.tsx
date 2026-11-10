@@ -10,6 +10,8 @@ const initial: LocalConfiguration={workspaceId:'10000000-0000-7000-8000-00000000
 let current=structuredClone(initial);
 const administer=fn(async(name:string,args:Record<string,unknown>)=>{
  if(name==='status')return current;
+ if(name==='mcp.configure')return args;
+ if(name==='mcp.status')return {access:{enabled:false,readOnly:true,sharingAcknowledged:false,sourceExcerpts:false,questionsVisible:true},initiatives:[{id:'01000000-0000-7000-8000-000000000001',title:'Synthetic launch'}],categories:[]};
  if(name==='background.configure'){current={...current,...(args.paused===undefined?{}:{backgroundPaused:args.paused as boolean}),...(args.onlyWhenPluggedIn===undefined?{}:{onlyWhenPluggedIn:args.onlyWhenPluggedIn as boolean})};return {paused:current.backgroundPaused,onlyWhenPluggedIn:current.onlyWhenPluggedIn};}
  if(name==='backup.configure'){current={...current,backupFrequency:args.frequency as LocalConfiguration['backupFrequency']};return {frequency:current.backupFrequency};}
  if(name==='backup.create')return current.backups[0];
@@ -30,3 +32,5 @@ export const Unavailable:Story={args:{administer:fn(async()=>{throw new Error('U
 export const InApplication:Story={beforeEach:()=>{window.location.hash='#settings/backup';},render:()=>{const fixture=workshopFixture();fixture.transport.administer=administer;return <App platform={fixture.platform}/>;},play:async({canvas})=>{await canvas.findByRole('heading',{name:'Backup & Recovery',level:2});}};
 
 export const HistoryUnavailable:Story={beforeEach:()=>{window.location.hash='#settings/backup';},args:{query:fn(async()=>{throw new Error('Unavailable');}) as CoreTransport['query']},play:async({canvas,userEvent})=>{await canvas.findByText('Could not load retained changes.');await expect(canvas.queryByText('No retained changes are available to preview.')).not.toBeInTheDocument();await userEvent.click(canvas.getByRole('button',{name:'Retry history'}));await canvas.findByText('Could not load retained changes.');}};
+
+export const McpInApplication:Story={beforeEach:()=>{window.location.hash='#settings/mcp';},render:()=>{const fixture=workshopFixture();fixture.transport.administer=administer;return <App platform={fixture.platform}/>;},play:async({canvas})=>{await canvas.findByRole('checkbox',{name:'Allow MCP clients'});}};

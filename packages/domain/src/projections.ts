@@ -19,8 +19,9 @@ const RECENT_CHANGE_LIMIT = 20;
 const UNRESOLVED_DEPENDENCY_STATES = new Set(['waiting', 'unverified', 'blocked', 'expired']);
 const MEANINGFUL_FIELDS = new Set(['state', 'lifecycle', 'moscow', 'targetDate', 'outcome', 'condition', 'fromId', 'toId', 'type', 'prerequisiteGroupId', 'prerequisiteGroups', 'supersededBy', 'objectiveLinks']);
 const MEANINGFUL_RECORDS = new Set(['initiative', 'node', 'edge', 'question', 'objective']);
-export function projectPortfolio(state: WorkspaceState): PortfolioCard[] {
-  return state.initiatives.filter(initiative => initiative.lifecycle === 'active')
+export interface PortfolioFilter { moscow?: Initiative['moscow']; categoryId?: string; lifecycle?: Initiative['lifecycle'] }
+export function projectPortfolio(state: WorkspaceState, filter: PortfolioFilter = {}): PortfolioCard[] {
+  return state.initiatives.filter(initiative => initiative.lifecycle === (filter.lifecycle??'active') && (!filter.moscow||initiative.moscow===filter.moscow) && (!filter.categoryId||initiative.categoryIds.includes(filter.categoryId)))
     .map(initiative => ({ initiative, cardState: deriveCardState(state, initiative.id) }));
 }
 function waitingOn(state: WorkspaceState): WaitingItem[] {
