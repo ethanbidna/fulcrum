@@ -1,16 +1,17 @@
-import { mkdir, realpath, readFile, readdir, unlink } from 'node:fs/promises';
+import { mkdir, realpath, readFile, readdir, unlink, lstat } from 'node:fs/promises';
 import path from 'node:path';
 import { watch as watchFiles } from 'node:fs';
 import { setImmediate, clearImmediate } from 'node:timers';
 import type { ChangeEvent, WorkspaceManifest, WorkspaceStateDoc } from '@fulcrum/schema';
 import type { WorkspaceStore, WorkspaceRead, StoreOptions, OpenedWorkspace, EventDraft } from './interfaces.js';
-import { atomicFile, CHECKPOINT_LIMIT, durableFile, ensureDirectory, nextHlc, SCHEMA_VERSION, StoreError, syncDirectory, resolvedLocation, uuid, WATCH_INTERVAL_MS } from './files.js';
+import { atomicCreate, atomicFile, CHECKPOINT_LIMIT, durableFile, ensureDirectory, nextHlc, SCHEMA_VERSION, StoreError, syncDirectory, resolvedLocation, UUID, uuid, WATCH_INTERVAL_MS } from './files.js';
 import { loadStoreValidators, validate } from './validation.js';
 import type { StoreValidators } from './validation.js';
 import { acquireCoreLock } from './lock.js';
 import { loadIdentity, saveIdentity } from './identity.js';
 import type { DeviceIdentity } from './identity.js';
 import { readWorkspace } from './reader.js';
+import { ENCRYPTED_VERSION } from './encryption.js';
 import { writeEvents } from './writer.js';
 
 const CHECKPOINT_INTERVAL = 500;
@@ -51,9 +52,10 @@ export class FileWorkspaceStore implements WorkspaceStore {
     this.validators = await loadStoreValidators(this.options.schemaDirectory);
     this.lock = await acquireCoreLock(this.localDirectory, this.options.lockStaleMs);
     try {
-      const read = await readWorkspace(this.directory, this.validators);
-      const supported = this.options.readerVersion ?? SCHEMA_VERSION;
-      if ((read.manifest.minReaderVersion ?? 1) > supported || read.manifest.encryption) throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED', 'This reader cannot interpret the workspace');
+      const read = await readWorkspace(this.directory, this.validators, this.options.encryption);
+      const supported = this.options.readerVersion ?? (this.options.encryption ? ENCRYPTED_VERSION : SCHEMA_VERSION);
+      if ((read.manifest.minReaderVersion ?? 1) > supported || (read.manifest.encryption && !this.options.encryption)) throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED', 'This reader cannot interpret the workspace');
+      await this.rememberStorageVersion(read.manifest);
       const identity = await loadIdentity(this.localDirectory, this.options.deviceLabel);
       const saved = identity.lastSeqByWorkspace[read.manifest.workspaceId] ?? 0;
       const maximum = maxSeq(read.events, identity.deviceId);
@@ -66,10 +68,27 @@ export class FileWorkspaceStore implements WorkspaceStore {
       const registered = read.events.some(event => event.ops.some(op => op.kind === 'device' && op.op === 'create' && op.id === identity.deviceId));
       this.opened = { manifest: read.manifest, deviceId: identity.deviceId, readOnly: read.manifest.schemaVersion > supported, registrationRequired: !registered, diagnostics };
       return structuredClone(this.opened);
-    } catch (error) { await this.lock.release(); this.lock = undefined; throw error; }
+    } catch (error) { this.options.encryption?.close(); await this.lock.release(); this.lock = undefined; throw error; }
+  }
+  private async rememberStorageVersion(manifest: WorkspaceManifest) {
+    if (!UUID.test(manifest.workspaceId)) throw new StoreError('WORKSPACE_VALIDATION_FAILED', 'Invalid workspace identity');
+    const marker = path.join(this.localDirectory, `encrypted-${manifest.workspaceId}`);
+    if (this.options.encryption) {
+      try { await atomicCreate(marker, String(ENCRYPTED_VERSION)); }
+      catch (error) {
+        if (!(error instanceof StoreError) || error.code !== 'SEGMENT_COLLISION') throw error;
+      }
+      return;
+    }
+    try { await lstat(marker); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
+    throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED', 'This workspace was previously encrypted on this Mac');
   }
   async read(): Promise<WorkspaceRead> {
-    this.requireOpen(); const read = await readWorkspace(this.directory, this.validators);
+    this.requireOpen(); const read = await readWorkspace(this.directory, this.validators, this.options.encryption);
+    if (read.manifest.workspaceId !== this.opened!.manifest.workspaceId || read.manifest.schemaVersion !== this.opened!.manifest.schemaVersion) {
+      throw new StoreError('WORKSPACE_IDENTITY_CHANGED', 'Workspace identity changed; reopen it');
+    }
     if (this.maintenanceFailed) read.diagnostics.push({ code: 'CHECKPOINT_WRITE_FAILED' });
     return read;
   }
@@ -109,7 +128,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
     }
     try {
       await this.lock!.assertOwned();
-      await writeEvents(this.directory, events, this.options.fault);
+      await writeEvents(this.directory, events, this.options.fault, this.options.encryption);
       await this.options.fault?.('identity-before-save');
       this.identity!.lastSeqByWorkspace[read.manifest.workspaceId] = seq;
       await saveIdentity(this.localDirectory, this.identity!);
@@ -150,7 +169,10 @@ export class FileWorkspaceStore implements WorkspaceStore {
     // Checkpoints are caches, but an immutable name must never change underneath sync.
     try { await readFile(file); throw new StoreError('CHECKPOINT_EXISTS', 'Checkpoint already exists'); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
-    await atomicFile(file, JSON.stringify(checkpoint), async () => { await this.options.fault?.('checkpoint-before-rename'); });
+    const plaintext = JSON.stringify(checkpoint);
+    const content = this.options.encryption?.encode('checkpoint', this.identity!.deviceId, plaintext) ?? plaintext;
+    const publish = this.options.encryption ? atomicCreate : atomicFile;
+    await publish(file, content, async () => { await this.options.fault?.('checkpoint-before-rename'); });
     const names = (await readdir(folder)).filter(name => /^\d{13}-\d{4}\.json$/.test(name)).sort().reverse();
     for (const name of names.slice(CHECKPOINT_LIMIT)) await unlink(path.join(folder, name));
     await syncDirectory(folder); this.checkpointEvents = 0; this.maintenanceFailed = false;
@@ -197,6 +219,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
         }
       }
     } finally {
+      this.options.encryption?.close();
       this.stopped = true; for (const stop of [...this.watchers]) stop();
       await this.lock?.release(); this.lock = undefined;
     }
@@ -207,7 +230,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
     this.requireOpen(); await this.lock!.assertOwned();
     if (this.failed || this.opened!.readOnly) throw new StoreError('WORKSPACE_READ_ONLY', 'Workspace is read-only; reopen after recovery');
     const read = await this.read();
-    if (read.manifest.schemaVersion !== SCHEMA_VERSION || (read.manifest.minReaderVersion ?? 1) > (this.options.readerVersion ?? SCHEMA_VERSION)) throw new StoreError('WORKSPACE_READ_ONLY', 'Workspace version changed');
+    if (read.manifest.schemaVersion !== (this.options.encryption ? ENCRYPTED_VERSION : SCHEMA_VERSION) || (read.manifest.minReaderVersion ?? 1) > (this.options.readerVersion ?? (this.options.encryption ? ENCRYPTED_VERSION : SCHEMA_VERSION))) throw new StoreError('WORKSPACE_READ_ONLY', 'Workspace version changed');
     const maximum = maxSeq(read.events, this.identity!.deviceId);
     if (maximum !== (this.identity!.lastSeqByWorkspace[read.manifest.workspaceId] ?? 0)) { this.failed = true; throw new StoreError('CLONED_DEVICE_DETECTED', 'Writer identity changed; reopen to rotate it'); }
     return read;

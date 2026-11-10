@@ -6,6 +6,7 @@ function run(command,args){if(spawnSync(command,args,{stdio:'inherit'}).status!=
 await mkdir(path.join(resources,'bin'),{recursive:true});
 for(const kind of ['core','mcp'])run('/usr/bin/lipo',['-create',`release-input/x64/fulcrum-${kind}`,`release-input/arm64/fulcrum-${kind}`,'-output',path.join(resources,'bin',`fulcrum-${kind}`)]);
 await cp('schemas/v1',path.join(resources,'bin/schemas/v1'),{recursive:true});
+await cp('schemas/v2',path.join(resources,'bin/schemas/v2'),{recursive:true});
 await cp('release-input/arm64/THIRD_PARTY_NOTICES.txt',path.join(resources,'THIRD_PARTY_NOTICES.txt'));
 const identity=process.env.APPLE_SIGNING_IDENTITY;if(!identity?.startsWith('Developer ID Application:'))throw new Error('DEVELOPER_ID_REQUIRED');
 for(const kind of ['core','mcp'])await chmod(path.join(resources,'bin',`fulcrum-${kind}`),0o755);

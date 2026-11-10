@@ -136,10 +136,10 @@ describe('workspace store', () => {
   test('future workspaces open read-only only within the minimum reader contract', async () => {
     const f = await setup(); await f.store.close();
     const file = path.join(f.directory, 'workspace.json');
-    await fs.writeFile(file, JSON.stringify({ ...f.manifest, schemaVersion: 2, minReaderVersion: 1 }));
+    await fs.writeFile(file, JSON.stringify({ ...f.manifest, schemaVersion: 3, minReaderVersion: 1 }));
     const next = await reopen(f); expect(next.info.readOnly).toBe(true);
     await expect(next.store.commit([draft(next.info.deviceId, 1)])).rejects.toMatchObject({ code: 'WORKSPACE_READ_ONLY' });
-    await next.store.close(); await fs.writeFile(file, JSON.stringify({ ...f.manifest, schemaVersion: 2, minReaderVersion: 2 }));
+    await next.store.close(); await fs.writeFile(file, JSON.stringify({ ...f.manifest, schemaVersion: 3, minReaderVersion: 2 }));
     await expect(reopen(f)).rejects.toMatchObject({ code: 'WORKSPACE_VERSION_UNSUPPORTED' });
   });
   test('atomic checkpoints retain three newest and reject missing-frontier coverage', async () => {

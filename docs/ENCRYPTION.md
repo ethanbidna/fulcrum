@@ -1,8 +1,8 @@
 # Workspace encryption design
 
-Status: design for P6 / step 35; implementation is step 36. Current readers
-reject encrypted workspaces. This document does not enable encryption or change
-`schemas/v1/`. [ADR-0021](decisions/0021-workspace-encryption.md) records the decision.
+Status: design for P6 / step 35; implementation is step 36. The draft storage
+implementation is tracked in [P6 review](reviews/P6.md). Production app entry
+points cannot yet unlock encrypted workspaces. The v1 schemas are unchanged. [ADR-0021](decisions/0021-workspace-encryption.md) records the decision.
 
 ## Scope and threat boundary
 

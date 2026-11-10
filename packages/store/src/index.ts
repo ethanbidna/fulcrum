@@ -11,3 +11,5 @@ export { LocalPreferences } from './preferences.js';
 export { LocalMcpActivity } from './activity.js';
 export type { McpActivity } from './activity.js';
 export { McpInstallation } from './mcp-installation.js';
+
+export { WorkspaceEncryption, generateWorkspaceKey } from './encryption.js';

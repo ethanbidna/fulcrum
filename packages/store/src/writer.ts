@@ -2,15 +2,24 @@ import { readdir, readFile, open, stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { ChangeEvent } from '@fulcrum/schema';
 import { atomicCreate, ensureDirectory, SEGMENT_BYTES, StoreError, PRIVATE_FILE_MODE } from './files.js';
+import type { WorkspaceEncryption } from './encryption.js';
 import type { StoreOptions } from './interfaces.js';
 
-export async function writeEvents(directory: string, events: ChangeEvent[], fault: StoreOptions['fault']) {
+export async function writeEvents(directory: string, events: ChangeEvent[], fault: StoreOptions['fault'], encryption?: WorkspaceEncryption) {
   const first = events[0]!;
   const folder = path.join(directory, 'log', first.deviceId);
-  await ensureDirectory(path.join(directory, 'log')); await ensureDirectory(folder);
-  const content = events.map(event => JSON.stringify(event) + '\n').join('');
+  const lines: string[] = [];
+  let size = 0;
+  for (const event of events) {
+    const raw = JSON.stringify(event);
+    const line = (encryption ? encryption.encode('event', event.deviceId, raw) : raw) + '\n';
+    size += Buffer.byteLength(line);
+    if (size > SEGMENT_BYTES) throw new StoreError('TRANSACTION_TOO_LARGE', 'A transaction must fit in one 1 MiB segment');
+    lines.push(line);
+  }
+  const content = lines.join('');
   const bytes = Buffer.from(content);
-  if (bytes.length > SEGMENT_BYTES) throw new StoreError('TRANSACTION_TOO_LARGE', 'A transaction must fit in one 1 MiB segment');
+  await ensureDirectory(path.join(directory, 'log')); await ensureDirectory(folder);
   const day = first.at.slice(0, 10);
   const file = path.join(folder, `${day}-${String(first.seq).padStart(6, '0')}.jsonl`);
   if (events.length > 1) {

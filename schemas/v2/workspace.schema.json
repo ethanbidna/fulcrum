@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v2/workspace.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "workspaceId", "createdAt", "minReaderVersion", "encryption"],
+  "properties": {
+    "format": { "const": "fulcrum-workspace" },
+    "schemaVersion": { "const": 2 },
+    "workspaceId": { "$ref": "../v1/common.schema.json#/$defs/id" },
+    "createdAt": { "$ref": "../v1/common.schema.json#/$defs/timestamp" },
+    "minReaderVersion": { "const": 2 },
+    "encryption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme", "keyId", "check"],
+      "properties": {
+        "scheme": { "const": "xchacha20poly1305-ietf-v1" },
+        "keyId": { "$ref": "../v1/common.schema.json#/$defs/id" },
+        "check": { "$ref": "sealed.schema.json" }
+      }
+    }
+  }
+}

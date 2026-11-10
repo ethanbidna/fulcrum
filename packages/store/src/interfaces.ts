@@ -1,5 +1,7 @@
 import type { ChangeEvent, WorkspaceManifest, WorkspaceStateDoc } from '@fulcrum/schema';
 
+import type { WorkspaceEncryption } from './encryption.js';
+
 export type EventDraft = Omit<ChangeEvent, 'seq' | 'hlc'>;
 export interface StoreDiagnostic { code: string; file?: string; eventId?: string }
 export interface WorkspaceRead {
@@ -35,4 +37,5 @@ export interface StoreOptions {
   now?: () => Date;
   fault?: (stage: FaultStage) => Promise<void>;
   lockStaleMs?: number;
+  encryption?: WorkspaceEncryption;
 }

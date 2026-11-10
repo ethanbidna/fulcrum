@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v2/envelope.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["encoding", "kind", "keyId", "nonce", "ciphertext"],
+  "properties": {
+    "encoding": { "const": "fulcrum-encrypted-v1" },
+    "kind": { "enum": ["event", "checkpoint"] },
+    "keyId": { "$ref": "../v1/common.schema.json#/$defs/id" },
+    "nonce": { "$ref": "sealed.schema.json#/properties/nonce" },
+    "ciphertext": { "$ref": "sealed.schema.json#/properties/ciphertext" }
+  }
+}
