@@ -217,3 +217,19 @@ No new persisted fields or schema version are required.
 Prepared command signatures therefore need no processing-time metadata; the
 emitted record/event still carries when Fulcrum learned the claim. See the
 [pure reconciliation contract](../packages/ingest/RECONCILIATION.md).
+
+### Question lifecycle (A1)
+
+`questions.list({initiativeId?, state?})` returns contextual records with optional
+initiative/state filters. `Domain.questionMaintenance(identity)` plans quiet
+maintenance; the core executes the returned commands through the shared domain.
+The planner consolidates equivalent decisions, preserves deferral/evidence, and
+uses trusted source chronology for obsolescence. A dated deferral reopens when
+next observed due; an indefinite deferral stays deferred. Closed questions cannot
+be deferred or reopened by a duplicate raise.
+
+`sync.chooseValue({target, field, value, baseEventId})` is a user/MCP resolution
+for material concurrent fields. It checks the expected writer, schema, scope,
+invariants and protection. A sync question may instead restore a deletion using
+one stale-checked `change.undo`; restoration and closure commit in one event.
+See [ADR-0019](decisions/0019-question-lifecycle-and-sync.md).

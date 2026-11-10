@@ -17,6 +17,7 @@ export const COMMAND_ARGUMENTS = {
   'entity.merge': ['id', 'intoId'], 'entity.split': ['id', 'record', 'aliases'],
   'objective.create': ['record'], 'objective.update': ['id', 'patch'], 'objective.rerank': ['ranks'], 'objective.delete': ['id'],
   'alignment.set': ['initiativeId', 'objectiveId', 'alignment'], 'question.raise': ['record'],
+  'sync.chooseValue': ['target', 'field', 'value', 'baseEventId'],
   'question.resolve': ['id', 'resolutionId'], 'question.defer': ['id', 'deferredUntil'], 'question.markObsolete': ['id'],
   'field.protect': ['target', 'field'], 'field.unprotect': ['target', 'field'], 'suggestion.reject': ['signature', 'untilNewEvidence'],
   'change.undo': ['eventId'], 'run.undo': ['runId'], 'device.register': ['record'],
@@ -41,6 +42,7 @@ export interface AppliedChange { eventId: string; actor: Actor; ops: Op[]; raise
 
 export interface DomainPorts {
   newId(): string;
+  questionId?(dedupeKey: string): string;
   now(): string;
   // The driver assigns causal HLC/sequence and acknowledges only durable, atomic appends.
   commit(drafts: EventDraft[]): Promise<ChangeEvent[]>;

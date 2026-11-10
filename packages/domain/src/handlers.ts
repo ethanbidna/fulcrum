@@ -1,6 +1,9 @@
 import type { Actor, CommandInvocation, RecordKind, Target } from '@fulcrum/schema';
 import type { CommandName, DataRecord } from './commands.js';
 import { DomainFault, object, text, validateInvocation } from './commands.js';
+import { SYNC_FIELDS } from './sync-questions.js';
+import { executableChoices, mergeQuestionEvidence, sameQuestionTarget } from './questions.js';
+import type { Question } from '@fulcrum/schema';
 import { Transaction } from './transaction.js';
 
 const PATCH_FIELDS: Partial<Record<CommandName, readonly string[]>> = {
@@ -30,6 +33,7 @@ export function handleCommand(tx: Transaction, command: CommandInvocation, conte
   if (PATCH_FIELDS[name]) return patchRecord(tx, area, text(args.id), object(args.patch), PATCH_FIELDS[name]!);
   const field = SET_FIELDS[name];
   if (field) {
+    if (name === 'question.defer' && !['open', 'deferred'].includes(text(tx.get('question', text(args.id)).state))) throw new DomainFault('VALIDATION_FAILED', 'Question is already closed');
     tx.set(area, text(args.id), field, args[field]);
     if (name === 'question.defer') tx.set('question', text(args.id), 'state', 'deferred');
     return;
@@ -56,6 +60,13 @@ export function handleCommand(tx: Transaction, command: CommandInvocation, conte
     case 'objective.delete': return deleteObjective(tx, text(args.id));
     case 'alignment.set': return setAlignment(tx, args, context.actor);
     case 'question.raise': return raiseQuestion(tx, args.record, context);
+    case 'sync.chooseValue': {
+      if (!['user', 'mcp'].includes(context.actor)) throw new DomainFault('POLICY_DENIED', 'Sync choices require user authority');
+      const target = parseTarget(args.target); const field = text(args.field);
+      if (!(SYNC_FIELDS[target.kind] as readonly string[]).includes(field)) throw new DomainFault('VALIDATION_FAILED', 'Unsupported conflict field');
+      if ((tx.writers.get(`${target.kind}:${target.id}:${field}`) ?? null) !== args.baseEventId) throw new DomainFault('STALE_BASE', 'The conflicted field changed after this question');
+      return tx.set(target.kind, target.id, field, args.value);
+    }
     case 'question.resolve': return resolveQuestion(tx, args, context);
     case 'question.markObsolete': return tx.set('question', text(args.id), 'state', 'obsolete');
     case 'field.protect': case 'field.unprotect': return protectField(tx, args, name === 'field.protect' ? 'protect' : 'unprotect');
@@ -173,9 +184,16 @@ function setAlignment(tx: Transaction, args: DataRecord, actor: Actor) {
 }
 function raiseQuestion(tx: Transaction, value: unknown, context: HandlerContext) {
   const question: DataRecord = { createdAt: context.now, state: 'open', ...object(value) };
-  const existing = tx.list('question').find(q => q.dedupeKey === question.dedupeKey && ['open', 'deferred'].includes(text(q.state)));
+  if (!executableChoices(question.resolutions as Question['resolutions'])) throw new DomainFault('VALIDATION_FAILED', 'Question requires two or three executable choices');
+  const existing = tx.list('question').find(q => q.dedupeKey === question.dedupeKey);
   if (!existing) return tx.create('question', question);
-  for (const [field, value] of Object.entries(question)) if (!['id', 'createdAt'].includes(field)) tx.set('question', text(existing.id), field, value);
+  if (existing.initiativeId !== question.initiativeId || !sameQuestionTarget(existing.target as Question['target'], question.target as Question['target'])) throw new DomainFault('VALIDATION_FAILED', 'Question key belongs to another target');
+  if (!['open', 'deferred'].includes(text(existing.state))) return;
+  const due = existing.state === 'deferred' && typeof existing.deferredUntil === 'string' && Date.parse(existing.deferredUntil) <= Date.parse(context.now);
+  question.state = due ? 'open' : existing.state;
+  if (due) tx.set('question', text(existing.id), 'deferredUntil', null);
+  question.evidenceRefs = mergeQuestionEvidence(existing.evidenceRefs as Question['evidenceRefs'], question.evidenceRefs as Question['evidenceRefs']);
+  for (const [field, value] of Object.entries(question)) if (!['id', 'createdAt', 'deferredUntil', 'resolvedWith'].includes(field)) tx.set('question', text(existing.id), field, value);
 }
 function resolveQuestion(tx: Transaction, args: DataRecord, context: HandlerContext) {
   const id = text(args.id); const question = tx.get('question', id);
@@ -183,6 +201,7 @@ function resolveQuestion(tx: Transaction, args: DataRecord, context: HandlerCont
   const resolution = (question.resolutions as DataRecord[]).find(resolution => resolution.id === args.resolutionId);
   if (!resolution) throw new DomainFault('NOT_FOUND', 'Question resolution not found');
   for (const command of resolution.commands as CommandInvocation[]) context.apply(command);
+  if (!tx.list('question').some(question => question.id === id)) return;
   tx.set('question', id, 'state', 'resolved'); tx.set('question', id, 'resolvedWith', args.resolutionId);
 }
 export function parseTarget(value: unknown): Target {

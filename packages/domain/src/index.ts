@@ -29,3 +29,8 @@ export { MAX_COMMAND_PROMPT_LENGTH } from './command-plans.js';
 
 export { projectInitiativeList, projectInitiativeHistory } from './detail-projections.js';
 export type { InitiativeListRow, InitiativeHistoryEntry, EvidenceLink, DescribedChange } from './detail-projections.js';
+
+export { planQuestion, obsoleteQuestions } from './questions.js';
+export type { QuestionCandidate, QuestionIdentity } from './questions.js';
+export { syncQuestions } from './sync-questions.js';
+export type { ReplayConflict } from './replay.js';

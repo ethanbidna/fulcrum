@@ -34,6 +34,7 @@ const passed = result => { expect(result, JSON.stringify(result)).toMatchObject(
 const denied = (result, code) => expect(result).toMatchObject({ ok: false, error: { code } });
 
 const catalogCases = {
+  'sync.chooseValue': () => ({ target: { kind: 'initiative', id: id('01', 1) }, field: 'title', value: 'Reviewed sync title', baseEventId: null }),
   'command.apply': () => ({ commands: [{ name: 'node.update', args: { id: nodeId(1), patch: { title: 'Reviewed synthetic command' } } }] }),
   'initiative.rerank': () => ({ ranks: [{ id: id('01', 1), manualRank: 'a1' }, { id: id('01', 3), manualRank: 'a0' }] }),
   'initiative.create': () => ({ record: { id: nextRecordId('01'), title: 'Synthetic initiative' } }),
