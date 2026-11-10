@@ -198,3 +198,15 @@ test('bootstrap refuses a local profile inside the workspace without creating it
     await expect(access(localDirectory)).rejects.toThrow();
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
+test('system observations require local authentication and bypass no canonical writes', async () => fixture(async f => {
+  let observations = 0; let configurations = 0;
+  f.host.observeSystem = () => { observations++; }; f.host.configureBackground = () => { configurations++; return {}; };
+  const unauthenticated = await SocketClient.connect(f.server.socketPath);
+  await expect(unauthenticated.request('system.observe', {})).rejects.toThrow(); unauthenticated.close();
+  expect(observations).toBe(0);
+  const trusted = await SocketClient.connect(f.server.socketPath, SECRET);
+  try {
+    await trusted.request('system.observe', {}); await trusted.request('background.configure', { paused: true });
+    expect(observations).toBe(1); expect(configurations).toBe(1); expect(f.writes()).toBe(0);
+  } finally { trusted.close(); }
+}));

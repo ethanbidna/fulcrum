@@ -75,3 +75,27 @@ settings remain machine-local; runtime adapters stay behind public interfaces.
 ## Diagnostics
 
 Settings → About → Diagnostics shows versions, mode, queue length, last pulls, model status, workspace sync health (torn tails, conflicted copies seen, online-only files), and offers "Copy diagnostics" — text with **no source content, names or paths** (paths replaced by `<workspace>`).
+
+## P3 implementation boundary
+
+[ADR-0020](decisions/0020-background-control-plane.md) implements the admission
+policy with native Rust/AppKit/IOKit observations and authenticated core controls.
+`status.background` reports current signals, settings and pause reasons;
+`background.configure` accepts session settings (pause, presentation,
+plugged-in-only, battery override, thresholds, model bytes, memory multiplier,
+batch/wake/observation intervals). Startup configuration uses the same validator.
+P4 owns persistence and the settings UI. Missing model bytes prevent extraction;
+missing/stale native observations pause all ingestion. Closing the shell does
+not establish headless background support.
+
+The core lowers its own priority when ingestion is configured; failure pauses
+work without blocking editing. The explicit managed Ollama driver uses
+`OLLAMA_NUM_PARALLEL=1`, one loaded model and background QoS; P2 production
+lifecycle wiring is pending. External servers require their owner's matching
+configuration. Runtime requests explicitly set five-minute `keep_alive` and
+serialize per endpoint within the core. Neither contract proves that an Ollama
+version stops CPU within five seconds after client cancellation.
+
+Follow [P3 review](reviews/P3.md) for the disposable synthetic native harness
+and Intel scenario 12. Actual hardware checks, S2 thresholds and model adoption
+remain pending. No real connector or unattended reconciliation is enabled.

@@ -118,7 +118,9 @@ test('core defaults off and exposes freshness without changing the portfolio or 
     expect(await host.execute({ name: 'settings.setIngestionDevice', args: { ingestionDeviceId: deviceId } })).toMatchObject({ ok: true });
     await host.close();
     host = await openWorkspaceHost({ workspaceDirectory: path.join(directory, 'workspace'), localDirectory: path.join(directory, 'local'), userEntityId: '08000000-0000-7000-8000-000000000001', deviceLabel: 'Synthetic Mac', ingestion: { adapters: [new SyntheticSourceAdapter({ now: new Date().toISOString() })], scopes: { synthetic: ['fixture'] } } });
-    await vi.waitFor(async () => expect(await host.query('status.freshness', {})).toMatchObject({ state: 'awaiting-extraction', pending: 7 }));
+    host.configureBackground({ wakeGraceMs: 0 });
+    host.observeSystem({ awake: true, wakeGeneration: 0, power: 'ac', batteryPercent: 80, thermal: 'nominal', availableMemoryBytes: 8000000000, architecture: 'intel' });
+    await vi.waitFor(async () => expect(await host.query('status.freshness', {})).toMatchObject({ state: 'awaiting-extraction', pending: 7 }), { timeout: 3000 });
     expect(host.ingestionActive()).toBe(true); expect(await host.query('portfolio.list', {})).toEqual(portfolio);
   } finally { await host?.close(); await rm(directory, { recursive: true, force: true }); }
 });
