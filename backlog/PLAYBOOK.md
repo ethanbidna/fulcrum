@@ -63,7 +63,7 @@ and native checks remain pending. No Owner checkbox is completed by this excepti
 | 22 | I3 extraction | #22 | 21 | — | Use the S2 eval set. Until the decision checkpoint accepts a tier, engineering checks use an explicit provisional local model; no unattended writes or model adoption. |
 | 23 | I4 native ContextIndex | #23 | 15, 21 | — | Add the Graphiti adapter only if ADR-0004 accepted it at step 9. |
 | 24 | I5 reconciler | #24 | 22, 23 | — | — |
-| 25 | I2 first real connector | #21 | 21 | Connect the test account; optionally a real account with a narrow scope | Follow the S4 outcome recorded in ADR-0002. |
+| 25 | I2 first real connector | #21 | 21, 6 | Connect the test account; optionally a real account with a narrow scope | Follow the reviewed S4 outcome through ADR-0011 (supersedes ADR-0002); Activepieces execution remains provisional until recorded. |
 | 26 | U6 context view | #25 | 19, 21 | — | — |
 | 27 | U7 timeline | #26 | 19 | — | — |
 

@@ -35,7 +35,7 @@ Steps done since last audit: 2
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
-| 25 | I2 first real connector | todo | [ ] | | |
+| 25 | I2 first real connector | blocked | [ ] | #67 | S4 / step 6 owner results and selected Activepieces execution route are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
 | 26 | U6 context view | todo | n/a | | |
 | 27 | U7 timeline | todo | n/a | | |
 | 28 | A1 questions engine | todo | n/a | | |
