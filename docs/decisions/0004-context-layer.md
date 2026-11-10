@@ -22,3 +22,15 @@ The spec prefers Graphiti for temporal entity resolution, history and retrieval,
 
 ## Validation (S3)
 Graphiti + Ollama (OpenAI-compatible endpoint) + candidate stores on Intel and Apple Silicon: episodes/min, LLM calls/episode, RSS, dedup accuracy on synthetic alias fixtures, full rebuild time from the workspace.
+
+
+## S3 engineering update (2026-11-10)
+
+The [S3 comparison](../spikes/S3.md) now exports the same synthetic workspace
+episodes to the production native index and an isolated Graphiti adapter. Native
+passes seven alias/ambiguity/abstention cases without inference. The pinned
+FalkorDBLite wheel fails execution on Intel (OS error 86); no Graphiti inference
+or Apple Silicon result is claimed. Retain native as the shipping default.
+[ADR-0025](0025-isolated-graphiti-experiment.md) permits only the optional spike;
+its BSD wrapper does not accept the embedded SSPL engine for distribution.
+Graphiti tier adoption remains provisional pending measurements and review.
