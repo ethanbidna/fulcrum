@@ -31,6 +31,16 @@ manual editing is secondary. It is not an ongoing chat. Questions are contextual
 No embedded chat, completion percentages, task owners or status-column board.
 No hosted inference or telemetry by default. Hardware/model acceptance is pending.
 
+P2 adds a normal-page workspace wizard with Back navigation, fixed location
+choices and a native folder picker. It names this Mac, selects the user's person
+record and confirms ingestion handover before optional AI, sources and the first
+initiative. AI starts off; Continue without AI remains prominent. Settings and
+the wizard share one chooser with model terms and provider-sharing consent
+unchecked, explicit hosted scope/budget, and inline recovery. Developer origin
+and processing location are distinct. Synthetic compatibility is not accuracy
+or model adoption acceptance. ADR-0023 defines the setup boundaries; native,
+hardware, Keychain, real download and live-provider checks remain owner work.
+
 ## Brand Commitments
 
 Fulcrum; the original geometric mark in ../../assets/fulcrum-mark.svg.

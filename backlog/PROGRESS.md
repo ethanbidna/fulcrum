@@ -44,7 +44,7 @@ Steps done since last audit: 3
 | 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | #70 | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
 | 32 | P4 settings, backup, hand-over | done | n/a | #77 | Eight settings routes, verified local backups/retention, fresh-identity restore, read-only historical views and handover; fixes #63; ADR-0022 container change; synthetic checks only |
 | 33 | P1 MCP server | waiting-owner | [ ] | #78 | Scoped live settings, disclosure/read-only/excerpt gates, private activity, confirmed client install, headless lifecycle and UI/MCP parity; packaged runtime and actual Claude check pending |
-| 34 | P2 first-run wizard | waiting-owner | [ ] | | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
+| 34 | P2 first-run wizard | waiting-owner | [ ] | #79 | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
 | 37 | P5 signing, notarization, updates | todo | [ ] | | |

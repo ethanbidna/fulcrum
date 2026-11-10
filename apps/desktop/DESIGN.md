@@ -355,6 +355,23 @@ Each row places its contextual label and View context link above the prompt. Evi
 
 Open and deferred questions offer their recorded resolution choices as secondary buttons. Defer expands inline to Tomorrow, Next week and Until I return. Deferred rows state their return time or indefinite deferral; answered rows name the recorded choice and obsolete rows state that no choice is needed. Pending writes disable answer, defer and undo buttons. Successful writes show focused inline status with Undo when an event is available; undo reports Change undone. Failures focus an inline alert. All actions and disclosures retain the shared visible focus treatment, with no popup or overlay.
 
+### Guided workspace and AI setup
+
+Setup uses a normal white page within a readable 75ch column, with the existing
+system type, muted-blue actions and native fields. Its wrapping text progress
+list marks the current step without a new badge or card treatment. Back and
+recovery remain in page flow; step changes focus the heading. Compact windows
+reduce padding and wrap actions rather than opening overlays.
+
+The shared AI chooser uses flat radio rows separated by fine rules, labeled
+facts and inline disclosures. Continue without AI stays above model selection;
+terms and provider-sharing checkboxes begin unchecked. Resource, consent and
+preference-save requirements appear beside their controls, with inline loading,
+error, retry and cancellation states. External information links are underlined
+and announce a new window. Compatibility results use factual sample labels and
+never imply accuracy. These components reuse the incumbent tokens and visual
+world; they add no font, color, radius or elevation vocabulary.
+
 ### Keyboard access
 
 A skip link appears on focus. Destination changes focus the main heading; all interactive elements retain the shared visible focus outline. Reduced-motion preferences remove transitions. Command-K focuses and selects the command entry; Enter requests review, Command-Enter applies a visible review, and Escape dismisses planning or review. Control-key equivalents also work. Applying keeps controls disabled; a successful apply focuses its result status.
