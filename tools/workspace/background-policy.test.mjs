@@ -120,3 +120,14 @@ test('a rapid pause/resume never marks an interrupted model item failed', async 
   scheduler.interrupt(); await running;
   expect(f.queue.counts()).toMatchObject({ pending: 2, failed: 0 });
 }));
+test('admission limits do not label an already running extraction as paused', async () => ingestion(async f => {
+  let entered; const started = new Promise(resolve => { entered = resolve; });
+  f.policy.configure({ intelBatchIntervalMs: 120_000 });
+  const scheduler = f.create(async () => { entered(); await new Promise(() => {}); });
+  await scheduler.configure('synthetic', ['fixture']); const running = scheduler.tick(); await started;
+  try {
+    expect(scheduler.status().state).toBe('catching-up');
+    f.policy.observe({ ...sample, availableMemoryBytes: 1 }, f.now());
+    expect(scheduler.status().state).toBe('catching-up');
+  } finally { scheduler.interrupt(); await running; }
+}));

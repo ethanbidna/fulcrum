@@ -63,7 +63,7 @@ export class IngestionScheduler {
     if (!this.designated()) return result('viewer', 'Viewer/editor — sources checked on the ingestion Mac');
     if (!scopes.length) return result('disabled', 'No source scopes enabled');
     if (this.paused || this.stopped) return result('paused', 'Local ingestion paused');
-    const pauseReason = this.options.pauseReason?.('sources') ?? (counts.pending && this.options.process ? this.options.pauseReason?.('extraction') : null);
+    const pauseReason = this.options.pauseReason?.('sources') ?? (!this.running && counts.pending && this.options.process ? this.options.pauseReason?.('extraction') : null);
     if (pauseReason) return result('paused', pauseReason);
     if (scopes.some(scope => scope.error)) return result('reconnect', 'Source unavailable — check connection');
     if (counts.failed) return result('failed', `${counts.failed} items need attention`);
