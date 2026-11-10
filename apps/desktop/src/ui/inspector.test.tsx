@@ -2,7 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
-import { projectBoard, projectInspection } from '@fulcrum/domain';
+import { projectBoard, projectInspection, projectQuestionReview } from '@fulcrum/domain';
 import type { InspectionTarget, WorkspaceState } from '@fulcrum/domain';
 import { Inspector } from './inspector.js';
 const fixture = () => JSON.parse(readFileSync('fixtures/states/portfolio.state.json', 'utf8')).state as WorkspaceState;
@@ -10,7 +10,7 @@ afterEach(cleanup);
 function setup(target?: InspectionTarget) {
   const state = fixture(); const parent = state.edges.find(edge => edge.type === 'contains')!.fromId;
   const selected = target ?? { kind: 'node' as const, id: parent };
-  const query = vi.fn().mockImplementation(async () => projectInspection(state, selected));
+  const query = vi.fn().mockImplementation(async (name, args) => name === 'questions.review' ? projectQuestionReview(state, args) : projectInspection(state, selected));
   const execute = vi.fn().mockResolvedValue({ ok: true }); const select = vi.fn(); const focus = vi.fn(); const close = vi.fn();
   const props = { target: selected, initiativeId: state.nodes.find(node => node.id === parent)!.initiativeId, board: projectBoard(state, [], { now: '2026-11-08T20:00:00Z' }), query, execute, select, focus, close };
   return { state, parent, props, query, execute, select, focus, close };
@@ -42,7 +42,7 @@ test('changing selection ignores an obsolete delayed inspection response', async
   const f = setup(); let finish!: (value: ReturnType<typeof projectInspection>) => void;
   f.query.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
   const view = render(<Inspector {...f.props} />); const next = f.state.nodes.find(node => node.id !== f.parent)!;
-  const target = { kind: 'node' as const, id: next.id }; f.query.mockResolvedValue(projectInspection(f.state, target));
+  const target = { kind: 'node' as const, id: next.id }; f.query.mockImplementation(async (name, args) => name === 'questions.review' ? projectQuestionReview(f.state, args) : projectInspection(f.state, target));
   view.rerender(<Inspector {...f.props} target={target} />); await screen.findByRole('heading', { name: next.title });
   finish(projectInspection(f.state, f.props.target)); await waitFor(() => expect(screen.getByRole('heading', { name: next.title })).toBeTruthy());
 });

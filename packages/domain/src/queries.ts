@@ -1,3 +1,5 @@
+import { projectQuestionReview } from './question-review.js';
+import type { QuestionReview, QuestionReviewScope } from './question-review.js';
 import { projectInitiativeList, projectInitiativeHistory } from './detail-projections.js';
 import type { InitiativeListRow, InitiativeHistoryEntry } from './detail-projections.js';
 import { projectInspection } from './inspector-projections.js';
@@ -15,6 +17,7 @@ import { projectPortfolio, projectRail, projectBoard } from './projections.js';
 import type { PortfolioCard, PortfolioRail, PortfolioBoard } from './projections.js';
 
 export interface QueryArgs {
+  'questions.review': QuestionReviewScope;
   'questions.list': { initiativeId?: string; state?: Question['state'] };
   'search': { text: string; scope?: SearchScope };
   'status.index': Record<string, never>;
@@ -31,6 +34,7 @@ export interface QueryArgs {
   'history.list': HistoryFilter;
 }
 export interface QueryResults {
+  'questions.review': QuestionReview[];
   'questions.list': Question[];
   'search': SearchHit[];
   'status.index': IndexProgress;
@@ -48,7 +52,7 @@ export interface QueryResults {
 }
 export type QueryName = keyof QueryArgs;
 const QUERY_FIELDS: Record<QueryName, string[]> = {
-  'questions.list': ['initiativeId', 'state'],
+  'questions.list': ['initiativeId', 'state'], 'questions.review': ['initiativeId', 'target', 'state'],
   'search': ['text', 'scope'], 'status.index': [],
   'initiative.list': ['initiativeId'], 'initiative.history': ['initiativeId'],
   'portfolio.board': [], 'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
@@ -61,8 +65,9 @@ export function validateQuery(name: QueryName, args: unknown) {
   if (name === 'inspector.get' && Object.keys(object(value.target)).some(key => !['kind', 'id'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Invalid inspector target');
   if (name === 'search' && typeof value.text !== 'string') throw new DomainFault('VALIDATION_FAILED', 'Search text is required');
   for (const key of ['id', 'nodeId', 'initiativeId', 'since']) if (value[key] !== undefined) text(value[key]);
-  if (name === 'questions.list' && value.state !== undefined && !['open', 'deferred', 'resolved', 'obsolete'].includes(String(value.state))) throw new DomainFault('VALIDATION_FAILED', 'Invalid question state');
+  if (['questions.list', 'questions.review'].includes(name) && value.state !== undefined && !['open', 'deferred', 'resolved', 'obsolete'].includes(String(value.state))) throw new DomainFault('VALIDATION_FAILED', 'Invalid question state');
   if (value.actor !== undefined && !['user', 'ai', 'connector', 'mcp', 'system'].includes(String(value.actor))) throw new DomainFault('VALIDATION_FAILED', 'Invalid history actor');
+  if (name === 'questions.review' && value.target !== undefined && Object.keys(object(value.target)).some(key => !['kind', 'id'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Invalid question target');
   if (value.target !== undefined) {
     const target = object(value.target);
     if (!['initiative', 'node', 'edge'].includes(String(target.kind)) || Object.keys(target).some(key => !['kind', 'id', 'field'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Invalid history target');
@@ -74,6 +79,7 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
   const value = args as Record<string, unknown>; const state = replay.document.state as WorkspaceState;
   let result: QueryResults[QueryName];
   switch (name) {
+    case 'questions.review': result = projectQuestionReview(state, args as QuestionReviewScope); break;
     case 'questions.list': result = state.questions.filter(question => (!value.initiativeId || question.initiativeId === value.initiativeId) && (!value.state || question.state === value.state)); break;
     case 'portfolio.board': result = projectBoard(state, projectHistory(replay), { now: now() }); break;
     case 'portfolio.list': result = projectPortfolio(state); break;

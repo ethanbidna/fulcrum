@@ -184,7 +184,7 @@ components:
 
 A white work area and cool neutral navigation make location and connection state easy to read. Muted blue identifies the selected destination and primary actions; fine separators and restrained type establish hierarchy.
 
-This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review, plus U5 List and History representations. Priorities, question-review and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
+This records the implemented U1 shell, U2 active-initiative portfolio, U3 editable initiative flow and U4 contextual inspector, Task focus and inline command review, plus U5 List and History representations and U8 grouped and contextual question review. Priorities and settings workflows remain outside this build. ../../docs/DESIGN_RULES.md remains the higher visual authority; ../../docs/PRODUCT_SPEC.md remains the product authority. The owner pinned system fonts and this code-first shell.
 
 **Key Characteristics:**
 
@@ -239,7 +239,7 @@ Blocked red, waiting amber and completed green retain semantic roles from the hi
 
 The brand role records the existing wordmark treatment. Navigation becomes 12px on compact layouts. U2 adds card-title and card-state roles, rail-title, card-description and group-title; these extend the same system family. The inline creation heading shares card-title styling. MoSCoW labels use status-sized text at medium weight; card metadata and indicators use status-sized regular text. Rail item text is caption-sized, with status-sized secondary context. U3 reuses label-sized, medium-weight node titles; status-sized kind, state and ordinary relationship text; and caption-sized group, form and conditional-route labels. It introduces no new type size. U4 reuses the same ramp: caption-sized inspector fields and breadcrumbs, label-sized inspector heading, 17px object titles, 13px section headings and a title-sized focused Task heading. Counts and draft notes remain secondary. The command entry uses regular-weight 17px text, reducing to 16px at 640px and below for readable entry. Review headings reuse 17px heading styling, change names use body text, and before/after values, hints and results use caption text; this is a local component treatment, not a new global type scale.
 
-List and History reuse the established ramp: 17px section headings, body-sized editable titles and change labels, medium-weight label-sized event headings, and caption-sized columns, attribution, timestamps and disclosures. No new font, color or type-size token is introduced.
+List and History reuse the established ramp: 17px section headings, body-sized editable titles and change labels, medium-weight label-sized event headings, and caption-sized columns, attribution, timestamps and disclosures. Questions reuse 17px initiative headings, medium-weight body-sized prompts and caption-sized context, counts, evidence and feedback. Inspector prompts use 13px text. No new font, color or type-size token is introduced.
 
 ## Layout
 
@@ -260,6 +260,8 @@ With the inspector open, the flow workspace has a flexible canvas column and a 3
 The inline command region follows the page heading and precedes the current workspace content. Its maximum width is 1080px with 24px bottom spacing. Review stays in normal flow, with 20px top spacing and vertical padding; it preserves the graph below. Change rows use 12px vertical padding and fine separators. Before/after values use a 36px label column beside a flexible value column. At 640px and below the shortcut hint hides and the review-heading gap reduces from 16px to 8px.
 
 Initiative representations share a horizontal navigation row below the command input, with 24px gaps and a bottom separator. The List table stays full width with a 900px minimum inside a focusable horizontal scroll region; narrow windows scroll the table locally. Cells have 12px by 10px padding. The Work column has a 260px minimum and adds 20px indentation per containment level. History remains in normal page flow, with 20px vertical event padding, a 16px header gap and a flexible Before/After grid beside 48px labels.
+
+Questions stay in normal page flow within a 1080px maximum width. The toolbar pairs quiet guidance with one state select, with 24px top and 32px bottom spacing. Initiative groups have 40px bottom spacing; rows have a fine top rule and 24px vertical padding. Context and View context share a row above each prompt. Actions wrap with 12px gaps. At 700px and below, toolbar and context links stack vertically. The inspector reuses denser rows with 16px vertical padding and 8px action gaps.
 
 ## Elevation & Depth
 
@@ -285,7 +287,7 @@ An explicit text status accompanies a six-pixel dot. Connecting uses slate, unav
 
 ### Loading and workflow notices
 
-Two static rounded loading lines accompany opening text and a busy section. Connected Priorities, Questions and Settings destinations state which workflows are unavailable. Counts appear only from connected-core queries; card question links remain quiet and appear only when positive. No chip primitive is implemented.
+Two static rounded loading lines accompany opening text and a busy section. Connected Priorities and Settings destinations state which workflows are unavailable. Questions shows loading status, state-specific empty text or an inline read error with Retry questions. Counts appear only from connected-core queries; card question links remain quiet and appear only when positive. No chip primitive is implemented.
 
 ### Portfolio toolbar and fields
 
@@ -344,6 +346,14 @@ A plain table presents Work, Type, State, Role, Date, Prerequisites and Sources.
 ### History ledger
 
 A flat chronological ledger separates events with thin rules. Each event has a medium-weight command heading, quiet actor and timestamp, explicit Undo/Undone state when relevant, and an unfilled blue Undo change action when available. A blue change-count disclosure contains named changes and Before/After values; the first event starts expanded. Long values wrap and preserve line breaks. Evidence remains inside that disclosure, with named original links opening separately or an explicit no-original-link label. AI-run undo appears with its event and initiative scope. Pending undo disables undo actions and failures appear inline. No new card, overlay or narrative-summary treatment is introduced.
+
+### Questions Center and contextual review
+
+A flat list groups questions beneath linked initiative headings with quiet counts. The labeled Show questions select offers Open questions, Deferred, Answered and No longer needed. Initiative-scoped lists retain their initiative link and an All questions return. View context opens the initiative or selects the attached node or relationship in the same graph. The inspector reuses the question rows for its current object, with an All questions for this initiative link; shared references expose read-only review.
+
+Each row places its contextual label and View context link above the prompt. Evidence is an inline native disclosure with a count. Expanded evidence shows the source title, connector, separate Happened and Learned times, and an optional excerpt behind a fine left rule. Missing event times and original links are labeled explicitly. Only HTTP(S) original links without embedded credentials are exposed; they open separately with an accessible new-window notice. Excerpts remain text.
+
+Open and deferred questions offer their recorded resolution choices as secondary buttons. Defer expands inline to Tomorrow, Next week and Until I return. Deferred rows state their return time or indefinite deferral; answered rows name the recorded choice and obsolete rows state that no choice is needed. Pending writes disable answer, defer and undo buttons. Successful writes show focused inline status with Undo when an event is available; undo reports Change undone. Failures focus an inline alert. All actions and disclosures retain the shared visible focus treatment, with no popup or overlay.
 
 ### Keyboard access
 

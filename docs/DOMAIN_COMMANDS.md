@@ -233,3 +233,10 @@ for material concurrent fields. It checks the expected writer, schema, scope,
 invariants and protection. A sync question may instead restore a deletion using
 one stale-checked `change.undo`; restoration and closure commit in one event.
 See [ADR-0019](decisions/0019-question-lifecycle-and-sync.md).
+
+
+`questions.review({initiativeId?, target?, state?})` projects the desktop review
+list (open by default) with initiative titles, exact context links and evidence.
+Original links allow HTTP(S) without embedded credentials. Excerpts honor source
+cache policy and referenced ranges; event and learned timestamps stay distinct.
+This adds no persisted fields. Answer/defer/undo still use the existing commands.
