@@ -47,7 +47,7 @@ Steps done since last audit: 3
 | 34 | P2 first-run wizard | waiting-owner | [ ] | #79 | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
-| 37 | P5 signing, notarization, updates | waiting-owner | [ ] | | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
+| 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
 ## Owner to-do
 
