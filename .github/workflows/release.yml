@@ -1,0 +1,103 @@
+name: Release packaging
+on:
+  pull_request:
+    paths: ['tools/release/**', 'apps/core/**', 'apps/desktop/src-tauri/**', 'packages/**', 'pnpm-lock.yaml', '.github/workflows/release.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15-intel
+            arch: x64
+          - runner: macos-15
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: rustup toolchain install stable --profile minimal
+      - run: node tools/release/sea.mjs release-output
+      - run: node tools/release/notices.mjs release-output/THIRD_PARTY_NOTICES.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-${{ matrix.arch }}
+          path: |
+            release-output/fulcrum-core
+            release-output/fulcrum-mcp
+            release-output/THIRD_PARTY_NOTICES.txt
+            release-output/build-info.json
+  signed:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: runtime
+    runs-on: macos-15
+    environment: release
+    env:
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      FULCRUM_UPDATER_PUBLIC_KEY: ${{ vars.FULCRUM_UPDATER_PUBLIC_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: rustup toolchain install stable --profile minimal --target aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: actions/download-artifact@v4
+        with:
+          name: runtime-x64
+          path: release-input/x64
+      - uses: actions/download-artifact@v4
+        with:
+          name: runtime-arm64
+          path: release-input/arm64
+      - name: Require release credentials
+        run: node tools/release/credentials.mjs
+      - name: Import temporary signing identity
+        shell: bash
+        run: |
+          certificate="$RUNNER_TEMP/fulcrum-signing.p12"
+          keychain="$RUNNER_TEMP/fulcrum-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          echo "::add-mask::$keychain_password"
+          printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security list-keychains -d user -s "$keychain" "$HOME/Library/Keychains/login.keychain-db"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          rm "$certificate"
+      - run: node tools/release/assemble.mjs
+      - uses: tauri-apps/tauri-action@v0
+        with:
+          projectPath: apps/desktop
+          args: --target universal-apple-darwin --config src-tauri/tauri.release.json --bundles app,dmg
+      - name: Verify notarization and prepare update manifest
+        run: node tools/release/verify.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-universal-release
+          path: |
+            apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz*
+            release-output/latest.json
+      - name: Remove temporary identity
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/fulcrum-signing.keychain-db" || true

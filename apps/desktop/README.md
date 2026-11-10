@@ -240,3 +240,13 @@ feedback receives keyboard focus. Context links select the exact flow object.
 
 See [the synthetic review captures and owner checklist](../../docs/reviews/U8.md).
 Native launch and owner usability checks remain pending.
+
+## Release builds
+
+P5 uses `tools/release/sea.mjs` for production core/MCP executables and
+`tools/release/notices.mjs` for dependency notices. Release packaging CI tests
+both architectures; its explicit main-branch dispatch gates signing/notarization
+behind the `release` environment. See [the release procedure](../../docs/reviews/P5.md)
+for required credentials, publication and deferred clean-user/update checks.
+Development builds report that no update key is configured. Signed builds check
+only from Fulcrum → Check for Updates and require confirmation before installation.

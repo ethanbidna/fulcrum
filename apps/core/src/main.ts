@@ -1,3 +1,4 @@
+import { releaseSelfTest } from './release-self-test.js';
 import { parseCoreArguments } from './launch-arguments.js';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -12,5 +13,5 @@ async function main() {
 }
 export { startCore } from './bootstrap.js';
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  void main().catch(() => { process.stderr.write('Core startup failed\n'); process.exitCode = 1; });
+  void (process.argv[2]==='--self-test'?releaseSelfTest(new URL('./schemas/v1/',import.meta.url)):main()).catch(() => { process.stderr.write('Core startup failed\n'); process.exitCode = 1; });
 }

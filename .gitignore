@@ -48,3 +48,10 @@ spikes/**/data/
 storybook-static/
 .storybook/cache/
 debug-storybook.log
+
+# Generated release resources
+apps/desktop/src-tauri/release-resources/
+apps/desktop/src-tauri/tauri.release.json
+release-input/
+release-output/
+apps/desktop/src-tauri/gen/

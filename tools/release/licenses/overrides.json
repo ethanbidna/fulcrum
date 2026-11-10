@@ -1,0 +1,82 @@
+{
+  "alloc-stdlib@0.3.0": {
+    "file": "alloc-stdlib.txt",
+    "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
+    "repository": "https://github.com/dropbox/rust-alloc-no-stdlib"
+  },
+  "block2@0.6.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "dispatch2@0.3.1": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2@0.6.5": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-app-kit@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-core-foundation@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-core-graphics@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-encode@4.1.0": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-exception-helper@0.1.1": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-foundation@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-io-surface@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-osa-kit@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-quartz-core@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "objc2-web-kit@0.3.2": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
+  "selectors@0.38.0": {
+    "file": "selectors.txt",
+    "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+    "repository": "https://github.com/servo/stylo"
+  },
+  "tauri-plugin@2.7.2": {
+    "file": "tauri-plugin.txt",
+    "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d",
+    "repository": "https://github.com/tauri-apps/tauri"
+  }
+}

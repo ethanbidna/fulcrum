@@ -1,6 +1,7 @@
 mod socket;
 mod system;
 mod setup;
+mod updates;
 use serde_json::Value;
 use std::net::Shutdown;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
@@ -97,6 +98,7 @@ fn main() {
     if let Some(code) = setup::keychain_mode() { std::process::exit(code); }
     let app = tauri::Builder::default()
         .setup(|app| {
+            updates::install(app)?;
             let home = app.path().home_dir()?;
             let owner = std::fs::metadata(&home)?.uid();
             let core = Arc::new(CoreSocket { profile: core_profile(&home), owner, subscription: Mutex::new(None), generation: AtomicU64::new(0) });
