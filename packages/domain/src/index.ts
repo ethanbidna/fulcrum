@@ -40,3 +40,6 @@ export type { QuestionReview, QuestionReviewScope, QuestionEvidence } from './qu
 
 export { projectEvidence } from './evidence-projections.js';
 export type { ContextEvidence, EvidenceScope, EvidenceTarget } from './evidence-projections.js';
+
+export { projectTimeline } from './timeline-projections.js';
+export type { TimelineView, TimelineItem } from './timeline-projections.js';
