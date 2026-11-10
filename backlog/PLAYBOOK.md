@@ -106,3 +106,11 @@ packaging and owner client checks pass. The owner then explicitly requested BOTH
 implements that interaction before U5 under ADR-0017. The owner authorized
 agent review/merge and then U5 after U4a implementation review;
 existing owner/native checks remain pending. See ADR-0016.
+
+
+### Standing review and merge authorization
+
+On 2026-11-09 the owner authorized agents to review, approve and merge plan PRs
+after required checks pass, then continue one plan unit per request. This does
+not complete Owner checkboxes or accept pending model, connector, usability or
+hardware results.

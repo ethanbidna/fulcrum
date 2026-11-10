@@ -4,7 +4,7 @@ Agents update this file in every PR; the owner ticks the **Owner** boxes. Step d
 
 Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) · `done` · `blocked` (reason in Notes).
 
-Steps done since last audit: 1
+Steps done since last audit: 2
 
 ## Steps
 
@@ -34,7 +34,7 @@ Steps done since last audit: 1
 | 21 | I1 adapters, queue, scheduler | done | n/a | #61 | Synthetic adapter, atomic local queue, opt-in scopes, P11 scheduler and seven-day freshness tests; audit #63 tracks canonical-hash handover dedupe defect; live connectors/native sleep remain later |
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
-| 24 | I5 reconciler | todo | n/a | | |
+| 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
 | 25 | I2 first real connector | todo | [ ] | | |
 | 26 | U6 context view | todo | n/a | | |
 | 27 | U7 timeline | todo | n/a | | |

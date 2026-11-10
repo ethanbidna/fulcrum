@@ -43,7 +43,8 @@ export function handleCommand(tx: Transaction, command: CommandInvocation, conte
     case 'group.delete': return deleteGroup(tx, text(args.id));
     case 'category.delete': return deleteCategory(tx, text(args.id));
     case 'source.record': return recordSource(tx, args.record, context);
-    case 'assertion.record': return tx.create('assertion', args.record);
+    case 'assertion.record': return tx.create('assertion', { observedAt: context.now, ...object(args.record) });
+    case 'assertion.setStatus': return setAssertionStatus(tx, args, context.actor);
     case 'assertion.reject': return tx.set('assertion', text(args.id), 'status', 'rejected');
     case 'evidence.attach': return evidence(tx, args, 'attach');
     case 'evidence.detach': return evidence(tx, args, 'detach');
@@ -214,5 +215,30 @@ function rerankInitiatives(tx: Transaction, value: unknown) {
     if (seenIds.has(id) || seenRanks.has(rank) || Object.keys(entry).some(key => !['id', 'manualRank'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Duplicate initiative, rank or unsupported field');
     if (tx.get('initiative', id).lifecycle !== 'active') throw new DomainFault('VALIDATION_FAILED', 'Only active initiatives can be reordered');
     seenIds.add(id); seenRanks.add(rank); tx.set('initiative', id, 'manualRank', rank);
+  }
+}
+
+function setAssertionStatus(tx: Transaction, args: DataRecord, actor: Actor) {
+  const id = text(args.id); const assertion = tx.get('assertion', id);
+  if (actor === 'ai' && assertion.status === 'rejected') throw new DomainFault('POLICY_DENIED', 'Rejected evidence cannot be revived');
+  if (!['conflicting', 'superseded'].includes(text(args.status))) throw new DomainFault('VALIDATION_FAILED', 'Unsupported assertion transition');
+  if (args.status === 'superseded') validateSupersession(tx, assertion, text(args.supersededBy));
+  else if (args.supersededBy !== null) throw new DomainFault('VALIDATION_FAILED', 'Conflicting claims cannot have a replacement');
+  tx.set('assertion', id, 'status', args.status);
+  tx.set('assertion', id, 'supersededBy', args.supersededBy);
+}
+
+function validateSupersession(tx: Transaction, assertion: DataRecord, replacementId: string) {
+  const replacement = tx.get('assertion', replacementId);
+  const originalTarget = object(assertion.target); const replacementTarget = object(replacement.target);
+  const sameTarget = ['kind', 'id', 'field'].every(field => originalTarget[field] === replacementTarget[field]);
+  if (!sameTarget || replacement.predicate !== assertion.predicate || replacement.status === 'rejected') throw new DomainFault('VALIDATION_FAILED', 'Supersession requires another claim about the same field');
+  const visited = new Set<string>([text(assertion.id)]);
+  let currentId: string | undefined = replacementId;
+  while (currentId) {
+    if (visited.has(currentId)) throw new DomainFault('VALIDATION_FAILED', 'Assertion supersession cannot cycle');
+    visited.add(currentId);
+    const next: unknown = tx.get('assertion', currentId).supersededBy;
+    currentId = next ? text(next) : undefined;
   }
 }

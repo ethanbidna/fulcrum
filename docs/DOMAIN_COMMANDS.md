@@ -47,7 +47,7 @@ Execution order: schema-validate args → load affected records → policy check
 | Node | `node.create` · `node.update` (title, details, targetDate, kind, responsibleEntityId, decider, options) · `node.setState` · `node.setGroup` · `node.setPrerequisiteGroups` · `node.supersede` · `node.delete` (tombstone) · `decision.decide` (sets `outcome` + `state: decided`) |
 | Edge | `edge.create` · `edge.update` (label, condition, prerequisiteGroupId) · `edge.delete` |
 | Group | `group.create` · `group.rename` · `group.delete` (members keep existing; `groupId` cleared) |
-| Evidence | `source.record` (connector) · `assertion.record` · `assertion.reject` · `evidence.attach` · `evidence.detach` |
+| Evidence | `source.record` (connector) · `assertion.record` · `assertion.reject` · `assertion.setStatus` · `evidence.attach` · `evidence.detach` |
 | Entity | `entity.create` · `entity.update` · `entity.addAlias` · `entity.merge` · `entity.split` |
 | Objectives | `objective.create` · `objective.update` · `objective.rerank` (ties = equal rank) · `objective.delete` · `alignment.set` |
 | Questions | `question.raise` · `question.resolve` (runs the chosen resolution's commands in the same event) · `question.defer` · `question.markObsolete` |
@@ -203,3 +203,17 @@ nodes, edges and contextual metadata, including deleted records. It supplies
 named before/after values, safe original evidence links and whole-run counts.
 The existing `history.list` contract is unchanged. Event/run undo still uses
 `change.undo` / `run.undo`; conflicts remain domain rejections, never UI overwrites.
+
+## I5 assertion history
+
+`assertion.setStatus({id, status, supersededBy})` marks an existing claim
+`conflicting` (supersededBy must be null) or `superseded` (replacement ID
+required). Replacements must concern the same target/field and predicate;
+cycles, missing replacements and rejected replacements are rejected. AI cannot
+revive a rejected assertion. All actor, evidence, scope and undo checks apply.
+No new persisted fields or schema version are required.
+
+`assertion.record` defaults omitted observedAt to the trusted domain clock.
+Prepared command signatures therefore need no processing-time metadata; the
+emitted record/event still carries when Fulcrum learned the claim. See the
+[pure reconciliation contract](../packages/ingest/RECONCILIATION.md).

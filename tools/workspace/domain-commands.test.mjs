@@ -55,6 +55,7 @@ const catalogCases = {
   'group.create': () => ({ record: { id: nextRecordId('0b'), initiativeId: id('01'), label: 'Synthetic group' } }),
   'group.rename': f => ({ id: state(f).groups[0].id, label: 'Renamed group' }), 'group.delete': f => ({ id: state(f).groups[0].id }),
   'source.record': f => ({ record: { ...state(f).sources[0], id: nextRecordId('04'), remoteId: 'synthetic:new-source' } }),
+  'assertion.setStatus': f => ({ id: state(f).assertions[0].id, status: 'conflicting', supersededBy: null }),
   'assertion.record': f => ({ record: { ...state(f).assertions[0], id: nextRecordId('05') } }), 'assertion.reject': f => ({ id: state(f).assertions[0].id }),
   'evidence.attach': f => ({ target: { kind: 'node', id: nodeId(1) }, evidenceRef: { sourceId: state(f).sources[0].id } }),
   'evidence.detach': f => ({ target: { kind: 'node', id: nodeId(1) }, sourceId: state(f).sources[0].id }),
@@ -296,4 +297,19 @@ describe('policy at the write boundary', () => {
     passed(await f.execute('node.update', { id: nodeId(1), patch: { details: null } })); expect(getNode(f, 1)).not.toHaveProperty('details');
     expect(toStateDocument(fold(f.writes, { base: fromStateDocument(f.snapshot.state) }).state)).toEqual(state(f));
   });
+});
+
+test('assertion history transitions preserve rejection and validate supersession links', async () => {
+  const f = setup(); const assertion = state(f).assertions[0]; const evidenceRefs = assertion.evidenceRefs;
+  passed(await f.execute('assertion.setStatus', { id: assertion.id, status: 'conflicting', supersededBy: null }, { actor: 'ai', evidenceRefs }));
+  expect(state(f).assertions[0].status).toBe('conflicting');
+  denied(await f.execute('assertion.setStatus', { id: assertion.id, status: 'superseded', supersededBy: assertion.id }), 'VALIDATION_FAILED');
+  passed(await f.execute('assertion.reject', { id: assertion.id }));
+  denied(await f.execute('assertion.setStatus', { id: assertion.id, status: 'conflicting', supersededBy: null }, { actor: 'ai', evidenceRefs }), 'POLICY_DENIED');
+});
+test('assertion supersession cannot form a cycle', async () => {
+  const f = setup(); const original = state(f).assertions[0]; const replacement = { ...original, id: id('05', 998) };
+  passed(await f.execute('assertion.record', { record: replacement }));
+  passed(await f.execute('assertion.setStatus', { id: original.id, status: 'superseded', supersededBy: replacement.id }));
+  denied(await f.execute('assertion.setStatus', { id: replacement.id, status: 'superseded', supersededBy: original.id }), 'VALIDATION_FAILED');
 });

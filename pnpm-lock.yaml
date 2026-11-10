@@ -163,6 +163,9 @@ importers:
       '@fulcrum/context':
         specifier: workspace:*
         version: link:../context
+      '@fulcrum/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@fulcrum/llm':
         specifier: workspace:*
         version: link:../llm
