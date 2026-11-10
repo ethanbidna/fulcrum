@@ -34,3 +34,6 @@ export { planQuestion, obsoleteQuestions } from './questions.js';
 export type { QuestionCandidate, QuestionIdentity } from './questions.js';
 export { syncQuestions } from './sync-questions.js';
 export type { ReplayConflict } from './replay.js';
+
+export { projectQuestionReview } from './question-review.js';
+export type { QuestionReview, QuestionReviewScope, QuestionEvidence } from './question-review.js';

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Inspection, InspectionTarget, Node as FlowObject, PortfolioBoard } from '@fulcrum/domain';
 import type { CoreTransport } from '../core-transport.js';
 import type { ExecuteCommand } from './new-initiative.js';
+import { ContextualQuestions } from './questions.js';
 import { cardStateText } from './portfolio-model.js';
 import { objectLabels } from './flow-model.js';
 export interface InspectorProps {
@@ -15,9 +16,9 @@ export function Inspector({ readOnlyReference = false, target, initiativeId, boa
     void query('inspector.get', { target }).then(value => { if (!disposed) { setInspection(value); setError(''); } }).catch(() => { if (!disposed) { setInspection(undefined); setError('The selected object is unavailable. Select another object to continue.'); } });
     return () => { disposed = true; };
   }, [target.kind, target.id, board, query]);
-  return <aside className="object-inspector" aria-label="Inspector"><div className="inspector-heading"><h2>Inspector</h2><button className="secondary-button" onClick={close} aria-label="Hide inspector">Hide</button></div>{error ? <p role="alert" className="command-error">{error}</p> : !inspection || inspection.record.id !== target.id ? <p role="status">Loading selection…</p> : <InspectionView key={`${target.kind}:${target.id}`} value={inspection} readOnlyReference={readOnlyReference} initiativeId={initiativeId} execute={execute} select={select} focus={focus} />}</aside>;
+  return <aside className="object-inspector" aria-label="Inspector"><div className="inspector-heading"><h2>Inspector</h2><button className="secondary-button" onClick={close} aria-label="Hide inspector">Hide</button></div>{error ? <p role="alert" className="command-error">{error}</p> : !inspection || inspection.record.id !== target.id ? <p role="status">Loading selection…</p> : <InspectionView board={board} query={query} key={`${target.kind}:${target.id}`} value={inspection} readOnlyReference={readOnlyReference} initiativeId={initiativeId} execute={execute} select={select} focus={focus} />}</aside>;
 }
-function InspectionView({ value, readOnlyReference, initiativeId, execute, select, focus }: { value: Inspection; readOnlyReference: boolean; initiativeId: string; execute: ExecuteCommand; select: (id: string) => void; focus: (id: string) => void }) {
+function InspectionView({ value, readOnlyReference, initiativeId, board, query, execute, select, focus }: { board: PortfolioBoard; query: CoreTransport['query']; value: Inspection; readOnlyReference: boolean; initiativeId: string; execute: ExecuteCommand; select: (id: string) => void; focus: (id: string) => void }) {
   const reference = value.kind === 'node' && (readOnlyReference || value.record.initiativeId !== initiativeId);
   const heading = value.kind === 'edge' ? 'Relationship' : value.record.title;
   return <><h3 className="inspector-object-title">{heading}</h3><p className="inspector-kind">{value.kind === 'node' ? objectLabels[value.record.type] : value.kind === 'edge' ? value.record.type.replaceAll('_', ' ') : 'Initiative'}{'certainty' in value.record && value.record.certainty === 'inferred' ? ' · Inferred' : ''}</p>
@@ -25,7 +26,7 @@ function InspectionView({ value, readOnlyReference, initiativeId, execute, selec
     <dl className="inspector-facts">{value.kind === 'node' && <><dt>State</dt><dd>{value.record.state}</dd></>}{'targetDate' in value.record && typeof value.record.targetDate === 'string' && <><dt>Due</dt><dd>{value.record.targetDate}</dd></>}{value.attribution.responsible && <><dt>External responsibility</dt><dd>{value.attribution.responsible}</dd></>}{value.attribution.decider && <><dt>Decider</dt><dd>{value.attribution.decider}</dd></>}<dt>Evidence sources</dt><dd>{value.evidenceCount}</dd></dl>
     {value.kind === 'node' && value.record.type === 'task' && !reference && <button className="secondary-button focus-task" onClick={() => focus(value.record.id)}>Focus task</button>}
     {value.kind === 'node' && !reference && value.children.length > 0 && <ChildChecklist children={value.children} readOnly={reference} execute={execute} select={select} />}
-    <section className="inspector-section" aria-label="Contextual questions"><h3>Questions <span>{value.questions.length}</span></h3>{value.questions.length ? <ul>{value.questions.map(question => <li key={question.id}>{question.prompt}</li>)}</ul> : <p>No open questions on this object.</p>}</section></>;
+    <ContextualQuestions mode={reference ? 'read' : 'answer'} board={board} query={query} execute={execute} initiativeId={value.kind === 'initiative' ? value.record.id : value.record.initiativeId} target={{ kind: value.kind, id: value.record.id }} /></>;
 }
 function NodeAttributes({ node, execute }: { node: FlowObject; execute: ExecuteCommand }) {
   const dirtyRef = useRef(false);

@@ -39,7 +39,7 @@ Steps done since last audit: 3
 | 26 | U6 context view | todo | n/a | | |
 | 27 | U7 timeline | todo | n/a | | |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
-| 29 | U8 Questions Center | todo | [ ] | | |
+| 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
 | 30 | A2 priorities and KPIs | todo | n/a | | |
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
@@ -52,6 +52,28 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 29 — U8 Questions Center review
+
+1. Install Node 22 LTS and pnpm 10.11.0. From the repository root run:
+
+   ```sh
+   git fetch origin
+   git worktree add ../fulcrum-u8-review origin/main
+   cd ../fulcrum-u8-review
+   corepack enable
+   pnpm install --frozen-lockfile
+   pnpm check
+   pnpm dev
+   ```
+
+2. Open `http://127.0.0.1:5173/#questions` in the disposable synthetic workspace.
+   Follow the answer, defer, undo, evidence, exact-context, keyboard and narrow
+   window checklist in [docs/reviews/U8.md](../docs/reviews/U8.md). Do not interrupt
+   the separate benchmark checkout; if 5173 is occupied, stop your prior preview
+   before starting this one.
+3. Record observations or blockers in `docs/reviews/U8.md`, then tick the Owner
+   box for step 29 above. Other owner/native/hardware checks remain unchanged.
 
 ### Step 20 — U5 List and History review
 

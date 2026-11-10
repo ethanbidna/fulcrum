@@ -23,7 +23,8 @@ The app shell provides Initiatives, Priorities, Questions and Settings navigatio
 U2 adds the grouped active-initiative portfolio; U3 adds the editable initiative flow.
 U4 adds the contextual inspector and Task focus over the same graph. U5 adds
 canonical List and evidence-linked History with reversible events. Priorities,
-question resolution and settings remain later workflows. Tasks are only the user's work.
+settings remain later workflows. U8 adds grouped and contextual question review,
+one-click resolutions, evidence and deferral through the shared domain. Tasks are only the user's work.
 The owner also requires both an in-app natural-language command bar and external
 MCP. The command bar drafts local changes for explicit review and atomic apply;
 manual editing is secondary. It is not an ongoing chat. Questions are contextual and quiet. All writes use the core's Domain commands.

@@ -12,7 +12,7 @@ Manual drag and earlier/later buttons commit one undoable initiative.rerank batc
 missing/duplicate old ranks are normalized atomically. Movement changes no grouping
 fields. UI data refreshes from acknowledged projections; failed writes retain the
 prior board. New initiative is an explicit user command. Flow/detail navigation,
-objective ranking, question review and settings remain later workflows.
+objective ranking and settings remain later workflows. U8 supplies question review.
 
 Cards contain one domain-derived state, restrained metadata and an honest unknown
 source-freshness indicator. No ingestion status is wired yet; updatedAt is never
@@ -169,7 +169,7 @@ wide windows and below it in narrow windows. No modal or separate graph is used.
 Node title/details/state and relationship label edits use existing Domain commands;
 Decision outcomes use `decision.decide`. Simple Task children use checkboxes that
 change only that child's state. Task ownership is never exposed. Full source and
-question-resolution workflows remain later work; U4 shows contextual metadata.
+question-resolution controls are now shared with the U8 Questions Center.
 
 Double-click a Task or use Focus task. The URL records initiative and focused node;
 `graph.focus` returns the same canonical nodes/edges, contains descendants and
@@ -225,3 +225,22 @@ across initiatives. Later-write conflicts remain visible domain errors. Evidence
 with a safe HTTP(S) permalink opens the original; other evidence remains named
 without inventing a link. Native external-link behavior requires owner acceptance.
 No model, connector or external client is needed to use these views.
+
+
+## Questions Center (U8)
+
+Questions opens a quiet list grouped by initiative. Portfolio question counts and
+initiative links open `#questions/<initiativeId>`; All questions returns to the
+global list. Show questions separates open, deferred, answered and obsolete
+records. Questions attached to a selected node or relationship also appear with
+controls in its inspector; shared prerequisite references remain read-only.
+
+Evidence expands inline, shows event/learned timestamps, respects excerpt cache
+policy and opens only safe original links. A resolution sends question.resolve
+by question/choice ID through the same core used by other edits. Defer offers
+Tomorrow, Next week or Until I return; it never creates a popup. Acknowledged
+changes expose Undo. Pending actions disable, failures remain inline, and saved
+feedback receives keyboard focus. Context links select the exact flow object.
+
+See [the synthetic review captures and owner checklist](../../docs/reviews/U8.md).
+Native launch and owner usability checks remain pending.

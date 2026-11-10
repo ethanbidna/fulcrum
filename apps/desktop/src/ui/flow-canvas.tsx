@@ -17,15 +17,15 @@ const nodeTypes = { object: FlowObjectView, frame: ({ data }: { data: { label: s
 const edgeTypes = { conditional: ConditionalEdge };
 interface Props {
   onInspectionChange?: (target: InspectionTarget | undefined) => void;
-  focusedNodeId?: string; initiative: Initiative; board: PortfolioBoard; query: CoreTransport['query']; execute: ExecuteCommand;
+  focusedNodeId?: string; initialTarget?: InspectionTarget; initiative: Initiative; board: PortfolioBoard; query: CoreTransport['query']; execute: ExecuteCommand;
   undo: () => Promise<CommandResult | null>; canUndo: boolean;
 }
 export function FlowCanvas(props: Props) { return <ReactFlowProvider><FlowEditor {...props} /></ReactFlowProvider>; }
-function FlowEditor({ onInspectionChange, initiative, focusedNodeId, board, query, execute, undo, canUndo }: Props) {
+function FlowEditor({ onInspectionChange, initiative, focusedNodeId, initialTarget, board, query, execute, undo, canUndo }: Props) {
   const [graph, setGraph] = useState<GraphView>(); const [nodes, setNodes] = useState<CanvasNode[]>([]);
   const [error, setError] = useState(''); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(false); const busyRef = useRef(false);
   const [adding, setAdding] = useState(false); const [connection, setConnection] = useState<Connection>();
-  const [selected, setSelected] = useState<InspectionTarget | undefined>(focusedNodeId ? { kind: 'node', id: focusedNodeId } : undefined);
+  const [selected, setSelected] = useState<InspectionTarget | undefined>(initialTarget ?? (focusedNodeId ? { kind: 'node', id: focusedNodeId } : undefined));
   useEffect(()=>{onInspectionChange?.(selected);},[onInspectionChange,selected?.kind,selected?.id]);
   const selectedRef = useRef(selected); selectedRef.current = selected;
   const inspectorToggle = useRef<HTMLButtonElement>(null);
