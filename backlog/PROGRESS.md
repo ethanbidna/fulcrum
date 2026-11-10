@@ -39,7 +39,7 @@ Steps done since last audit: 3
 | 26 | U6 context view | todo | n/a | | |
 | 27 | U7 timeline | todo | n/a | | |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
-| 29 | U8 Questions Center | waiting-owner | [ ] | pending | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
+| 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
 | 30 | A2 priorities and KPIs | todo | n/a | | |
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
