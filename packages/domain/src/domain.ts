@@ -54,6 +54,11 @@ export class Domain {
     }
     return queryProjection(this.replay, name, args, () => this.ports.now());
   }
+  snapshotAt(eventId: string): WorkspaceStateDoc {
+    const index = this.replay.events.findIndex(event => event.eventId === eventId);
+    if (index < 0) throw new DomainFault('NOT_FOUND', 'History event not found');
+    return clone(replayEvents(this.snapshot, this.replay.events.slice(0, index + 1)).document);
+  }
   getSnapshot(): WorkspaceStateDoc { return clone(this.replay.document); }
   questionMaintenance(identify: QuestionIdentity): CommandEnvelope[] {
     const questions = syncQuestions(this.replay, identify).filter(command => this.canPrepareQuestion(command.args.record as unknown as Question));

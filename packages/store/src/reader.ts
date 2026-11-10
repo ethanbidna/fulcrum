@@ -43,7 +43,7 @@ async function nonempty(file: string): Promise<string> {
     throw new StoreError('WORKSPACE_NOT_FULLY_DOWNLOADED', 'Workspace file could not be read');
   }
 }
-async function inventory(directory: string): Promise<Inventory> {
+export async function inventory(directory: string): Promise<Inventory> {
   const files = ['workspace.json'];
   const entries: string[] = [];
   for (const area of ['log', 'checkpoints']) {

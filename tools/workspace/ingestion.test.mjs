@@ -95,7 +95,7 @@ test('content edits enqueue new hash; repeated pages and canonical handover rece
   const item = { ...f.processed[0], text: 'Vendor evaluation: updated synthetic statement' };
   f.queue().recordPage('synthetic', 'fixture', { items: [item, item], next: null, checkpoint: 'edited' }, NOW);
   expect(f.queue().pending()).toHaveLength(1);
-  await scheduler.close(); const handedOver = f.make({ recordedSources: () => [{ connector: item.connector, remoteId: item.remoteId, contentHash: f.queue().digest(item.text) }] });
+  await scheduler.close(); const handedOver = f.make({ recordedSources: () => [{ connector: item.connector, remoteId: item.remoteId, contentHash: `sha256:${f.queue().digest(item.text)}` }] });
   await handedOver.tick(); expect(f.processed).toHaveLength(7); expect(f.queue().pending()).toHaveLength(0);
 }));
 test('queue refuses workspace paths, symlinks and foreign-workspace reuse', async () => setup(async f => {
@@ -155,4 +155,12 @@ test('a failed SQL batch rolls back both item inserts and the cursor', async () 
     expect(() => f.queue().recordPage('synthetic', 'fixture', page, NOW)).toThrow('synthetic fault');
     expect(f.queue().pending()).toEqual([]); expect(f.queue().scopes()[0]).toMatchObject({ cursor: null, next: null, checkedAt: null });
   } finally { database.close(); }
+}));
+
+test('a fresh handover queue skips schema-valid canonical source receipts before extraction',async()=>setup(async f=>{
+ const page=await f.adapter.pull({id:'fixture'},null,{since:'2026-01-01',limit:50,signal:new AbortController().signal});
+ const canonical=page.items.map(item=>({connector:item.connector,remoteId:item.remoteId,contentHash:`sha256:${f.queue().digest(item.text)}`}));
+ expect(canonical).toHaveLength(7);expect(canonical.every(item=>/^sha256:[a-f0-9]{64}$/.test(item.contentHash))).toBe(true);
+ const scheduler=f.make({recordedSources:()=>canonical});await scheduler.configure('synthetic',['fixture']);await scheduler.tick();
+ expect(f.processed).toHaveLength(0);expect(f.queue().pending()).toHaveLength(0);
 }));
