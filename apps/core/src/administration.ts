@@ -1,3 +1,4 @@
+import type {AiSetup}from'./ai-setup.js';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -7,8 +8,8 @@ import { WorkspaceArchives, LocalPreferences } from '@fulcrum/store';
 import type { WorkspaceOptions } from './workspace.js';
 import type { BackgroundPolicy } from '@fulcrum/ingest';
 const STALE_DEVICE_MS = 7 * 24 * 60 * 60 * 1000;
-const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
-export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>}) {
+const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'ai.preferences':['preference'],'ai.status':[],'ai.start':['choiceId','licenseAccepted','sharingAcknowledged','apiKey','initiativeIds','dailyTokenBudget'],'ai.job':['id'],'ai.cancel':['id'],'ai.none':[],'workspace.setupStatus':[],'workspace.configure':['deviceLabel','ingestion','handoverConfirmed','userEntityId'],'workspace.finishSetup':[],'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
+export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>},ai:AiSetup,configureIdentity:(userEntityId:string,label:string)=>Promise<void>) {
   const archives=await WorkspaceArchives.open({workspaceDirectory:options.workspaceDirectory,localDirectory:options.localDirectory,...(options.schemaDirectory?{schemaDirectory:options.schemaDirectory}:{})});
   let backupError=false;
   const preferences=new LocalPreferences(options.localDirectory);
@@ -29,6 +30,27 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
     if(!Object.hasOwn(ALLOWED_FIELDS,name)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!ALLOWED_FIELDS[name].includes(key)))throw new Error('INVALID_ADMINISTRATION_REQUEST');
     const args=input as Record<string,unknown>;let result:AdministrationResults[AdministrationName];
     switch(name){
+      case 'ai.status':result=await ai.status();break;
+      case 'ai.preferences':result=await ai.savePreference(args.preference);break;
+      case 'ai.start':result=await ai.start(args as unknown as AdministrationArgs['ai.start']);break;
+      case 'ai.job':if(typeof args.id!=='string')throw new Error('INVALID_SETUP_JOB');result=ai.statusJob(args.id);break;
+      case 'ai.cancel':if(typeof args.id!=='string')throw new Error('INVALID_SETUP_JOB');ai.cancel(args.id);result={};break;
+      case 'ai.none':result=await ai.none();break;
+      case 'workspace.setupStatus':{const saved=await preferences.read('setup') as {workspaceIds?:string[]}|undefined;const snapshot=domain().getSnapshot();result={completed:saved?.workspaceIds?.includes(snapshot.workspaceId)??false,deviceId,deviceLabel:options.deviceLabel,ingestionDeviceId:snapshot.state.settings.ingestionDeviceId??null,people:snapshot.state.entities.filter(item=>item.type==='person').map(({id,label})=>({id,label})),userEntityId:options.userEntityId};break;}
+      case 'workspace.configure':{
+        if(typeof args.deviceLabel!=='string'||!args.deviceLabel.trim()||args.deviceLabel.length>80||!['keep','this_mac'].includes(String(args.ingestion))||typeof args.handoverConfirmed!=='boolean')throw new Error('INVALID_WORKSPACE_SETUP');
+        if(ingestionEnabled())throw new Error('Pause source ingestion before changing local identity.');
+        const state=domain().getSnapshot().state;let userEntityId=options.userEntityId;
+        if(args.ingestion==='this_mac'&&state.settings.ingestionDeviceId&&state.settings.ingestionDeviceId!==deviceId&&args.handoverConfirmed!==true)throw new Error('Confirm the ingestion move.');
+        const commands:{name:string;args:Record<string,unknown>}[]=[];
+        if(args.userEntityId!==undefined){if(typeof args.userEntityId!=='string'||!state.entities.some(item=>item.id===args.userEntityId&&item.type==='person'))throw new Error('Choose your person record.');userEntityId=args.userEntityId;}
+        else if(!state.entities.some(item=>item.id===userEntityId)){if(state.entities.some(item=>item.type==='person'))throw new Error('Choose which person is you in this workspace.');commands.push({name:'entity.create',args:{record:{id:userEntityId,type:'person',label:'You',aliases:[]}}});}
+        if(state.devices?.find(item=>item.id===deviceId)?.label!==args.deviceLabel)commands.push({name:'device.rename',args:{id:deviceId,label:args.deviceLabel}});
+        if(args.ingestion==='this_mac'&&state.settings.ingestionDeviceId!==deviceId)commands.push({name:'settings.setIngestionDevice',args:{ingestionDeviceId:deviceId}});
+        if(commands.length){const applied=await domain().execute({name:'command.apply',args:{commands},actor:'user'});if(!applied.ok)throw new Error(applied.error.message);}
+        await configureIdentity(userEntityId,args.deviceLabel);result={deviceId,userEntityId};break;
+      }
+      case 'workspace.finishSetup':{const snapshot=domain().getSnapshot();const saved=await preferences.read('setup') as {workspaceIds?:string[]}|undefined;await preferences.write('setup',{workspaceIds:[...new Set([...(saved?.workspaceIds??[]),snapshot.workspaceId])]});result={};break;}
       case 'mcp.install':if(args.confirmed!==true||!mcp.status().access.enabled)throw new Error('MCP_INSTALL_CONFIRMATION_REQUIRED');result=await new McpInstallation(path.join(os.homedir(),'Library','Application Support','Claude','claude_desktop_config.json'),process.execPath,fileURLToPath(new URL('./mcp.mjs',import.meta.url))).install();break;
       case 'mcp.status':result=mcp.status();break;
       case 'mcp.configure':result=await mcp.configure(args);break;

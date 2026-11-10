@@ -69,13 +69,15 @@ function projectChanges(snapshot: Snapshot, ops: ReturnType<Domain['preview']>['
 export class CommandPlanner {
   private controller: AbortController | undefined;
   private readonly plans = new Map<string, SavedPlan>();
-  constructor(private readonly domain: () => Domain, private readonly runtime: JsonModelRuntime, private readonly now = Date.now) {}
+  constructor(private readonly domain: () => Domain, private readonly runtime: JsonModelRuntime, private readonly now = Date.now, private readonly modelSnapshot: (snapshot:Snapshot,request:CommandRequest)=>Promise<Snapshot> = async snapshot=>snapshot) {}
   async plan(input: unknown, signal?: AbortSignal): Promise<CommandPlan> {
     const request = parseRequest(input);
     const snapshot = this.domain().getSnapshot();
-    const codec = new CommandIntentCodec(snapshot,request);
+    const literalCodec = new CommandIntentCodec(snapshot,request);
+    const literal = literalCodec.literal(request.prompt);
+    const codec = literal===undefined?new CommandIntentCodec(await this.modelSnapshot(snapshot,request),request):literalCodec;
     const frontier = JSON.stringify(snapshot.frontier);
-    const output = codec.literal(request.prompt) ?? await this.generate(codec,request,signal);
+    const output = literal ?? await this.generate(codec,request,signal);
     const commands = materialize(codec.decode(output));
     const id = randomUUID();
     const command = evidenceCommand(commands,request.prompt,id,this.now());
@@ -92,7 +94,7 @@ export class CommandPlanner {
     const controller = new AbortController(); this.controller = controller;
     let output: unknown;
     try { output = await this.runtime.generate({ system: codec.instructions, input: JSON.stringify({ context: codec.context, request: request.prompt }), schema: INTENT_SCHEMA, signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal }); }
-    catch { throw new Error((controller.signal.aborted || signal?.aborted) ? 'Planning cancelled. Your request is kept.' : 'Local AI is unavailable or took too long. Check Ollama, then try again.'); }
+    catch { throw new Error((controller.signal.aborted || signal?.aborted) ? 'Planning cancelled. Your request is kept.' : 'AI is unavailable or took too long. Check Local AI settings, then try again.'); }
     finally { if (this.controller === controller) this.controller = undefined; }
     return output;
   }

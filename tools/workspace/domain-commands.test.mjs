@@ -72,6 +72,7 @@ const catalogCases = {
   'question.defer': f => ({ id: state(f).questions[0].id, deferredUntil: '2026-12-01T00:00:00Z' }), 'question.markObsolete': f => ({ id: state(f).questions[0].id }),
   'field.protect': () => ({ target: { kind: 'node', id: nodeId(1) }, field: 'title' }), 'field.unprotect': () => ({ target: { kind: 'initiative', id: id('01') }, field: 'moscow' }),
   'suggestion.reject': () => ({ signature: 'synthetic:rejected', untilNewEvidence: false }),
+  'device.rename': f => ({id:f.ports.deviceId,label:'Renamed synthetic Mac'}),
   'device.register': () => ({ record: { id: nextRecordId('0d'), label: 'Synthetic device' } }),
   'settings.setIngestionDevice': () => ({ ingestionDeviceId: id('0d', 2) }), 'settings.setDefaultCachePolicy': () => ({ defaultCachePolicy: 'none' }),
 };
@@ -323,4 +324,10 @@ test('alignment retains supporting evidence on the link and leaves MoSCoW intact
   const after=state(f).initiatives.find(item=>item.id===before.id);
   expect(after.objectiveLinks.find(link=>link.objectiveId===objectiveId)).toMatchObject({alignment:4,setBy:'ai',evidenceRefs});
   expect(after.moscow).toBe(before.moscow);
+});
+
+test('MCP undo cannot change trusted device or ingestion settings',async()=>{
+ for(const [name,args]of [['device.rename',{id:id('0d',1),label:'Synthetic renamed Mac'}],['settings.setDefaultCachePolicy',{defaultCachePolicy:'none'}]]){
+ const f=setup();if(name==='device.rename')args.id=f.ports.deviceId;const changed=passed(await f.execute(name,args));denied(await f.execute('change.undo',{eventId:changed.eventId},{actor:'mcp',idempotencyKey:'synthetic-trusted-undo'}),'POLICY_DENIED');
+ }
 });

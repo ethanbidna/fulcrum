@@ -68,6 +68,7 @@ export async function startCoreServer(options: ServerOptions) {
           case 'administration': if (!host.administer) throw new Error('ADMINISTRATION_UNAVAILABLE'); result = await host.administer(String(params.name), params.args); break;
           case 'system.observe': if (!host.observeSystem) throw new Error('SYSTEM_SIGNALS_UNAVAILABLE'); host.observeSystem(params); result = {}; break;
           case 'background.configure': if (!host.configureBackground) throw new Error('BACKGROUND_UNAVAILABLE'); result = host.configureBackground(params); break;
+          case 'shutdown': result={closing:true};setImmediate(()=>{void close();});break;
           case 'health': result = { ready: true }; break;
           case 'query': result = await host.query(String(params.name), params.args); break;
           case 'execute': result = await host.execute(validateCommand(params)); break;

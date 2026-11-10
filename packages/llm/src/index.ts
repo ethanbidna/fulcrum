@@ -42,3 +42,10 @@ export class OllamaModelRuntime extends StructuredModelRuntime {
   }
 }
 export { startBackgroundOllama } from './background-process.js';
+export { MODEL_CATALOG, CATALOG_REVISION, OLLAMA_RELEASE } from './model-catalog.js';
+export { detectModelHardware } from './hardware.js';
+export { ManagedOllama, requiredModelDisk } from './managed-ollama.js';
+export type { ModelProgress } from './managed-ollama.js';
+export { NativeProviderSecrets } from './provider-secrets.js';
+export type { ProviderSecrets } from './provider-secrets.js';
+export { AnthropicJsonRuntime } from './anthropic.js';

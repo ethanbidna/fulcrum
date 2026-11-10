@@ -1,3 +1,4 @@
+import type {AiSetupStatus,AiJob,AiProfile,OriginPreference}from'./setup-types.js';
 import type { WorkspaceStateDoc } from '@fulcrum/schema';
 export type BackupFrequency = 'disabled' | 'daily' | 'weekly';
 export interface LocalBackup { kind: 'manual' | 'daily' | 'weekly'; id: string; workspaceId: string; createdAt: string; eventCount: number; lastHlc: string | null }
@@ -14,6 +15,15 @@ export interface AdministrationArgs {
   'mcp.configure': Partial<McpConfiguration>;
   'mcp.activity': Record<string, never>;
   'mcp.install': {confirmed:boolean};
+  'ai.status':Record<string,never>;
+  'ai.preferences':{preference:OriginPreference};
+  'ai.start':{choiceId:string;licenseAccepted:boolean;sharingAcknowledged?:boolean;apiKey?:string;initiativeIds?:string[];dailyTokenBudget?:number};
+  'ai.job':{id:string};
+  'ai.cancel':{id:string};
+  'ai.none':Record<string,never>;
+  'workspace.setupStatus':Record<string,never>;
+  'workspace.configure':{deviceLabel:string;ingestion:'keep'|'this_mac';handoverConfirmed:boolean;userEntityId?:string};
+  'workspace.finishSetup':Record<string,never>;
   status: Record<string, never>;
   'backup.create': Record<string, never>;
   'backup.configure': {frequency: BackupFrequency};
@@ -26,6 +36,15 @@ export interface AdministrationResults {
   'mcp.configure': McpConfiguration;
   'mcp.activity': McpActivityEntry[];
   'mcp.install': {configurationFile:string};
+  'ai.status':AiSetupStatus;
+  'ai.preferences':OriginPreference;
+  'ai.start':{id:string};
+  'ai.job':AiJob;
+  'ai.cancel':Record<string,never>;
+  'ai.none':AiProfile;
+  'workspace.setupStatus':{completed:boolean;deviceId:string;deviceLabel:string;ingestionDeviceId:string|null;people:{id:string;label:string}[];userEntityId:string};
+  'workspace.configure':{deviceId:string;userEntityId:string};
+  'workspace.finishSetup':Record<string,never>;
   status: LocalConfiguration;
   'backup.create': LocalBackup;
   'backup.configure': {frequency: BackupFrequency};

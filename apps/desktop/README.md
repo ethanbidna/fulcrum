@@ -192,14 +192,10 @@ Task view, “this task” continues to mean the focused Task after deselection.
 Manual attributes/state controls remain under Edit directly in the inspector.
 There is no ongoing chat transcript.
 
-For model-generated requests, run an existing Ollama installation locally with
-an installed approved model. The provisional default is
-`qwen3:4b-instruct-2507-q4_K_M`; the core startup option `--command-model`
-selects another approved installed model. This app does not download models or
-start Ollama. The runtime driver fixes loopback HTTP, refuses redirects and
-bounds requests to two minutes; generation speed/interpretation remain model
-and hardware dependent. Exact named rename requests resolve without inference.
-An unavailable, invalid or cancelled plan keeps the request and writes nothing.
+For model-generated requests, configure a model in Settings → Local AI. AI starts off; the former
+`--command-model` override is rejected. P2 uses a separate managed runtime and
+does not adopt an existing benchmark server or global weights. See
+[the setup review](../../docs/reviews/P2.md).
 
 Examples in the synthetic Vendor evaluation fixture:
 

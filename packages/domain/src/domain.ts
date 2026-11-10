@@ -200,6 +200,7 @@ export class Domain {
       const proof = command.actor === 'ai' ? this.ports.reconciliationProof?.(invocation) : undefined;
       if (proof?.commitmentAssertion) tx.create('assertion', proof.commitmentAssertion);
       if (invocation.name === 'question.raise') this.validateQuestionChoices(object(invocation.args.record) as unknown as Question, command.actor);
+      if(invocation.name==='device.rename'&&(command.actor!=='user'||invocation.args.id!==this.ports.deviceId))throw new DomainFault('POLICY_DENIED','Only the local user can rename this device');
       handleCommand(tx, invocation, { actor: command.actor, ...(command.evidenceRefs ? { evidenceRefs: command.evidenceRefs } : {}), now, apply });
       this.validateErrors(this.ports.validateState({ ...this.replay.document, state: tx.state }));
       const ops = tx.ops.slice(start);
@@ -310,6 +311,7 @@ export class Domain {
     const targets = command.name === 'change.undo' ? this.replay.events.filter(event => event.eventId === text(command.args.eventId))
       : this.replay.events.filter(event => event.runId === text(command.args.runId));
     if (!targets.length) throw new DomainFault('NOT_FOUND', 'Undo target not found');
+    if(command.actor==='mcp'&&targets.some(target=>target.ops.some(op=>['device','settings'].includes(op.kind))))throw new DomainFault('POLICY_DENIED','Local configuration requires the local user',{rule:PolicyRule.McpScope});
     if (targets.some(target => this.replay.events.some(event => event.undoOf === target.eventId))) throw new DomainFault('STALE_BASE', 'Change was already undone');
     const state = clone(this.state); const writers = new Map(this.replay.writers); const logicalWriters = new Map(writers);
     const drafts: EventDraft[] = [];

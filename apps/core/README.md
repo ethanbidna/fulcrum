@@ -1,8 +1,8 @@
 # Core process (C6)
 
 The core owns a portable workspace and its local profile lock, schema-validated
-Domain commands, projections and subscriptions. It performs no model inference,
-connector calls, ingestion scheduling or telemetry.
+Domain commands, projections and subscriptions. Model setup is off by default; optional inference and ingestion run only through
+explicit configuration. There is no telemetry.
 
 Build with Node 22 and `pnpm --filter @fulcrum/core build`. The output is
 `apps/core/dist/core.mjs` plus `dist/schemas/v1/`. Keep the schemas beside the
@@ -19,8 +19,8 @@ Omit `--create` for an existing workspace. Reuse the same configured user UUID o
 later launches. These are trusted launcher settings, never source content or RPC
 arguments. The production profile is the user's `Library/Application Support/Fulcrum`
 directory. One core owns that profile at a time. A second launch fails rather
-than removing a live core's socket. The wizard and native client launcher remain
-later application wiring.
+than removing a live core's socket. The native wizard selects folders and starts the bundled core. P5 supplies its
+standalone distribution; native/Keychain acceptance remains an owner check.
 
 `KeychainSecretStore` reads or creates a generic password for service
 `Fulcrum.Core`, account `local-client`. The core never prints it or writes it into
@@ -94,3 +94,10 @@ Search uses the same query channel: `search` with `{text, scope?}`, and
 rebuilds on validated external reloads. Cache errors do not revoke writes.
 The launcher emits count-only JSON `index-progress` records before `READY` so
 a native launcher can display rebuild counts. See `packages/index/README.md`.
+
+## Guided model setup
+
+Production model choice is now in Settings → Local AI, initially off; the old
+`--command-model` production override is rejected. The same chooser is used by
+onboarding. See docs/reviews/P2.md for managed downloads and optional hosted
+scope/budget/Keychain acceptance. Browser development cannot store provider keys.

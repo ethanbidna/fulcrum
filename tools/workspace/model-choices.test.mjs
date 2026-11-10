@@ -1,0 +1,5 @@
+import{expect,test}from'vitest';import{filterModelChoices}from'../../packages/domain/src/setup-types.ts';
+const choice=(id,developerCountry,baseDeveloperCountry=developerCountry)=>({id,name:id,developer:id,license:'Synthetic',processingLocation:'On this Mac',developerCountry,baseDeveloperCountry});
+test('origin filters never relax exclusions or infer domestic preference; derivatives include the base developer',()=>{
+ const choices=[choice('Domestic','US'),choice('Foreign','CN'),choice('Unknown',null),choice('Derivative','US','CN')];const preference={homeCountry:'',domesticOnly:false,excludedCountries:[],search:''};expect(filterModelChoices(choices,preference)).toHaveLength(4);expect(filterModelChoices(choices,{...preference,domesticOnly:true})).toEqual([]);expect(filterModelChoices(choices,{...preference,homeCountry:'US',domesticOnly:true}).map(item=>item.id)).toEqual(['Domestic']);expect(filterModelChoices(choices,{...preference,excludedCountries:['CN']}).map(item=>item.id)).toEqual(['Domestic','Unknown']);expect(filterModelChoices(choices,{...preference,search:'missing'})).toEqual([]);
+});

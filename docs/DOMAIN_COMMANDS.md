@@ -240,3 +240,11 @@ list (open by default) with initiative titles, exact context links and evidence.
 Original links allow HTTP(S) without embedded credentials. Excerpts honor source
 cache policy and referenced ranges; event and learned timestamps stay distinct.
 This adds no persisted fields. Answer/defer/undo still use the existing commands.
+
+### Device setup
+
+`device.rename({id,label})` renames only this device under local user authority.
+Onboarding batches it with self-person creation and ingestion designation through
+`command.apply`. The existing v1 device label/ops contract is unchanged. MCP
+cannot directly issue device/settings commands or undo events containing those
+trusted configuration changes.
