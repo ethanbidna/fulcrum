@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "completed",
+  "hardwareAcceptance": false,
+  "fixtureSha256": "e5e8bb041b0528bda29ed588255271ad02bbbf33cbc8f3b12637acbe0f6b8a6b",
+  "architecture": "x86_64",
+  "pythonVersion": "3.12.8",
+  "native": {
+    "schemaVersion": 1,
+    "implementation": "native-sqlite",
+    "fixtureSha256": "e5e8bb041b0528bda29ed588255271ad02bbbf33cbc8f3b12637acbe0f6b8a6b",
+    "episodeCount": 48,
+    "setupMs": 14.153201000000003,
+    "ingestMs": 45.265973,
+    "queryMs": 9.876285999999993,
+    "rebuildMs": 6.198971999999998,
+    "episodesPerMinute": 63623.94993696479,
+    "llmRequests": 0,
+    "embeddingRequests": 0,
+    "processPeakRssBytes": 39407616,
+    "quality": {
+      "queryCount": 7,
+      "correct": 7,
+      "accuracy": 1.0,
+      "unsafeResolutions": 0
+    }
+  },
+  "graphitiMeasured": false
+}

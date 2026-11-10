@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "architecture": "x86_64",
+  "storeReady": false,
+  "inferenceRequested": false,
+  "hardwareAcceptance": false,
+  "failureClass": "OSError",
+  "errorNumber": 86
+}

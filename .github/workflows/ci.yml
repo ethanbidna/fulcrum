@@ -20,6 +20,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --project spikes/s3 --frozen
+      - run: uv run --project spikes/s3 python spikes/s3/check_clients.py
+      - run: python3 -m unittest discover -s spikes/s3 -p 'test_*.py'
+      - run: pnpm exec tsc --project spikes/s3/tsconfig.json
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check:ui
       - run: git diff --exit-code -- schemas/v1 packages/schema/src

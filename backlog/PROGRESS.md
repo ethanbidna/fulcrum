@@ -17,7 +17,7 @@ Steps done since last audit: 3
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
-| 8 | S3 Graphiti | todo | [ ] | | |
+| 8 | S3 Graphiti | waiting-owner | [ ] | | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
 | 9 | Decision checkpoint | todo | n/a | | Merging the PR is the approval |
 | 10 | C2 invariants and policy | done | n/a | #45 | TypeScript invariants, affected validation, P1–P12 policy and golden projections; model-independent sequencing authorized |
 | 11 | C3 commands, events, undo | done | n/a | #46 | Shared command API, atomic events and question resolutions, compensating undo, retry safety and replay checks |
@@ -248,3 +248,12 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 ### Step 37 — P5 signed releases
 
 Follow [P5 release procedure](../docs/reviews/P5.md): configure release-environment secrets/public key, dispatch the workflow, inspect notarized universal artifacts, test clean-user launch and signed update/cancellation/failure, record results, then tick the Owner box for step 37. No release was signed or published by the implementation.
+
+### Step 8 — S3 Graphiti comparison
+
+Follow [the S3 procedure](../spikes/s3/README.md): install the isolated locked
+Python environment, run the no-inference store probe, then repeated explicit
+local-model/native comparisons only after a supported store exists and S2 is
+finished. Review count-only reports and observations in docs/spikes/S3-results,
+update docs/spikes/S3.md and ADR-0004, then tick the Owner box for step 8. The
+current Intel store failure is not a successful Graphiti measurement.
