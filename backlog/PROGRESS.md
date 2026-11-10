@@ -47,7 +47,7 @@ Steps done since last audit: 3
 | 34 | P2 first-run wizard | waiting-owner | [ ] | #79 | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
-| 37 | P5 signing, notarization, updates | todo | [ ] | | |
+| 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
 ## Owner to-do
 
@@ -244,3 +244,7 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 - 2026-11-09 — Recurring audit through I3 / #62: one confirmed handover-dedupe schema mismatch filed as #63; no implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-09-product.md). Audit PR #64; owner checks and model adoption remain pending.
 
 - 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR #48; owner checks remain unchanged.
+
+### Step 37 — P5 signed releases
+
+Follow [P5 release procedure](../docs/reviews/P5.md): configure release-environment secrets/public key, dispatch the workflow, inspect notarized universal artifacts, test clean-user launch and signed update/cancellation/failure, record results, then tick the Owner box for step 37. No release was signed or published by the implementation.

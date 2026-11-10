@@ -30,3 +30,18 @@ License: **MIT** ([ADR-0010](decisions/0010-license.md)). Rationale: the repo co
 
 - `assets/fulcrum-mark.svg` — original geometric mark created for this project (beam on a triangular pivot, point above). Released under the repository license.
 - No Star Wars names, insignia, fonts or artwork anywhere in the repo, app or marketing.
+
+## P5 generated release notices
+
+`tools/release/notices.mjs` audits the production JavaScript dependency closure,
+filtered macOS Cargo closure and exact-version Node runtime notices. Unknown
+license expressions or absent notice text fail the release job. It includes
+upstream license/notice text, source archive URLs and metadata attributions;
+`tools/release/licenses/overrides.json` pins supplemental upstream texts by
+package version and hash for crates that omit them. ELK's EPL-2.0 option is used;
+its exact published source URL remains in the bundle. MPL dependencies likewise
+retain source URLs. No dependency is modified. Re-review overrides when updating
+those packages. This automates inventory, not legal approval of future licenses.
+
+P2 downloads Ollama/weights only after explicit consent; P5 does not redistribute
+them. Graphiti/FalkorDB are not included. The system font remains unbundled.

@@ -95,7 +95,7 @@ fn ensure_saved(app: &tauri::AppHandle, core: &CoreSocket, profile: &Value) -> R
     if !directory.is_absolute() || user.len() != 36 { return Err("LOCAL_PROFILE_INVALID".into()); }
     launch(app, core, &directory, user, label, false)
 }
-fn stop_core(core: &CoreSocket) -> Result<(), String> {
+pub(super) fn stop_core(core: &CoreSocket) -> Result<(), String> {
     core.stop(); if let Ok(mut client) = core.connect() { client.request("shutdown", json!({}))?; } else { return Ok(()); }
     let started = Instant::now(); while core.profile.join("core.sock").exists() { if started.elapsed() >= STARTUP_TIMEOUT { return Err("CORE_SWITCH_TIMEOUT".into()); } std::thread::sleep(POLL_INTERVAL); } Ok(())
 }

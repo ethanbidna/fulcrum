@@ -50,3 +50,17 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
         return strdup([[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding].UTF8String);
     }
 }
+
+int fulcrum_update_dialog(const char *message, int confirm) {
+    __block int accepted = 0;
+    void (^show)(void) = ^{
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = @"Fulcrum updates";
+        alert.informativeText = [NSString stringWithUTF8String:message];
+        [alert addButtonWithTitle:confirm ? @"Install and restart" : @"OK"];
+        if (confirm) [alert addButtonWithTitle:@"Cancel"];
+        accepted = [alert runModal] == NSAlertFirstButtonReturn;
+    };
+    if ([NSThread isMainThread]) show(); else dispatch_sync(dispatch_get_main_queue(), show);
+    return accepted;
+}

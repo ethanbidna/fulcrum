@@ -1,7 +1,7 @@
+import { releaseLaunch } from './release-paths.js';
 import type {AiSetup}from'./ai-setup.js';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { McpInstallation } from '@fulcrum/store';
 import type { Domain, AdministrationName, AdministrationArgs, AdministrationResults, LocalConfiguration } from '@fulcrum/domain';
 import { WorkspaceArchives, LocalPreferences } from '@fulcrum/store';
@@ -51,7 +51,7 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
         await configureIdentity(userEntityId,args.deviceLabel);result={deviceId,userEntityId};break;
       }
       case 'workspace.finishSetup':{const snapshot=domain().getSnapshot();const saved=await preferences.read('setup') as {workspaceIds?:string[]}|undefined;await preferences.write('setup',{workspaceIds:[...new Set([...(saved?.workspaceIds??[]),snapshot.workspaceId])]});result={};break;}
-      case 'mcp.install':if(args.confirmed!==true||!mcp.status().access.enabled)throw new Error('MCP_INSTALL_CONFIRMATION_REQUIRED');result=await new McpInstallation(path.join(os.homedir(),'Library','Application Support','Claude','claude_desktop_config.json'),process.execPath,fileURLToPath(new URL('./mcp.mjs',import.meta.url))).install();break;
+      case 'mcp.install':if(args.confirmed!==true||!mcp.status().access.enabled)throw new Error('MCP_INSTALL_CONFIRMATION_REQUIRED');result=await new McpInstallation(path.join(os.homedir(),'Library','Application Support','Claude','claude_desktop_config.json'),releaseLaunch('mcp').command,releaseLaunch('mcp').args).install();break;
       case 'mcp.status':result=mcp.status();break;
       case 'mcp.configure':result=await mcp.configure(args);break;
       case 'mcp.activity':result=await mcp.activity();break;
