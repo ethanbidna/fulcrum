@@ -182,7 +182,7 @@ export class Domain {
       const proof = command.actor === 'ai' ? this.ports.reconciliationProof?.(invocation) : undefined;
       if (proof?.commitmentAssertion) tx.create('assertion', proof.commitmentAssertion);
       if (invocation.name === 'question.raise') this.validateQuestionChoices(object(invocation.args.record) as unknown as Question, command.actor);
-      handleCommand(tx, invocation, { actor: command.actor, now, apply });
+      handleCommand(tx, invocation, { actor: command.actor, ...(command.evidenceRefs ? { evidenceRefs: command.evidenceRefs } : {}), now, apply });
       this.validateErrors(this.ports.validateState({ ...this.replay.document, state: tx.state }));
       const ops = tx.ops.slice(start);
       const requested = tx.requested.slice(writeStart);

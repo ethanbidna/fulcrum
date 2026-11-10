@@ -43,3 +43,6 @@ export type { ContextEvidence, EvidenceScope, EvidenceTarget } from './evidence-
 
 export { projectTimeline } from './timeline-projections.js';
 export type { TimelineView, TimelineItem } from './timeline-projections.js';
+
+export { projectPriorities } from './priority-projections.js';
+export type { PriorityLink, PriorityRow } from './priority-projections.js';

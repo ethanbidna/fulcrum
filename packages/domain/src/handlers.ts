@@ -1,4 +1,4 @@
-import type { Actor, CommandInvocation, RecordKind, Target } from '@fulcrum/schema';
+import type { Actor, CommandInvocation, EvidenceRef, RecordKind, Target } from '@fulcrum/schema';
 import type { CommandName, DataRecord } from './commands.js';
 import { DomainFault, object, text, validateInvocation } from './commands.js';
 import { SYNC_FIELDS } from './sync-questions.js';
@@ -21,6 +21,7 @@ const SET_FIELDS: Partial<Record<CommandName, string>> = {
 };
 export interface HandlerContext {
   actor: Actor;
+  evidenceRefs?: EvidenceRef[];
   now: string;
   apply(command: CommandInvocation): void;
 }
@@ -58,7 +59,7 @@ export function handleCommand(tx: Transaction, command: CommandInvocation, conte
     case 'initiative.rerank': return rerankInitiatives(tx, args.ranks);
     case 'objective.rerank': return rerank(tx, args.ranks);
     case 'objective.delete': return deleteObjective(tx, text(args.id));
-    case 'alignment.set': return setAlignment(tx, args, context.actor);
+    case 'alignment.set': return setAlignment(tx, args, context);
     case 'question.raise': return raiseQuestion(tx, args.record, context);
     case 'sync.chooseValue': {
       if (!['user', 'mcp'].includes(context.actor)) throw new DomainFault('POLICY_DENIED', 'Sync choices require user authority');
@@ -177,10 +178,10 @@ function deleteObjective(tx: Transaction, id: string) {
   }
   tx.remove('objective', id);
 }
-function setAlignment(tx: Transaction, args: DataRecord, actor: Actor) {
+function setAlignment(tx: Transaction, args: DataRecord, context: HandlerContext) {
   const id = text(args.initiativeId); const objectiveId = text(args.objectiveId); tx.get('objective', objectiveId);
   const links = (tx.get('initiative', id).objectiveLinks ?? []) as { objectiveId: string }[];
-  tx.set('initiative', id, 'objectiveLinks', [...links.filter(link => link.objectiveId !== objectiveId), { objectiveId, alignment: args.alignment, setBy: actor }]);
+  tx.set('initiative', id, 'objectiveLinks', [...links.filter(link => link.objectiveId !== objectiveId), { objectiveId, alignment: args.alignment, setBy: context.actor, ...(context.evidenceRefs?.length ? { evidenceRefs: context.evidenceRefs } : {}) }]);
 }
 function raiseQuestion(tx: Transaction, value: unknown, context: HandlerContext) {
   const question: DataRecord = { createdAt: context.now, state: 'open', ...object(value) };
