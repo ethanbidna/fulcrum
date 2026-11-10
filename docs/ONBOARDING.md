@@ -67,6 +67,13 @@ A successful self-test proves compatibility, not production extraction accuracy.
 Install app → "Open an existing workspace" → pick the synced folder → name this Mac → viewer/editor mode. Indexes rebuild locally (progress shown). No credentials are copied; sources stay on the ingestion Mac. AI for interactive
 commands may be configured separately on this Mac. Golden scenario 9.
 
+For future encrypted workspaces, [P6's design](ENCRYPTION.md) adds a native
+Import recovery key step before state or indexes open. Keys do not sync with
+the workspace; the owner transfers the saved recovery card out of band. Setup
+must verify a saved card before enabling encryption. A missing key offers
+import/cancel, never replacement or a blank portfolio. This flow is planned,
+not implemented; current readers refuse encrypted workspaces.
+
 ## Prerequisite reality check
 
 | Component | Path for a non-technical user | Risk |
@@ -77,4 +84,7 @@ commands may be configured separately on this Mac. Golden scenario 9.
 
 ## Uninstall
 
-Settings → Privacy & Data → "Remove Fulcrum data from this Mac" deletes machine-local data and Keychain items. The workspace folder is left untouched (it is the user's file) unless they explicitly choose to delete it.
+Settings → Privacy & Data → "Remove Fulcrum data from this Mac" deletes machine-local data and Keychain items. The workspace folder is left untouched (it is the user's file) unless they explicitly choose to delete it. Under the planned P6 flow, deleting
+workspace-key items requires a warning and recovery confirmation; losing every
+key/card makes encrypted copies unrecoverable. No such key-management behavior
+is implemented by the design step.
