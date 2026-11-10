@@ -38,7 +38,7 @@ Steps done since last audit: 3
 | 25 | I2 first real connector | blocked | [ ] | #67 | S4 / step 6 owner results and selected Activepieces execution route are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
 | 26 | U6 context view | todo | n/a | | |
 | 27 | U7 timeline | todo | n/a | | |
-| 28 | A1 questions engine | done | n/a | pending | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
+| 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
 | 29 | U8 Questions Center | todo | [ ] | | |
 | 30 | A2 priorities and KPIs | todo | n/a | | |
 | 31 | P3 background, sleep/wake, resources | todo | [ ] | | |
