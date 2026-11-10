@@ -41,7 +41,7 @@ Steps done since last audit: 3
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
 | 29 | U8 Questions Center | waiting-owner | [ ] | #69 | Grouped/scoped question review, contextual inspector actions, evidence links, defer and undo; automated/browser checks pass; owner usability review pending |
 | 30 | A2 priorities and KPIs | todo | n/a | | |
-| 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
+| 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | #70 | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
 | 32 | P4 settings, backup, hand-over | todo | n/a | | |
 | 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
 | 34 | P2 first-run wizard | todo | [ ] | | ADR-0018 adds model/origin choices, managed downloads and optional API keys; requirements only, implementation pending |
