@@ -18,45 +18,37 @@ Creation tools describe the required fields and states; validation remains in
 the domain. Manual and conversational edits preserve the same field protections.
 Others' work is a Dependency, never an assigned Task.
 
-## Developer preview
+## Setup
 
-Node 22 and `pnpm --filter @fulcrum/core build` produce `apps/core/dist/core.mjs`
-and `mcp.mjs`. Start the core using the existing apps/core/README.md procedure.
-The stdio adapter requires that core to be running; automatic startup and bundle
-installation remain P1 work. Do not connect the development browser bridge.
+Use Settings → MCP to acknowledge provider sharing, enable access and select
+read-only/write mode, initiative/category scope, excerpts and question visibility.
+Changes take effect without restarting. Missing local configuration disables MCP.
+No MCP tool can change sharing settings or install a client.
 
-Before any client setup, review the disclosure: **an MCP client may send every
-returned work record to its AI provider. Fulcrum's local execution does not keep
-that client's processing local.** This preview supports the whole workspace,
-with no source excerpts. Selected initiative/category scopes and excerpt opt-in
-are not available yet; use a disposable synthetic workspace for this preview.
+The confirmed Add to Claude Desktop action merges the Fulcrum launch entry and
+backs up the original configuration. Existing servers remain. Restart Claude
+Desktop afterward. The shim reads the Keychain-held secret and connects to the
+core; if needed it launches the bundled core from the private saved workspace
+profile. The production package is supplied by P5. Building this adapter does
+not enable sharing and does not prove native/Claude Desktop behavior.
 
-Access is configured only by the local user in the machine-local Fulcrum
-application-support directory, outside the portable workspace. The optional
-`mcp-access.json` must be a regular owner-only 0600 file containing exactly:
+For developer builds, Node 22 and `pnpm --filter @fulcrum/core build` produce
+`apps/core/dist/core.mjs` and `mcp.mjs`. Launch the core using
+`apps/core/README.md`; configure sharing in the connected UI. The installer uses
+that built runtime and entry point. Do not commit generated client paths.
 
-```json
-{"enabled":true,"readOnly":true,"sharingAcknowledged":true}
-```
+Read tools include list/get initiatives, graph, evidence, questions, objectives,
+search and history. Generated command tools use `args` and `idempotencyKey`;
+plain aliases such as `create_node`, `set_moscow` and `undo` use the same shape.
+The advertised JSON schema is authoritative. Legacy `read_workspace` remains.
+Scoped board/rail queries are denied; list/get/graph expose permitted records.
+Cross-scope references deny a view rather than leak hidden work. Retained source
+excerpts require opt-in and use `untrustedExcerpt` with a quotation notice.
 
-Do not create it until accepting the disclosure. Restart the core after changing
-it. `readOnly:false` explicitly enables writes; missing configuration disables
-all MCP reads and writes. Remove the file and restart to disable. The adapter
-cannot change these settings. Client configuration launches Node 22 with the
-absolute built `mcp.mjs` path and no credential arguments; the shim reads the
-existing Keychain secret. Do not commit generated paths or client configuration.
-No live Keychain/client setup is performed by tests.
+MCP calls are logged without argument text, with outcomes and returned IDs.
+Settings shows recent local activity; successful writes use actor MCP in History.
+Elicitation-capable clients get confirmation before writes; other clients still
+require explicitly enabled write access. Current/legacy SDK integration is
+tested, but actual client presentation remains an owner check.
 
-The core's local `mcp-access.log` records time and requested tool, without argument
-content. Rich activity UI, returned-record ID logging and scoped settings remain
-P1 work. History records successful writes as actor mcp; source/assertion history
-payloads and search excerpts are withheld from this preview.
-
-## Verification
-
-The protocol integration tests use the official MCP client/server, a real private
-Unix socket, and disposable file-backed workspaces. They cover create/read/edit,
-retry, undo, actor attribution, disabled/read-only rejection and actor spoofing.
-A separate regression compares exact manual/conversational domain operations.
-This proves the command path, not a particular model's interpretation or an
-actual Claude Desktop session. P1 and its Owner check remain incomplete.
+See [P1 verification and owner procedure](../../docs/reviews/P1.md).

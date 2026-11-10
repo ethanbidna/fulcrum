@@ -10,6 +10,10 @@ export interface LocalConfiguration {
   ingestionEnabled: boolean; backupError: boolean; backupRetentionError?: boolean;
 }
 export interface AdministrationArgs {
+  'mcp.status': Record<string, never>;
+  'mcp.configure': Partial<McpConfiguration>;
+  'mcp.activity': Record<string, never>;
+  'mcp.install': {confirmed:boolean};
   status: Record<string, never>;
   'backup.create': Record<string, never>;
   'backup.configure': {frequency: BackupFrequency};
@@ -18,6 +22,10 @@ export interface AdministrationArgs {
   'background.configure': {paused?: boolean; onlyWhenPluggedIn?: boolean};
 }
 export interface AdministrationResults {
+  'mcp.status': {access: McpConfiguration; initiatives: {id:string;title:string}[]; categories: {id:string;name:string}[]};
+  'mcp.configure': McpConfiguration;
+  'mcp.activity': McpActivityEntry[];
+  'mcp.install': {configurationFile:string};
   status: LocalConfiguration;
   'backup.create': LocalBackup;
   'backup.configure': {frequency: BackupFrequency};
@@ -26,3 +34,10 @@ export interface AdministrationResults {
   'background.configure': {paused: boolean; onlyWhenPluggedIn: boolean};
 }
 export type AdministrationName = keyof AdministrationArgs;
+
+export interface McpConfiguration {
+  enabled: boolean; readOnly: boolean; sharingAcknowledged: boolean;
+  sourceExcerpts: boolean; questionsVisible: boolean;
+  initiativeIds?: string[]; categoryIds?: string[];
+}
+export interface McpActivityEntry { at: string; tool: string; outcome: 'requested'|'allowed'|'denied'|'failed'; recordIds: string[] }

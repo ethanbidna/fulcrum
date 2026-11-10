@@ -43,7 +43,7 @@ Steps done since last audit: 3
 | 30 | A2 priorities and KPIs | done | n/a | #76 | Tied objective ranks, optional weights/KPIs, canonical alignment and retained AI evidence; MoSCoW isolation and browser/domain checks |
 | 31 | P3 background, sleep/wake, resources | waiting-owner | [ ] | #70 | Native signals, configurable admission, queue cancellation and runtime limits; synthetic checks pass; Intel scenario 12 pending |
 | 32 | P4 settings, backup, hand-over | done | n/a | #77 | Eight settings routes, verified local backups/retention, fresh-identity restore, read-only historical views and handover; fixes #63; ADR-0022 container change; synthetic checks only |
-| 33 | P1 MCP server | todo | [ ] | #56 | Command adapter merged; full P1 scoped setup, packaging and owner acceptance pending |
+| 33 | P1 MCP server | waiting-owner | [ ] | #78 | Scoped live settings, disclosure/read-only/excerpt gates, private activity, confirmed client install, headless lifecycle and UI/MCP parity; packaged runtime and actual Claude check pending |
 | 34 | P2 first-run wizard | todo | [ ] | | ADR-0018 adds model/origin choices, managed downloads and optional API keys; requirements only, implementation pending |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | todo | n/a | | |
@@ -52,6 +52,21 @@ Steps done since last audit: 3
 ## Owner to-do
 
 Agents list the exact instructions for each `waiting-owner` step here, newest first. When finished, tick the step's **Owner** box above (edit this file on GitHub) and delete its entry below.
+
+### Step 33 — P1 Claude Desktop and headless review
+
+1. After P5 provides the signed application, install it in Applications and open
+   a disposable synthetic workspace. Follow [docs/reviews/P1.md](../docs/reviews/P1.md).
+2. In Settings → MCP, acknowledge sharing, enable read-only access, save and
+   confirm Add to Claude Desktop. Quit/reopen Claude Desktop. Check named read
+   tools, excluded scopes, excerpt opt-in, hidden questions and write denial.
+3. Enable writes explicitly; create/update/undo a synthetic Task. Check History
+   actor, activity and a declined confirmation when supported. Quit Fulcrum and
+   retry a client read to test packaged headless startup. Disable sharing and
+   verify denial; remove only the Fulcrum client entry afterward.
+4. Record app/client versions, results and blockers in `docs/reviews/P1.md`,
+   then tick the Owner box for step 33. Do not tick packaging or S6 checks from
+   synthetic SDK results. No credentials, real content or personal paths in git.
 
 ### Step 31 — P3 Intel resource review
 

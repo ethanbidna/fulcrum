@@ -3,7 +3,7 @@ import path from 'node:path';
 import { atomicFile, StoreError } from './files.js';
 const PRIVATE_MODE = 0o600;
 const MAX_PREFERENCE_BYTES = 64 * 1024;
-const FILES = { background: 'background-settings.json' } as const;
+const FILES = { background: 'background-settings.json', mcp: 'mcp-access.json', activeWorkspace: 'active-workspace.json' } as const;
 export class LocalPreferences {
   constructor(private readonly directory:string) {}
   async read(name:keyof typeof FILES):Promise<unknown|undefined>{

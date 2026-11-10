@@ -1,10 +1,14 @@
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { McpInstallation } from '@fulcrum/store';
 import type { Domain, AdministrationName, AdministrationArgs, AdministrationResults, LocalConfiguration } from '@fulcrum/domain';
 import { WorkspaceArchives, LocalPreferences } from '@fulcrum/store';
 import type { WorkspaceOptions } from './workspace.js';
 import type { BackgroundPolicy } from '@fulcrum/ingest';
 const STALE_DEVICE_MS = 7 * 24 * 60 * 60 * 1000;
-const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
-export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean) {
+const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
+export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>}) {
   const archives=await WorkspaceArchives.open({workspaceDirectory:options.workspaceDirectory,localDirectory:options.localDirectory,...(options.schemaDirectory?{schemaDirectory:options.schemaDirectory}:{})});
   let backupError=false;
   const preferences=new LocalPreferences(options.localDirectory);
@@ -25,6 +29,10 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
     if(!Object.hasOwn(ALLOWED_FIELDS,name)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!ALLOWED_FIELDS[name].includes(key)))throw new Error('INVALID_ADMINISTRATION_REQUEST');
     const args=input as Record<string,unknown>;let result:AdministrationResults[AdministrationName];
     switch(name){
+      case 'mcp.install':if(args.confirmed!==true||!mcp.status().access.enabled)throw new Error('MCP_INSTALL_CONFIRMATION_REQUIRED');result=await new McpInstallation(path.join(os.homedir(),'Library','Application Support','Claude','claude_desktop_config.json'),process.execPath,fileURLToPath(new URL('./mcp.mjs',import.meta.url))).install();break;
+      case 'mcp.status':result=mcp.status();break;
+      case 'mcp.configure':result=await mcp.configure(args);break;
+      case 'mcp.activity':result=await mcp.activity();break;
       case 'status':result=await status();break;
       case 'backup.create':result=await archives.backup();backupError=false;break;
       case 'backup.configure':await archives.configure(args.frequency as AdministrationArgs['backup.configure']['frequency']);result={frequency:await archives.cadence()};break;

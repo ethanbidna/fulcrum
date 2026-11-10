@@ -21,7 +21,7 @@ import type { GraphView } from './graph-projections.js';
 import { projectHistory } from './history-projections.js';
 import type { HistoryEntry, HistoryFilter } from './history-projections.js';
 import { projectPortfolio, projectRail, projectBoard } from './projections.js';
-import type { PortfolioCard, PortfolioRail, PortfolioBoard } from './projections.js';
+import type { PortfolioCard, PortfolioRail, PortfolioBoard, PortfolioFilter } from './projections.js';
 
 export interface QueryArgs {
   'priorities.list': Record<string, never>;
@@ -32,7 +32,7 @@ export interface QueryArgs {
   'questions.list': { initiativeId?: string; state?: Question['state'] };
   'search': { text: string; scope?: SearchScope };
   'status.index': Record<string, never>;
-  'portfolio.list': Record<string, never>;
+  'portfolio.list': PortfolioFilter;
   'portfolio.board': Record<string, never>;
   'portfolio.rail': { since?: string };
   'initiative.list': { initiativeId: string };
@@ -73,12 +73,13 @@ const QUERY_FIELDS: Record<QueryName, string[]> = {
   'questions.list': ['initiativeId', 'state'], 'questions.review': ['initiativeId', 'target', 'state'],
   'search': ['text', 'scope'], 'status.index': [],
   'initiative.list': ['initiativeId'], 'initiative.history': ['initiativeId'],
-  'portfolio.board': [], 'portfolio.list': [], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
+  'portfolio.board': [], 'portfolio.list': ['moscow','categoryId','lifecycle'], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
   'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'], 'inspector.get': ['target'],
 };
 export function validateQuery(name: QueryName, args: unknown) {
   const value = object(args);
   if (!Object.hasOwn(QUERY_FIELDS, name) || Object.keys(value).some(key => !QUERY_FIELDS[name].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Unknown query or query argument');
+  if(name==='portfolio.list'){if(value.moscow!==undefined&&!['must_do','should_do','could_do','wont_do'].includes(String(value.moscow)))throw new DomainFault('VALIDATION_FAILED','Invalid MoSCoW filter');if(value.lifecycle!==undefined&&!['active','paused','completed','archived','proposed','rejected'].includes(String(value.lifecycle)))throw new DomainFault('VALIDATION_FAILED','Invalid lifecycle filter');if(value.categoryId!==undefined)text(value.categoryId);}
   if (name === 'inspector.get' && !value.target) throw new DomainFault('VALIDATION_FAILED', 'An inspector target is required');
   if (name === 'inspector.get' && Object.keys(object(value.target)).some(key => !['kind', 'id'].includes(key))) throw new DomainFault('VALIDATION_FAILED', 'Invalid inspector target');
   if (name === 'search' && typeof value.text !== 'string') throw new DomainFault('VALIDATION_FAILED', 'Search text is required');
@@ -104,7 +105,7 @@ export function queryProjection<Q extends QueryName>(replay: Replay, name: Q, ar
     case 'questions.review': result = projectQuestionReview(state, args as QuestionReviewScope); break;
     case 'questions.list': result = state.questions.filter(question => (!value.initiativeId || question.initiativeId === value.initiativeId) && (!value.state || question.state === value.state)); break;
     case 'portfolio.board': result = projectBoard(state, projectHistory(replay), { now: now() }); break;
-    case 'portfolio.list': result = projectPortfolio(state); break;
+    case 'portfolio.list': result = projectPortfolio(state,args as PortfolioFilter); break;
     case 'portfolio.rail': result = projectRail(state, projectHistory(replay), { now: now(), ...(value.since === undefined ? {} : { since: text(value.since) }) }); break;
     case 'initiative.list': result = projectInitiativeList(state,text(value.initiativeId)); break;
     case 'initiative.history': result = projectInitiativeHistory(replay,text(value.initiativeId)); break;

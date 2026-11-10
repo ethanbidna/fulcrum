@@ -6,7 +6,8 @@ import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
 import { OllamaJsonRuntime } from '@fulcrum/llm';
 import type { JsonModelRuntime } from '@fulcrum/llm';
-import { createMcpAccess, validateMcpAccess } from './mcp-access.js';
+import { LocalPreferences, LocalMcpActivity } from '@fulcrum/store';
+import { createMcpAccess, validateMcpAccess, MCP_DEFAULTS } from './mcp-access.js';
 import type { McpAccess } from './mcp-access.js';
 import { randomUUID } from 'node:crypto';
 import { Domain } from '@fulcrum/domain';
@@ -32,7 +33,9 @@ function emptyState(workspaceId: string): WorkspaceStateDoc {
   return { v: 1, workspaceId, frontier: {}, state: { initiatives: [], categories: [], nodes: [], edges: [], groups: [], objectives: [], entities: [], sources: [], assertions: [], questions: [], rejections: [], devices: [], settings: {} } };
 }
 export async function openWorkspaceHost(options: WorkspaceOptions): Promise<CoreHost> {
-  if (options.mcp) validateMcpAccess(options.mcp);
+  const preferences = new LocalPreferences(options.localDirectory);
+  const mcpAccess = validateMcpAccess(options.mcp ?? await preferences.read('mcp') ?? MCP_DEFAULTS);
+  options = {...options, mcp:mcpAccess};
   const schema = options.schemaDirectory ? { schemaDirectory: options.schemaDirectory } : {};
   if (options.create) await FileWorkspaceStore.create(options.workspaceDirectory, new Date(), schema);
   const store = new FileWorkspaceStore({ localDirectory: options.localDirectory, deviceLabel: options.deviceLabel, ...schema });
@@ -154,7 +157,11 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, policy: background, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
   } catch (error) { stopWatching?.(); unsubscribe?.(); await context?.close(); await index?.close(); await store.close(); throw error; }
   let administration: Awaited<ReturnType<typeof openAdministration>>;
-  try { administration = await openAdministration(options, opened.deviceId, () => domain, background, () => ingestion?.scheduler.enabled() ?? false); }
+  try { administration = await openAdministration(options, opened.deviceId, () => domain, background, () => ingestion?.scheduler.enabled() ?? false, {
+    status:()=>({access:structuredClone(mcpAccess),initiatives:domain.getSnapshot().state.initiatives.map(({id,title})=>({id,title})),categories:domain.getSnapshot().state.categories.map(({id,label})=>({id,name:label}))}),
+    configure:async input=>{const next=validateMcpAccess(input);await preferences.write('mcp',next);for(const key of Object.keys(mcpAccess))delete (mcpAccess as unknown as Record<string,unknown>)[key];Object.assign(mcpAccess,next);return structuredClone(mcpAccess);},
+    activity:()=>new LocalMcpActivity(options.localDirectory).recent(),
+  }); }
   catch (error) { jobs.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const BACKUP_CHECK_INTERVAL_MS = 60_000;
   const backupTimer = setInterval(() => { void enqueue(() => administration.tick()).catch(() => undefined); }, BACKUP_CHECK_INTERVAL_MS);
@@ -170,7 +177,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       return ingestion?.scheduler.status() ?? { state: 'disabled', pending: 0, failed: 0, checkedAt: null, label: 'No source scopes enabled' };
     }
     return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
-  const mcp = createMcpAccess(options.mcp, { query, execute: command => executeAs(command, 'mcp') }, options.localDirectory);
+  const mcp = createMcpAccess(mcpAccess, { query: (name,args)=>enqueue(async()=>{await requireAvailable();return domain.queryMcp(name as QueryName,args as QueryArgs[QueryName],mcpAccess);}), execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
     administer: (name, args) => enqueue(async () => { await requireAvailable(); return administration.request(name as import('@fulcrum/domain').AdministrationName, args as never); }),
     observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },

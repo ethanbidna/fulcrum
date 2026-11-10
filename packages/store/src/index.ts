@@ -8,3 +8,6 @@ export { WorkspaceArchives } from './archive.js';
 export type { BackupCadence, BackupSummary, ArchiveOptions } from './archive.js';
 
 export { LocalPreferences } from './preferences.js';
+export { LocalMcpActivity } from './activity.js';
+export type { McpActivity } from './activity.js';
+export { McpInstallation } from './mcp-installation.js';
