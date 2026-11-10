@@ -124,3 +124,8 @@ work while their owner usability/hardware checks remain pending; this does not
 complete Owner boxes or accept models, connectors, sync or signing. The decision
 checkpoint still requires recorded feasibility results. Unavailable external
 acceptance checks must be reported separately from implementation work.
+
+The owner clarified on 2026-11-10: “Just do them; we'll test later.” Prepare
+all nine implementations and provisional decision work without waiting for
+measurement prerequisites. Keep actual hardware/client/signing/model results
+open; no unrun test is promoted to a pass and no model is adopted from mocks.

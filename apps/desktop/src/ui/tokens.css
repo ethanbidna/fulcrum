@@ -377,3 +377,27 @@ select { max-width: 100%; }
 .mcp-settings fieldset { display: grid; gap: var(--space-3); border: 1px solid var(--line); padding: var(--space-4); }
 .mcp-settings button { justify-self: start; }
 .mcp-settings p { max-width: 72ch; }
+.onboarding { max-width: 75ch; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+.setup-brand { font-weight: 600; font-size: 18px; margin-bottom: var(--space-6); }
+.setup-steps { display: flex; gap: var(--space-4); list-style: none; padding: 0; flex-wrap: wrap; color: var(--text-secondary); margin-bottom: var(--space-8); }
+.setup-steps [aria-current] { color: var(--accent); font-weight: 600; }
+.onboarding form, .ai-chooser, .ai-chooser form, .origin-filters { display: grid; gap: var(--space-4); }
+.onboarding label:not(.check-label):not(.model-option), .ai-chooser label:not(.check-label):not(.model-option) { display: grid; gap: var(--space-2); }
+.onboarding fieldset, .ai-chooser fieldset { min-width: 0; border: 1px solid var(--line-control); padding: var(--space-4); }
+.ai-chooser .model-choices { padding: 0; border: 0; }
+.model-option { display: flex; align-items: start; gap: var(--space-3); padding: var(--space-4) 0; border-bottom: 1px solid var(--line); }
+.model-option input { flex: 0 0 auto; width: auto; margin-top: var(--space-1); }
+.model-option > span { display: grid; gap: var(--space-1); }
+.model-option > span > span { color: var(--text-secondary); }
+.onboarding .check-label, .ai-chooser .check-label { margin-block: var(--space-3); }
+.onboarding button, .ai-chooser button { justify-self: start; }
+.onboarding > button, .onboarding form > button { margin-block: var(--space-3); margin-right: var(--space-3); }
+.setup-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+.model-details a, .ai-chooser a { color: var(--accent); text-decoration: underline; }
+.source-availability { list-style: none; padding: 0; }
+.source-availability li { display: flex; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-4); border-bottom: 1px solid var(--line); }
+.source-availability span { color: var(--text-secondary); }
+@media(max-width:600px) { .onboarding { padding: var(--space-6) var(--space-4); } .setup-steps { gap: var(--space-3); } }
+
+.origin-filters details > label, .origin-filters details > fieldset { margin-top: var(--space-4); }
+.origin-filters summary { cursor: pointer; color: var(--accent); }

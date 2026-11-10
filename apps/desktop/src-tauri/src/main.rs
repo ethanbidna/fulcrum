@@ -1,5 +1,6 @@
 mod socket;
 mod system;
+mod setup;
 use serde_json::Value;
 use std::net::Shutdown;
 use std::os::unix::fs::{FileTypeExt, MetadataExt};
@@ -93,6 +94,7 @@ fn core_profile(home: &std::path::Path) -> PathBuf {
     home.join("Library/Application Support/Fulcrum")
 }
 fn main() {
+    if let Some(code) = setup::keychain_mode() { std::process::exit(code); }
     let app = tauri::Builder::default()
         .setup(|app| {
             let home = app.path().home_dir()?;
@@ -100,6 +102,7 @@ fn main() {
             let core = Arc::new(CoreSocket { profile: core_profile(&home), owner, subscription: Mutex::new(None), generation: AtomicU64::new(0) });
             app.manage(system::SystemObserver::start(core.clone()));
             app.manage(core);
+            app.manage(Arc::new(setup::SetupState::default()));
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -109,7 +112,7 @@ fn main() {
                 let _ = window.hide();
             }
         })
-        .invoke_handler(tauri::generate_handler![core_request, core_subscribe, core_unsubscribe])
+        .invoke_handler(tauri::generate_handler![core_request, core_subscribe, core_unsubscribe, setup::setup_request])
         .build(tauri::generate_context!()).expect("Fulcrum shell startup failed");
     app.run(|app, event| {
         match event {

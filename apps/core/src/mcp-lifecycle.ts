@@ -21,8 +21,8 @@ export async function connectHeadless(localDirectory:string,secret:string,ports:
   const profile=await preferences.read('activeWorkspace');
   if(!profile||typeof profile!=='object'||Array.isArray(profile))throw new Error('MCP_WORKSPACE_REQUIRED');
   const fields=profile as Record<string,unknown>;
-  if(Object.keys(fields).some(key=>!['workspaceDirectory','userEntityId'].includes(key))||typeof fields.workspaceDirectory!=='string'||!path.isAbsolute(fields.workspaceDirectory)||typeof fields.userEntityId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(fields.userEntityId))throw new Error('MCP_WORKSPACE_REQUIRED');
-  ports.launch([fileURLToPath(new URL('./core.mjs',import.meta.url)),'--workspace',fields.workspaceDirectory,'--user-entity',fields.userEntityId]);
+  if(Object.keys(fields).some(key=>!['workspaceDirectory','userEntityId','deviceLabel','workspaceId'].includes(key))||typeof fields.workspaceDirectory!=='string'||!path.isAbsolute(fields.workspaceDirectory)||typeof fields.userEntityId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(fields.userEntityId))throw new Error('MCP_WORKSPACE_REQUIRED');
+  ports.launch([fileURLToPath(new URL('./core.mjs',import.meta.url)),'--workspace',fields.workspaceDirectory,'--user-entity',fields.userEntityId,...(typeof fields.deviceLabel==='string'?['--device-label',fields.deviceLabel]:[])]);
   for(let attempt=0;attempt<STARTUP_ATTEMPTS;attempt++){await ports.wait();try{return await connect();}catch{continue;}}
   throw new Error('MCP_CORE_STARTUP_FAILED');
 }

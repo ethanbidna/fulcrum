@@ -1,10 +1,11 @@
+import { AiSetup } from './ai-setup.js';
 import { openAdministration } from './administration.js';
 import { BackgroundPolicy } from '@fulcrum/ingest';
 import type { BackgroundSettings } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
-import { OllamaJsonRuntime } from '@fulcrum/llm';
+
 import type { JsonModelRuntime } from '@fulcrum/llm';
 import { LocalPreferences, LocalMcpActivity } from '@fulcrum/store';
 import { createMcpAccess, validateMcpAccess, MCP_DEFAULTS } from './mcp-access.js';
@@ -23,6 +24,8 @@ export interface WorkspaceOptions {
   workspaceDirectory: string; localDirectory: string; userEntityId: string;
   onIndexProgress?: (progress: IndexProgress) => void;
   commandRuntime?: JsonModelRuntime;
+  credentialHelper?:string;
+  aiSetup?:AiSetup;
   ingestion?: WorkspaceIngestion;
   background?: Partial<BackgroundSettings>;
   backgroundUnavailableReason?: string;
@@ -150,7 +153,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       fingerprint = JSON.stringify([...knownEventIds]); return result;
   };
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
-  const planner = new CommandPlanner(() => domain, options.commandRuntime ?? new OllamaJsonRuntime());
+  const aiSetup=options.aiSetup??new AiSetup(options.localDirectory,options.credentialHelper);
+  const planner = new CommandPlanner(() => domain, options.commandRuntime ?? aiSetup.runtime, Date.now, options.commandRuntime?async snapshot=>snapshot:(snapshot,request)=>aiSetup.context(snapshot,request));
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
   try {
@@ -161,8 +165,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     status:()=>({access:structuredClone(mcpAccess),initiatives:domain.getSnapshot().state.initiatives.map(({id,title})=>({id,title})),categories:domain.getSnapshot().state.categories.map(({id,label})=>({id,name:label}))}),
     configure:async input=>{const next=validateMcpAccess(input);await preferences.write('mcp',next);for(const key of Object.keys(mcpAccess))delete (mcpAccess as unknown as Record<string,unknown>)[key];Object.assign(mcpAccess,next);return structuredClone(mcpAccess);},
     activity:()=>new LocalMcpActivity(options.localDirectory).recent(),
-  }); }
-  catch (error) { jobs.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  },aiSetup,async(userEntityId,label)=>{jobs.close();await store.renameDevice(label);options.userEntityId=userEntityId;options.deviceLabel=label;fingerprint='';await reload();await preferences.write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId,deviceLabel:label,workspaceId:domain.getSnapshot().workspaceId});}); }
+  catch (error) { jobs.close(); aiSetup.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const BACKUP_CHECK_INTERVAL_MS = 60_000;
   const backupTimer = setInterval(() => { void enqueue(() => administration.tick()).catch(() => undefined); }, BACKUP_CHECK_INTERVAL_MS);
   backupTimer.unref();
@@ -197,7 +201,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     subscribe: listener => { listeners.add(listener); return () => listeners.delete(listener); },
     ingestionActive: () => ingestion?.scheduler.enabled() ?? false,
     close: () => {
-      closing = true; clearInterval(backupTimer); jobs.close(); stopWatching?.();
+      closing = true; clearInterval(backupTimer); jobs.close(); aiSetup.close(); stopWatching?.();
       return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
     },
   };

@@ -20,7 +20,7 @@ export const COMMAND_ARGUMENTS = {
   'sync.chooseValue': ['target', 'field', 'value', 'baseEventId'],
   'question.resolve': ['id', 'resolutionId'], 'question.defer': ['id', 'deferredUntil'], 'question.markObsolete': ['id'],
   'field.protect': ['target', 'field'], 'field.unprotect': ['target', 'field'], 'suggestion.reject': ['signature', 'untilNewEvidence'],
-  'change.undo': ['eventId'], 'run.undo': ['runId'], 'device.register': ['record'],
+  'change.undo': ['eventId'], 'run.undo': ['runId'], 'device.register': ['record'], 'device.rename':['id','label'],
   'settings.setIngestionDevice': ['ingestionDeviceId'], 'settings.setDefaultCachePolicy': ['defaultCachePolicy'],
 } as const;
 export type CommandName = keyof typeof COMMAND_ARGUMENTS;

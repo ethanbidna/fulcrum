@@ -32,8 +32,10 @@ Each step has: one-sentence purpose, the default action as the primary button, "
 
 ## AI selection and setup (P2 contract)
 
-See [ADR-0018](decisions/0018-model-choice-and-setup.md). This is planned behavior,
-not a claim that downloads, API setup or hardware detection are implemented.
+See [ADR-0018](decisions/0018-model-choice-and-setup.md). The P2 implementation provides this flow; real downloads, Keychain approvals,
+clean-user native behavior and model/provider compatibility remain owner checks
+after P5 supplies the signed bundle. See [P2 review](reviews/P2.md) and
+[ADR-0023](decisions/0023-guided-setup-boundaries.md).
 
 1. **Recommendation.** Detect chip/runtime support, available RAM and disk. Show
    the suggested profile, resource needs, download size and validation status.

@@ -89,6 +89,9 @@ export class FileWorkspaceStore implements WorkspaceStore {
       await this.write(events, read); return structuredClone(events);
     });
   }
+  renameDevice(label:string):Promise<void>{
+    return this.serialize(async()=>{if(!this.identity)throw new StoreError('STORE_NOT_OPEN','Open a workspace first');const identity={...this.identity,label};await saveIdentity(this.localDirectory,identity);this.identity=identity;});
+  }
   append(events: ChangeEvent[]): Promise<void> {
     const submitted = structuredClone(events);
     return this.serialize(async () => { const read = await this.requireWritable(); await this.write(submitted, read); });

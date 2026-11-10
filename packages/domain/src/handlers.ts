@@ -17,7 +17,7 @@ const SET_FIELDS: Partial<Record<CommandName, string>> = {
   'initiative.setMoscow': 'moscow', 'initiative.setLifecycle': 'lifecycle', 'initiative.setCategories': 'categoryIds',
   'initiative.rank': 'manualRank', 'category.rename': 'label', 'category.rank': 'manualRank', 'group.rename': 'label',
   'node.setState': 'state', 'node.setGroup': 'groupId', 'node.setPrerequisiteGroups': 'prerequisiteGroups',
-  'node.supersede': 'supersededBy', 'question.defer': 'deferredUntil',
+  'device.rename':'label', 'node.supersede': 'supersededBy', 'question.defer': 'deferredUntil',
 };
 export interface HandlerContext {
   actor: Actor;

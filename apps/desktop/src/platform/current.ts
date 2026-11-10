@@ -1,8 +1,9 @@
-import { isTauri } from '@tauri-apps/api/core';
+import { isTauri, invoke } from '@tauri-apps/api/core';
 import { ShellCoreTransport } from '../core-transport.js';
 import { TauriChannel } from './tauri-channel.js';
 import type { Platform } from './platform.js';
 export const platform: Platform = {
+  ...(isTauri()?{setup:{status:()=>invoke('setup_request',{name:'status',args:{}}),choose:(location:'documents'|'dropbox'|'drive'|'choose',mode:'create'|'open')=>invoke('setup_request',{name:'choose',args:{location,mode}}),open:async(token:string,deviceLabel:string)=>{await invoke('setup_request',{name:'open',args:{token,deviceLabel}});}}}:{}),
   async connectCore() {
     if (isTauri()) return new ShellCoreTransport(await TauriChannel.connect());
     if (import.meta.env.DEV) {

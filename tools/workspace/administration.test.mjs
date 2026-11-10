@@ -18,3 +18,12 @@ test('background and backup preferences persist locally; sources and MCP remain 
 test('a failed local preference read releases the store lock before retry',async()=>fixture(async f=>{
  await f.host.close();const other=path.join(f.root,'other');await mkdir(other);const file=path.join(f.options.localDirectory,'background-settings.json');await symlink(other,file);await expect(openWorkspaceHost({...f.options,create:false})).rejects.toThrow();await unlink(file);const retried=await openWorkspaceHost({...f.options,create:false});await retried.close();
 }));
+
+test('workspace setup writes canonical identity/designation together and remembers completion locally',async()=>fixture(async f=>{
+ const before=await f.host.query('history.list',{});expect((await f.host.administer('workspace.setupStatus',{})).completed).toBe(false);
+ await f.host.administer('workspace.configure',{deviceLabel:'Synthetic Desk Mac',ingestion:'this_mac',handoverConfirmed:false});const status=await f.host.administer('workspace.setupStatus',{});expect(status).toMatchObject({deviceLabel:'Synthetic Desk Mac',ingestionDeviceId:status.deviceId,people:[{id:USER,label:'You'}]});const history=await f.host.query('history.list',{});expect(history.length).toBe(before.length+1);expect(history[0].command.name).toBe('command.apply');expect(history[0].changes.map(change=>change.kind)).toEqual(expect.arrayContaining(['entity','device','settings']));
+ await f.host.administer('workspace.finishSetup',{});expect((await f.host.administer('workspace.setupStatus',{})).completed).toBe(true);
+}));
+test('an unconfirmed ingestion move changes neither the user identity nor device label',async()=>fixture(async f=>{
+ const other='09000000-0000-7000-8000-000000000777';expect((await f.host.execute({name:'device.register',args:{record:{id:other,label:'Synthetic Other Mac'}}})).ok).toBe(true);expect((await f.host.execute({name:'settings.setIngestionDevice',args:{ingestionDeviceId:other}})).ok).toBe(true);const before=await f.host.query('history.list',{});await expect(f.host.administer('workspace.configure',{deviceLabel:'Should not change',ingestion:'this_mac',handoverConfirmed:false})).rejects.toThrow('Confirm');expect(await f.host.query('history.list',{})).toEqual(before);expect((await f.host.administer('workspace.setupStatus',{})).people).toEqual([]);
+}));
