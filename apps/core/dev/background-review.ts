@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createInterface } from 'node:readline';
 import { SyntheticSourceAdapter } from '@fulcrum/sources';
@@ -9,21 +10,24 @@ import { KeychainSecretStore } from '../src/secrets.js';
 const REVIEW_PORT = 11439;
 const MOCK_DELAY_MS = 10_000;
 const USER_ID = '08000000-0000-7000-8000-000000000001';
+export async function requireUnusedPort(port: number): Promise<void> {
+  const probe = createServer();
+  await new Promise<void>((resolve, reject) => {
+    probe.once('error', () => reject(new Error('REVIEW_PORT_UNAVAILABLE')));
+    probe.listen(port, '127.0.0.1', () => { probe.close(error => error ? reject(error) : resolve()); });
+  });
+}
 export async function reviewBackground(directory: string, schemaDirectory: URL, args: string[]) {
   const option = (name: string) => { const index = args.indexOf(name); return index < 0 ? undefined : args[index + 1]; };
   const executable = option('--ollama'); const model = option('--model'); const modelBytes = Number(option('--model-bytes'));
   if (args.length && (!executable || !model || !Number.isSafeInteger(modelBytes) || modelBytes <= 0)) throw new Error('Provide --ollama, --model and --model-bytes together');
   const runtime = model ? new OllamaJsonRuntime(model, `http://127.0.0.1:${REVIEW_PORT}`) : undefined;
-  // Refuse to reuse another process's server for this measurement.
-  if (runtime) {
-    try { await fetch(`http://127.0.0.1:${REVIEW_PORT}/api/version`, { signal: AbortSignal.timeout(1000) }); throw new Error('REVIEW_PORT_OCCUPIED'); }
-    catch (error) { if (error instanceof Error && error.message === 'REVIEW_PORT_OCCUPIED') throw error; }
-  }
+  if (runtime) await requireUnusedPort(REVIEW_PORT);
   const ownedRuntime = executable ? startBackgroundOllama({ executable, port: REVIEW_PORT }) : undefined;
-  let runtimeFailed = false; ownedRuntime?.once('error', () => { runtimeFailed = true; });
+  let runtimeFailed = false; ownedRuntime?.once('error', () => { runtimeFailed = true; }); ownedRuntime?.once('exit', () => { runtimeFailed = true; });
   const secrets = new KeychainSecretStore();
   let processed = 0; let interrupted = 0;
-  const server = await startCore({ localDirectory: path.join(directory, 'local'), workspaceDirectory: path.join(directory, 'workspace'),
+  const server = await startCore({ commandRuntime: { generate: async () => { throw new Error('REVIEW_COMMAND_MODEL_DISABLED'); } }, localDirectory: path.join(directory, 'local'), workspaceDirectory: path.join(directory, 'workspace'),
     userEntityId: USER_ID, deviceLabel: 'Synthetic P3 Mac', create: true, schemaDirectory,
     background: { modelBytes: runtime ? modelBytes : 1 },
     ingestion: { adapters: [new SyntheticSourceAdapter({ now: new Date().toISOString(), days: 7 })], scopes: { synthetic: ['fixture'] },

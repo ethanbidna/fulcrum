@@ -29,3 +29,17 @@ test('an explicitly owned Ollama uses background priority, loopback and one serv
     expect(() => startBackgroundOllama({ executable: 'ollama', port: 11439 }, launch)).toThrow();
   } finally { vi.restoreAllMocks(); }
 });
+test('review port admission refuses even a server that never answers HTTP', async () => {
+  const { createServer } = await import('node:net');
+  const { requireUnusedPort } = await import('../../apps/core/dev/background-review.ts');
+  const occupied = createServer(); await new Promise(resolve => occupied.listen(0, '127.0.0.1', resolve));
+  try { await expect(requireUnusedPort(occupied.address().port)).rejects.toThrow('REVIEW_PORT_UNAVAILABLE'); }
+  finally { await new Promise(resolve => occupied.close(resolve)); }
+});
+test('core background priority failure pauses work instead of failing the editing host', async () => {
+  const { prepareBackgroundProcess } = await import('../../apps/core/src/background-priority.ts');
+  const calls = [];
+  expect(await prepareBackgroundProcess({ platform: 'darwin', reducePriority: () => calls.push('nice'), backgroundQoS: async () => calls.push('background') })).toBeNull();
+  expect(calls).toEqual(['nice', 'background']);
+  expect(await prepareBackgroundProcess({ platform: 'darwin', reducePriority: () => {}, backgroundQoS: async () => { throw new Error('synthetic denial'); } })).toContain('priority unavailable');
+});
