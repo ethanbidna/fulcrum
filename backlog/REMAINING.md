@@ -15,7 +15,8 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 ## Next engineering work
 
 - [x] Run the Gmail piece directly with synthetic responses and identify OAuth and pagination gaps. [Gmail library probe](../docs/spikes/S4-results/gmail-library.md)
-- [ ] Prototype a read-only Gmail Activepieces extension with resumable pagination before selecting the production route.
+- [x] Prototype the read-only Gmail Activepieces piece with resumable pagination. [Piece and probe](../spikes/s4/gmail-piece/README.md)
+- [ ] Evaluate the Gmail piece behind `SourceAdapter` and validate live read-only OAuth before choosing a production route.
 
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [x] Freeze the broader Qwen3.5 evaluation protocol and 24 new cases. [Protocol and fixture](../docs/spikes/S2-results/qwen35-protocol.md)

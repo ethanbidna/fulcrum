@@ -30,11 +30,10 @@ accessed the piece's internal action registry. Treat that as spike evidence.
 
 ## Next engineering step
 
-Prototype a Gmail-specific Activepieces extension with explicit page tokens
-for label-filtered backfill and incremental history. Keep OAuth lifecycle,
-selected labels, request budgets and durable cursors in Fulcrum. Expose only
-the required read actions. Evaluate the extension behind `SourceAdapter`
-before selecting a production execution mode.
+The [read-only piece prototype](../../../spikes/s4/gmail-piece/README.md)
+adds page tokens for label-filtered backfill and incremental history. It
+returns a new history checkpoint only on the final page. Evaluate the
+piece behind `SourceAdapter` before selecting a production execution mode.
 
 Live OAuth and refresh, history expiry, thread handling, opening originals,
 rate limits, macOS packaging and runtime footprint remain open. Step 6's live
