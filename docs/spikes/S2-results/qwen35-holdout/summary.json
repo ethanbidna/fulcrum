@@ -1,0 +1,137 @@
+{
+  "planned": 24,
+  "attempted": 24,
+  "completed": 24,
+  "exact": 15,
+  "incomplete": [],
+  "unattempted": [],
+  "groups": {
+    "attribution": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 3
+    },
+    "relationships": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 3
+    },
+    "state": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 4
+    },
+    "multiple-facts": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 0
+    },
+    "source-instructions": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 2
+    },
+    "evidence": {
+      "planned": 4,
+      "attempted": 4,
+      "completed": 4,
+      "exact": 3
+    }
+  },
+  "requests": 42,
+  "responses": 42,
+  "returned": 42,
+  "timeouts": [],
+  "otherErrors": [],
+  "requestsWithoutResponses": [],
+  "validRoutes": 24,
+  "recordedRoutes": 24,
+  "validPayloads": 18,
+  "recordedPayloads": 18,
+  "rejectedCandidates": 0,
+  "completedCaseScores": {
+    "truePositive": 13,
+    "falsePositive": 9,
+    "falseNegative": 8
+  },
+  "precision": 0.5909090909090909,
+  "recall": 0.6190476190476191,
+  "firstRequestTimingNs": {
+    "load_duration": 15840454516,
+    "prompt_eval_duration": 89014923000,
+    "eval_duration": 1871284000
+  },
+  "successfulTimings": {
+    "routing": {
+      "n": 24,
+      "medianMs": 43523.7,
+      "p95Ms": 58243.2
+    },
+    "payload": {
+      "n": 18,
+      "medianMs": 52461.0,
+      "p95Ms": 78676.9
+    },
+    "load_duration": {
+      "n": 42,
+      "medianMs": 1.8,
+      "p95Ms": 18.3
+    },
+    "prompt_eval_duration": {
+      "n": 42,
+      "medianMs": 40650.8,
+      "p95Ms": 52146.8
+    },
+    "eval_duration": {
+      "n": 42,
+      "medianMs": 2949.7,
+      "p95Ms": 15812.6
+    }
+  },
+  "resources": {
+    "samples": 2064,
+    "peakCpuPercent": 643.7,
+    "peakRssBytes": 4353269760,
+    "peakSwapUsedBytes": 9129951232,
+    "thermalSamples": {
+      "nominal": 2045,
+      "fair": 15
+    },
+    "sampledOnBattery": 0
+  },
+  "runnerStatus": {
+    "ended": "2026-11-11T04:43:38.870Z",
+    "stopped": false,
+    "budgetExpired": false
+  },
+  "supervisor": {
+    "reason": "completed",
+    "runnerExit": 0,
+    "ownedProcessesStopped": true
+  },
+  "environment": {
+    "initialPower": "AC",
+    "competingOllamaAtStart": 0,
+    "hostActivity": "Regular desktop session. No other Ollama process detected at startup.",
+    "runtimeBinarySha256": "faaea124744e725005a7ce66716fd9662b3baa12be65779c990c64fdbfb1ae9c",
+    "thermalProbeSha256": "6fd27e45d4d26d5a0a4e01bbc5b1841d89e51bb6a1aff6e3be8c8835a3f8748b",
+    "parallelRequests": 1,
+    "loadedModelsLimit": 1,
+    "cloudDisabled": true,
+    "backgroundQoS": true,
+    "nice": 10
+  },
+  "artifactSha256": {
+    "cases.jsonl": "8754f706072e747ee9d0b31103bc46f35d7f09e58265dfdc00241030b3da44c7",
+    "manifest.json": "3eee1fd8479ce27e09754e279595066216adba796f1bece9b965ed265b098825",
+    "requests.jsonl": "38df7c6db7d63ee6d9649fcd8673633aae57e9b43bda23d09fd7eb06cfdbee11",
+    "resources.jsonl": "d7ec9d6b2a1be3744bcc5d05e7b49a48b5eea1b0a7ff0b351ddb3053f4b940e8",
+    "responses.jsonl": "ebbc3cf0e712e6ba5666d0a0be416a217523945d045937d733e3e5fc5e31ede4",
+    "thermal.log": "50fc332f2d522e8da763598180af98c2ca1f81d26e51e80951b7ea0350bc40bf"
+  }
+}

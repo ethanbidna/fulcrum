@@ -1,0 +1,62 @@
+{
+  "model": "qwen3.5:4b",
+  "identity": {
+    "ollamaVersion": "0.40.15",
+    "digest": "d8b0f5e9760cd1682034f292d7ef72ec46f432149be0df7574bf2d6e92e38c04",
+    "details": {
+      "format": "gguf",
+      "family": "qwen35",
+      "parameter_size": "4.2B",
+      "quantization_level": "Q4_K_M"
+    }
+  },
+  "configuration": "kind-chat",
+  "revision": "69c5a11e1096fcd09363316ca5c3692178a75127",
+  "hashes": {
+    "../eval/qwen35-holdout.json": "9b6bd3db814816f7969b01d0aef3259e00c3f04ae4c9fabab96fdcc7bc532c27",
+    "qwen35-holdout.mjs": "ea9358466bfd9369530295f43c751e51e188019cc55a7a393e0055922f94745e",
+    "challengers.mjs": "44ec1744c96e254e1594ab7c94cda07fa6056789c53a83730d0b818cd52b6880",
+    "configurations.mjs": "b30332d4e598d5585048dfedb94e9ad00d37f5a69e8c3f594acb2623dae8f1de",
+    "transport.mjs": "e02a681a03eea38b59ef0828a0a84bdb9f27989875d3779cdf15737eb2304b0e",
+    "../evaluate.mjs": "9a19bedc08e1fd15235f29205ff7e48d0f0833050a973f609c6d2ebb56977cb8",
+    "../ollama.mjs": "8dc5e79fedf2b80c882d5dbad4f427ea0d9a175545d4d593fe9bf0708111acb4",
+    "../resources.mjs": "08438e4f743406d9309d52e8bc987b710fa7850939a82d62e567a3dbdb54db15",
+    "../thermal.swift": "c6f0f99a38f7ab58e4664e4b3bc04c8311d661307718da8fce30626306ee972c"
+  },
+  "wallBudgetMs": 7200000,
+  "requestBudgetMs": 300000,
+  "cases": [
+    "q35-01",
+    "q35-02",
+    "q35-03",
+    "q35-04",
+    "q35-05",
+    "q35-06",
+    "q35-07",
+    "q35-08",
+    "q35-09",
+    "q35-10",
+    "q35-11",
+    "q35-12",
+    "q35-13",
+    "q35-14",
+    "q35-15",
+    "q35-16",
+    "q35-17",
+    "q35-18",
+    "q35-19",
+    "q35-20",
+    "q35-21",
+    "q35-22",
+    "q35-23",
+    "q35-24"
+  ],
+  "hardware": {
+    "platform": "darwin",
+    "architecture": "x64",
+    "memoryBytes": 34359738368,
+    "logicalCpus": 16,
+    "osRelease": "24.6.0"
+  },
+  "started": "2026-11-11T04:09:11.626Z"
+}
