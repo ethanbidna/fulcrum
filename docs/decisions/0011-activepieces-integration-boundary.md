@@ -32,6 +32,13 @@ direction. Their capability and permission findings remain useful evidence.
   and non-technical setup goals. Any conflict with the selected execution mode
   must be surfaced and resolved explicitly rather than hidden in a fallback.
 
+## First connector
+
+Gmail is first for personal use. Prioritize the direct execution candidate and
+prototype a read-only Gmail extension. See the
+[Gmail library probe](../spikes/S4-results/gmail-library.md). The production
+execution mode remains provisional.
+
 ## Consequences and validation
 
 The [S4 report](../spikes/S4.md) remains historical capability research; its

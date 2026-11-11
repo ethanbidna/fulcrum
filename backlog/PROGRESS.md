@@ -17,7 +17,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38, #43, #44, #90 | Intel 3B/8B runs recorded. [Qwen3.5 holdout review](../docs/spikes/S2-results/qwen35-holdout/review.md) recommends keeping this configuration out of automatic extraction. Owner checks pending. |
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
-| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
+| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39, #92 | Gmail first; [direct Node probe](../docs/spikes/S4-results/gmail-library.md) found scope and pagination gaps; live OAuth and footprint checks pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | waiting-owner | [ ] | #81 | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
 | 9 | Decision checkpoint | waiting-owner | [ ] | #82 | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |
@@ -37,7 +37,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
-| 25 | I2 first real connector | blocked | [ ] | #67 | S4 / step 6 owner results and selected Activepieces execution route are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
+| 25 | I2 first real connector | blocked | [ ] | #67 | Gmail selected for personal use. S4 live results and production execution mode are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
 | 26 | U6 context view | done | n/a | #73 | Canonical aggregate/object evidence, provenance/claims/two clocks, safe links, stale-response guards and Storybook keyboard/accessibility checks; synthetic only |
 | 27 | U7 timeline | done | n/a | #75 | Optional canonical target-date/milestone timeline, explicit undated prerequisites, simple SVG plus accessible list; synthetic browser/domain checks |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
@@ -49,7 +49,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 34 | P2 first-run wizard | waiting-owner | [ ] | #79 | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
 | 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; local rerun recorded in #84; signed Keychain and two-Mac acceptance pending |
-| 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
+| 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; public signing and release setup deferred for personal use |
 
 ## Development startup follow-up
 

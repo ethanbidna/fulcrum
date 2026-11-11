@@ -1,6 +1,6 @@
 # Remaining work
 
-Updated November 11, 2026. Qwen3.5 engineering review is complete. Owner acceptance remains below.
+Updated November 11, 2026. Gmail is first for personal use. Public macOS distribution and release signing are deferred.
 
 The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Update this checklist in each follow-up PR, link its evidence, and push each completed task. An owner acceptance checkbox is completed by the owner after its procedure.
 
@@ -13,6 +13,9 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 - [x] Publish the model experiment review, normalized outputs, scores and trace hashes. [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 
 ## Next engineering work
+
+- [x] Run the Gmail piece directly with synthetic responses and identify OAuth and pagination gaps. [Gmail library probe](../docs/spikes/S4-results/gmail-library.md)
+- [ ] Prototype a read-only Gmail Activepieces extension with resumable pagination before selecting the production route.
 
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [x] Freeze the broader Qwen3.5 evaluation protocol and 24 new cases. [Protocol and fixture](../docs/spikes/S2-results/qwen35-protocol.md)
@@ -43,7 +46,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 ## Connector and release work
 
 - [ ] Step 25 — Implement and exercise the first real connector after step 6 supplies the selected execution route.
-- [ ] Step 37 — Configure the GitHub release environment, Developer ID/notary credentials, updater keys and provisioning profile. Build and test the signed universal release and signed update.
+- [ ] Step 37 (deferred for personal use) — Configure the GitHub release environment, Developer ID/notary credentials, updater keys and provisioning profile. Build and test the signed universal release and signed update.
 - [ ] Step 34 — Complete clean-user onboarding and managed download/cancel/retry checks with the signed build.
 - [ ] Step 33 — Test packaged Claude Desktop installation, sharing scopes, writes and headless startup.
 - [ ] Step 36 — Test signed Keychain/recovery/lock/rotation/restore and encrypted two-Mac sync.
