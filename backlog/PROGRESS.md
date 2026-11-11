@@ -49,6 +49,10 @@ Steps done since last audit: 3
 | 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; signed Keychain and two-Mac acceptance pending |
 | 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
+## Development startup follow-up
+
+The documented `pnpm dev` entry now selects the ESM parser build, matching the core/release bundlers. The startup regression failed before the fix and passes afterward. Full checks pass with 79 reference and 557 workspace tests. Owner acceptance remains pending.
+
 ## Owner to-do
 
 ### Step 36 — P6 signed encryption acceptance
