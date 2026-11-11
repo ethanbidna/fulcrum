@@ -6,6 +6,8 @@ Statuses: `todo` · `waiting-owner` (agent work merged; owner action pending) ·
 
 Steps done since last audit: 3
 
+See [the remaining-work checklist](REMAINING.md) for the current follow-up queue and acceptance checks.
+
 ## Steps
 
 | Step | Item | Status | Owner | PR | Notes |
