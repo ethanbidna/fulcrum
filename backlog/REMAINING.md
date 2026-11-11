@@ -1,6 +1,6 @@
 # Remaining work
 
-Updated November 10, 2026. Next is **replaying and reviewing the Qwen3.5 holdout results**.
+Updated November 11, 2026. Qwen3.5 engineering review is complete. Owner acceptance remains below.
 
 The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Update this checklist in each follow-up PR, link its evidence, and push each completed task. An owner acceptance checkbox is completed by the owner after its procedure.
 
@@ -17,7 +17,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [x] Freeze the broader Qwen3.5 evaluation protocol and 24 new cases. [Protocol and fixture](../docs/spikes/S2-results/qwen35-protocol.md)
 - [x] Run the frozen candidate evaluation locally. All 24 cases completed, with requests, responses and native resource measurements saved. [Run report](../docs/spikes/S2-results/qwen35-holdout/README.md)
-- [ ] Replay and inspect those results, then publish an adoption recommendation with resource and quality limits.
+- [x] Replay and inspect the Qwen3.5 holdout. Keep this configuration out of automatic extraction based on the observed quality errors. [Review and resource limits](../docs/spikes/S2-results/qwen35-holdout/review.md)
 
 ## Feasibility and hardware acceptance
 

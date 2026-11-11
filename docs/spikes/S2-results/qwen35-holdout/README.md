@@ -25,8 +25,8 @@ All 24 classifier responses and 18 payload responses were schema-valid.
 Quote alignment rejected zero candidates. Strict precision was 13/22 (59.1%),
 and strict recall was 13/21 (61.9%), across the 24 completed cases. Nine emitted
 candidates missed the strict reference match, which compares annotated fields
-and evidence spans. Semantic review of those misses and model adoption remain
-pending.
+and evidence spans. The [engineering review](review.md) explains those
+misses and gives the adoption recommendation.
 
 ## Latency and resources
 
@@ -57,6 +57,4 @@ acceptance remain pending.
   scores. The [summary](summary.json) includes aggregate counts and SHA-256
   hashes of the archived files.
 - [Resource samples](resources.jsonl) and [native thermal samples](thermal.log)
-  support the timings and resource observations. The replay and semantic
-  inspection are the next item on the
-  [remaining-work checklist](../../../../backlog/REMAINING.md).
+  support the timings and resource observations.
