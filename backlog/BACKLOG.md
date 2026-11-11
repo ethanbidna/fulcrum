@@ -157,6 +157,17 @@ Depends on: U3
 - [ ] Double-click a Task opens the focused view (filtered same graph) with breadcrumbs back; edits reflect everywhere immediately.
 - [ ] Simple Tasks with child Tasks can be shown as a checklist in the inspector.
 
+### U4a · In-app command bar
+Labels: ui
+Depends on: U4
+Owner priority before U5; issue #57; ADR-0017.
+**Acceptance criteria**
+- [ ] Inline natural-language entry and contextual structured review; keyboard-first.
+- [ ] Local model drafts only; no writes until explicit approval through Domain.
+- [ ] Atomic apply with exact-request evidence, field protection and one undo.
+- [ ] Stale/ambiguous/invalid/cancelled/unavailable drafts retain input without writes.
+- [ ] Manual editing remains secondary; external MCP remains available independently.
+
 ### U5 · List and History views
 Labels: ui
 Depends on: U4
@@ -248,12 +259,16 @@ Depends on: C6, S6
 - [ ] Tools per [MCP.md](../docs/MCP.md) over the core socket; scopes, read-only default, excerpt gating, access log.
 - [ ] Contract test: MCP write and UI command produce identical ops (scenario 11).
 
-### P2 · First-run wizard and local AI install
+### P2 · First-run wizard and AI setup
 Labels: ui, packaging
 Depends on: U2, I3
 **Acceptance criteria**
 - [ ] Steps in [ONBOARDING.md](../docs/ONBOARDING.md): workspace folder (incl. Drive offline check), device naming/ingestion role, hardware detection, Ollama guidance, license acceptance, model download with progress, self-test, sources, first initiative.
-- [ ] Every step has retry and a safe skip; no Terminal required.
+- [ ] Hardware-aware, purpose-tested model suggestions with user override; synthetic compatibility/latency/resource check distinct from accuracy adoption (ADR-0018).
+- [ ] Searchable local/open-weight and optional hosted choices; license, download size, developer country/region and processing location displayed separately. User-selected domestic/region preferences, including exclusions, never silently relaxed; unknown origin labelled.
+- [ ] One primary setup action after consent manages official runtime/model download, progress, cancellation, verification and retry/resume where supported; no Terminal. Weights stay machine-local and outside the bundle/workspace.
+- [ ] Optional bring-your-own API key: Keychain storage, explicit sharing scope and usage budget, synthetic connection test and provider-account help. Local default; no silent hosted fallback.
+- [ ] Same chooser/setup is reusable from Settings. Every step has retry and a safe skip; required OS approvals stay visible.
 
 ### P3 · Background operation, sleep/wake and resource policy
 Labels: core, packaging

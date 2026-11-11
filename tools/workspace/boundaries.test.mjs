@@ -9,6 +9,11 @@ async function violations(filePath, code) {
 
 describe('architecture import boundaries', () => {
   test.each([
+    ['apps/core/src/index.ts', "import { SqliteContextIndex } from '@fulcrum/context';"],
+    ['packages/ingest/src/index.ts', "import type { ContextIndex } from '@fulcrum/context/interfaces';"],
+    ['apps/core/src/index.ts', "import { SqliteReadIndex } from '@fulcrum/index';"],
+    ['apps/core/src/index.ts', "import { Domain } from '@fulcrum/domain';"],
+    ['apps/core/src/index.ts', "import { FileWorkspaceStore } from '@fulcrum/store';"],
     ['apps/desktop/src/index.ts', "import type { Domain } from '@fulcrum/domain';"],
     ['packages/mcp/src/index.ts', "export { execute } from '@fulcrum/domain';"],
     ['packages/domain/src/index.ts', "import type { Store } from '@fulcrum/store/interfaces';"],
@@ -23,6 +28,7 @@ describe('architecture import boundaries', () => {
   });
 
   test.each([
+    ['packages/ingest/src/index.ts', "import { SqliteContextIndex } from '@fulcrum/context';"],
     ['apps/desktop/src/index.ts', "import { Store } from '@fulcrum/store';"],
     ['packages/mcp/src/index.ts', "export * from '@fulcrum/index';"],
     ['packages/domain/src/index.ts', "import { Store } from '@fulcrum/store/interfaces';"],

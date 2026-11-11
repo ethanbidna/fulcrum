@@ -29,6 +29,7 @@ interface DomainError {
     | 'PROTECTED_FIELD'          // AI/MCP-without-confirmation write to a protected field
     | 'NOT_FOUND'
     | 'STALE_BASE'               // optimistic check failed (UI edited an outdated value)
+    | 'INDEX_UNAVAILABLE'        // local search cache cannot serve results
     | 'WORKSPACE_READ_ONLY';     // newer schema, online-only files, or not this device's role
   message: string;
   details?: unknown;
@@ -41,12 +42,12 @@ Execution order: schema-validate args → load affected records → policy check
 
 | Area | Commands |
 |---|---|
-| Initiative | `initiative.create` (user/mcp only, lifecycle `active`) · `initiative.propose` (ai: lifecycle `proposed`) · `initiative.approve` · `initiative.reject` · `initiative.update` (title, description, targetDate, teamEntityId) · `initiative.setMoscow` · `initiative.setLifecycle` · `initiative.setCategories` · `initiative.rank` (manual order) |
+| Initiative | `initiative.create` (user/mcp only, lifecycle `active`) · `initiative.propose` (ai: lifecycle `proposed`) · `initiative.approve` · `initiative.reject` · `initiative.update` (title, description, targetDate, teamEntityId) · `initiative.setMoscow` · `initiative.setLifecycle` · `initiative.setCategories` · `initiative.rank` · `initiative.rerank` (manual order) |
 | Category | `category.create` · `category.rename` · `category.rank` · `category.delete` |
 | Node | `node.create` · `node.update` (title, details, targetDate, kind, responsibleEntityId, decider, options) · `node.setState` · `node.setGroup` · `node.setPrerequisiteGroups` · `node.supersede` · `node.delete` (tombstone) · `decision.decide` (sets `outcome` + `state: decided`) |
 | Edge | `edge.create` · `edge.update` (label, condition, prerequisiteGroupId) · `edge.delete` |
 | Group | `group.create` · `group.rename` · `group.delete` (members keep existing; `groupId` cleared) |
-| Evidence | `source.record` (connector) · `assertion.record` · `assertion.reject` · `evidence.attach` · `evidence.detach` |
+| Evidence | `source.record` (connector) · `assertion.record` · `assertion.reject` · `assertion.setStatus` · `evidence.attach` · `evidence.detach` |
 | Entity | `entity.create` · `entity.update` · `entity.addAlias` · `entity.merge` · `entity.split` |
 | Objectives | `objective.create` · `objective.update` · `objective.rerank` (ties = equal rank) · `objective.delete` · `alignment.set` |
 | Questions | `question.raise` · `question.resolve` (runs the chosen resolution's commands in the same event) · `question.defer` · `question.markObsolete` |
@@ -93,3 +94,157 @@ Queries never mutate. Served from the in-memory folded state and the SQLite inde
 ## Events emitted for projections
 
 `AppliedChange { eventId, actor, ops, raisedQuestionIds }` is published to subscribers (UI, MCP resource-change notifications, index). The UI re-reads affected projections; it does not patch local state optimistically beyond the in-flight command.
+
+## C3 executable API
+
+`packages/domain` exports `Domain`, `CommandEnvelope`, `DomainPorts` and the
+`COMMAND_ARGUMENTS` catalog. The exact argument keys are listed there and
+exercised individually in `tools/workspace/domain-commands.test.mjs`.
+
+- Creates/proposals and `source.record`, `assertion.record`, `question.raise`,
+  `device.register` take `{record}`. Caller-supplied IDs identify records;
+  command handlers supply creation timestamps and initiative defaults.
+- Updates take `{id, patch}` with the field allow-lists in the catalog above.
+  Other setters take `{id, fieldName: value}`. `decision.decide` takes
+  `{id, outcome}`; `question.resolve` takes `{id, resolutionId}`.
+- Evidence commands take `{target, evidenceRef}` / `{target, sourceId}`.
+  Field protection takes `{target, field}`; only the user may unprotect.
+- Entity merge takes `{id, intoId}`. Split takes `{id, record, aliases}` and
+  explicitly moves those aliases into a new entity; existing references stay
+  on the original unless separately corrected. Objective reranking takes
+  `{ranks: [{id, rank}]}`; alignment takes
+  `{initiativeId, objectiveId, alignment}`.
+- Rejection takes `{signature, untilNewEvidence}` (use false for indefinite).
+  Defer takes `{id, deferredUntil}` (null clears its optional date).
+  Settings setters take their named setting as the sole key.
+- Undo takes `{eventId}` / `{runId}`. Optional envelope `baseEventIds` maps
+  `kind:id:field` to the last event seen (or null); a mismatch returns
+  `STALE_BASE`. Unknown commands/keys and unsupported patch fields are rejected.
+
+The application supplies canonical Ajv state/event validators, authenticated
+local identity/scope, and the durable commit port. A trusted reconciliation
+proof supplies a creation match attempt and, for user/external commitments, a
+prospective evidence-backed assertion recorded atomically with the node.
+Neither proof nor actor authority is taken from source content. See
+[ADR-0012](decisions/0012-command-transactions-and-undo.md).
+
+A protected AI update commits suggested assertions and, for a material change,
+one deduplicated contextual Question. The original field remains unchanged.
+Protected deletions are denied. Missing evidence and rejected reintroductions
+are denied without a write. MCP writes are tagged by their event actor; they
+share the same command handlers. Portfolio-wide commands require unrestricted
+MCP scope, and cross-initiative edge checks include both endpoints.
+
+### Local search queries (C7)
+
+`search({text, scope?})` uses the injected read-index interface. Scope supports
+`initiativeIds`, `kinds`, `limit` and explicit `includeExcerpts`. Source excerpt
+matching/snippets are off by default. `status.index({})` returns local cache
+availability and document counts, independent of initiative completion. Cache
+failures report `INDEX_UNAVAILABLE` without revoking domain writes. The core
+rebuilds missing caches from canonical state on open; see ADR-0015.
+
+### Portfolio board (U2)
+
+`portfolio.board({})` returns one isolated acknowledged projection containing
+active cards, category/team/objective grouping labels, per-initiative open
+question counts and the contextual rail. Recent changes carry a derived
+`context` label from the affected record; relationship labels retain the stored
+sentence direction. Proposed initiatives remain absent from active cards.
+
+`initiative.rerank({ranks: [{id, manualRank}]})` atomically updates active
+initiative rank strings. IDs and supplied ranks must be unique; any invalid
+record rejects the whole command. Existing schema, protection, evidence, MCP
+scope and compensating undo rules apply. The UI uses maintained fractional
+indexing to assign an ordered batch, including missing/duplicate old ranks.
+Only rank fields change; categories, teams, objectives and MoSCoW remain intact.
+
+## U3 canvas client
+
+Canvas semantic edits reuse `node.create/update/delete`, `edge.create/delete`
+and `change.undo`; no parallel mutation API. Invariant rejections retain their
+stable code/details and now provide a human message for each known graph rule.
+The UI retains acknowledged user event IDs for session undo, including portfolio
+edits before opening a flow. Rejected edits do not enter that stack; undo conflicts
+keep their event available for review/retry. Input text undo stays native.
+Presentation-only drag coordinates and ELK layout are ephemeral; v1 has no position
+field. No event or schema migration is needed for arranging the current view.
+
+## U4 inspector projection
+
+`inspector.get({target:{kind,id}})` returns a detached typed node, edge or initiative,
+direct attached evidence-source count, open questions scoped to that exact target,
+direct contains children and attribution labels. It includes relationship endpoint
+names/conditional option labels and the initiative's deterministic card state.
+It does not execute question resolutions or aggregate unrelated questions/evidence.
+
+The inspector reuses `node.update`, `node.setState`, `decision.decide` and
+`edge.update`; child checkboxes write only their child Task. Focus uses the existing
+`graph.focus` query and canonical command IDs; no focused-copy records are stored.
+References are read-only in the focused UI until navigation to their home graph.
+
+## Reviewed command plans
+
+`command.apply {commands}` atomically applies a bounded, non-nested collection
+of ordinary commands under explicit user/MCP authority. Each child uses the same
+validation and policy; any failure rejects the entire event. It cannot embed
+undo or autonomous AI authority. `Domain.preview` validates on cloned state
+without committing. The command bar adds exact-request evidence, a run ID and
+review freshness in the core; model output never chooses that metadata. One
+`change.undo` compensates the reviewed event. See ADR-0017.
+
+## U5 detail read models
+
+`initiative.list({initiativeId})` returns each canonical node once in containment
+order, with depth, role, date-bearing record, distinct source count and separate
+prerequisite references. It creates no alternative task store or ownership model.
+`initiative.history({initiativeId})` includes events touching that initiative's
+nodes, edges and contextual metadata, including deleted records. It supplies
+named before/after values, safe original evidence links and whole-run counts.
+The existing `history.list` contract is unchanged. Event/run undo still uses
+`change.undo` / `run.undo`; conflicts remain domain rejections, never UI overwrites.
+
+## I5 assertion history
+
+`assertion.setStatus({id, status, supersededBy})` marks an existing claim
+`conflicting` (supersededBy must be null) or `superseded` (replacement ID
+required). Replacements must concern the same target/field and predicate;
+cycles, missing replacements and rejected replacements are rejected. AI cannot
+revive a rejected assertion. All actor, evidence, scope and undo checks apply.
+No new persisted fields or schema version are required.
+
+`assertion.record` defaults omitted observedAt to the trusted domain clock.
+Prepared command signatures therefore need no processing-time metadata; the
+emitted record/event still carries when Fulcrum learned the claim. See the
+[pure reconciliation contract](../packages/ingest/RECONCILIATION.md).
+
+### Question lifecycle (A1)
+
+`questions.list({initiativeId?, state?})` returns contextual records with optional
+initiative/state filters. `Domain.questionMaintenance(identity)` plans quiet
+maintenance; the core executes the returned commands through the shared domain.
+The planner consolidates equivalent decisions, preserves deferral/evidence, and
+uses trusted source chronology for obsolescence. A dated deferral reopens when
+next observed due; an indefinite deferral stays deferred. Closed questions cannot
+be deferred or reopened by a duplicate raise.
+
+`sync.chooseValue({target, field, value, baseEventId})` is a user/MCP resolution
+for material concurrent fields. It checks the expected writer, schema, scope,
+invariants and protection. A sync question may instead restore a deletion using
+one stale-checked `change.undo`; restoration and closure commit in one event.
+See [ADR-0019](decisions/0019-question-lifecycle-and-sync.md).
+
+
+`questions.review({initiativeId?, target?, state?})` projects the desktop review
+list (open by default) with initiative titles, exact context links and evidence.
+Original links allow HTTP(S) without embedded credentials. Excerpts honor source
+cache policy and referenced ranges; event and learned timestamps stay distinct.
+This adds no persisted fields. Answer/defer/undo still use the existing commands.
+
+### Device setup
+
+`device.rename({id,label})` renames only this device under local user authority.
+Onboarding batches it with self-person creation and ingestion designation through
+`command.apply`. The existing v1 device label/ops contract is unchanged. MCP
+cannot directly issue device/settings commands or undo events containing those
+trusted configuration changes.

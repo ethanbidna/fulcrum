@@ -9,7 +9,7 @@ A single-user, initiative-first desktop application that quietly ingests relevan
 
 ## Strict constraints and non-goals
 - No percent-complete bars, pie rings, or numeric completion estimates on initiatives. Plans are fluid; track actionability, waiting, outcomes, source freshness, and milestones instead
-- No built-in AI chat. Conversational operations are exposed through an optional local MCP server for Claude and other MCP clients
+- No ongoing built-in AI chat. An inline command bar drafts local changes for explicit review and atomic apply; the optional local MCP server exposes the same operations to external clients
 - No AI-written dashboard summaries or constantly regenerated prose. Deterministic views over typed state
 - No Kanban workflow-status columns by default. Initiatives are highest-order cards grouped by user categories or MoSCoW
 - No daily task management homepage, arbitrary task ownership, employee accounts, social features, or cloud application backend
@@ -28,7 +28,7 @@ A single-user, initiative-first desktop application that quietly ingests relevan
 6. **Priorities & KPIs**: user-maintained ordered strategic objectives and optional measurable KPIs. Rank objectives, permit ties and relative importance (lightweight 1–5 or pairwise comparisons if useful). Show linked initiatives and estimated alignment (traceable to evidence; editable). MoSCoW remains an independent human-controlled classification. Never auto-overwrite protected MoSCoW because an executive expressed a preference
 7. **Questions Center**: quiet, asynchronous, contextual clarifications. Each question belongs to an initiative, or a specific node/relationship within it, and links to relevant evidence and offers 2–3 concrete resolution actions plus defer. No interrupts/popups or notification spam. Consolidate similar questions, auto-resolve obsolete ones, focus on material ambiguity affecting decisions/progress. No accumulating Unsorted Context queue. Unimportant unresolvable material can be ignored without creating objects; unresolved material questions stay small and contextual
 8. **Settings**: Workspace/location, Sources & Integrations, Local AI, Privacy & Data, Background Sync, MCP, Backup/Recovery, About. Use plain-English settings; advanced developer controls hidden
-9. **First-run wizard**: (a) choose/create portable workspace, (b) detect Intel/Apple Silicon and RAM and install compatible Meta Llama / local runtime, (c) connect user-selected sources via Activepieces where feasible, (d) create one initiative or review proposed initiative. Honest diagnostics and retry, no terminal assumptions for ordinary users. First release may need prerequisites, but target installer manages them
+9. **First-run wizard**: (a) choose/create portable workspace, (b) detect hardware, recommend a tested profile, offer model/provider and origin preferences, and manage local runtime/model download or explicit API-key setup (ADR-0018), (c) connect user-selected sources via Activepieces where feasible, (d) create one initiative or review proposed initiative. Honest diagnostics and retry, no terminal assumptions for ordinary users. First release may need prerequisites, but target installer manages them
 10. **Optional MCP tools**: expose read/search initiative, get graph, update initiative attributes/MoSCoW, create/update flow objects, inspect evidence, list/answer questions, list objectives. Same domain commands as desktop UI; no duplicate policy engine. Local-only MCP server by default. Hosted Claude/ChatGPT clients can receive selected data only through explicit opt-in
 
 ## Five execution primitives
@@ -78,13 +78,13 @@ This is an illustrative boundary, not a requirement to create every table immedi
 - Preferred UI: Tauri + React + TypeScript, React Flow, ELK.js
 - Authoritative file-based workspace in user-selected directory; machine-local SQLite FTS/index/cache; no live SQLite in cloud-synced directory
 - Activepieces as preferred integration engine, subject to validating actual connector authentication, historical backfill, pagination, thread retrieval, deep links and local self-hosting footprint. Gmail, Slack, Granola initially; Google Drive, Dropbox, Calendar next. Custom connector pieces supported
-- Meta Llama locally via Ollama or equivalent. Auto-select a benchmarked quantized model for hardware; support circa 2019 Intel MacBook Pro with constrained fallback, plus higher-performing Apple Silicon configurations. Avoid resource exhaustion; batch, throttle, and process relevant changes only
+- Model-agnostic runtime interfaces, local inference by default through Ollama or equivalent. Recommend a purpose-tested hardware profile and let the user choose. The wizard manages local downloads/setup and optional hosted API-key setup, with developer-origin preferences and processing location shown separately (ADR-0018). Support constrained Intel and Apple Silicon modes without assuming model quality from size. Avoid resource exhaustion; batch, throttle, and process relevant changes only
 - Graphiti as preferred temporal context layer, subject to proof-of-concept for local Llama structured extraction, deduplication and resource requirements. Keep app canonical state separate; Graphiti graph/index rebuildable from portable evidence + assertions
 - Optional temporal UI via vis-timeline only if needed
 - Background ingestion: while Mac is awake, optionally when plugged in; when lid closed and laptop asleep, processing pauses and catches up on wake. Dedicated always-on host optional later. One designated ingestion machine per workspace to avoid duplicate model reconciliations
 - Secure connector secrets in macOS Keychain or machine-local secure store, never synced workspace; workspace encryption for cloud-synced corporate material when authorized. Ingestion is opt-in by account/channel/folder and excludes private/off-limit sources
 - Multi-Mac: portable event records with stable IDs, idempotent merges, per-device indexes, conflict detection on concurrent edits and recovery; avoid claim of automatic seamless simultaneous sync until proven
-- No vendor-hosted inference, telemetry or hosted app backend by default. Optional source APIs still use network. MCP to external AI provider requires explicit sharing disclosure
+- No vendor-hosted inference, telemetry or hosted app backend by default. Optional source APIs still use network. Direct hosted inference and MCP to external AI providers require explicit sharing disclosure, scope and opt-in; no silent cloud fallback
 
 ## Visual grammar
 - Inspired by Linear / Apple / Claude restraint, not decorative AI dashboards
@@ -136,7 +136,7 @@ This is the authoritative product specification. Phase 0 (architecture and repos
 
 ## Explicit latest refinements
 - Questions are contextual attachments to Initiative, flow node or edge and aggregate into the global quiet Questions Center. They are not flow objects and do not pop up during normal work
-- Do not build embedded chat. The future MCP server is the exclusive conversational API, and both MCP and UI must call the same domain operations
+- Do not build an ongoing embedded chat. Support both the in-app command bar and external MCP (ADR-0017); both paths must use the same domain operations, with explicit review before applying an in-app model draft
 - Don't construct multi-level graph models. One graph per initiative; focused double-click is merely a filtered view of this graph
 - Priorities use **Must Do / Should Do / Could Do / Won't Do**, not *Have*
 - Strategic objectives and KPIs are portfolio-level priorities and can use ordered ranking, ties and relative emphasis; MoSCoW remains separately protected by default

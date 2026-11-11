@@ -1,0 +1,40 @@
+name: Desktop shell
+
+on:
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/desktop-shell.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: rustup toolchain install stable --profile minimal
+      - run: pnpm --filter @fulcrum/desktop build
+      - run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - run: pnpm --filter @fulcrum/desktop tauri build --debug --no-bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.runner }}-lock
+          path: apps/desktop/src-tauri/Cargo.lock

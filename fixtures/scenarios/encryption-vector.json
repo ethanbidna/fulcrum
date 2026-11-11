@@ -1,0 +1,25 @@
+{
+  "manifest": {
+    "format": "fulcrum-workspace",
+    "schemaVersion": 2,
+    "workspaceId": "07000000-0000-7000-8000-000000000901",
+    "createdAt": "2026-11-10T12:00:00.000Z",
+    "minReaderVersion": 2,
+    "encryption": {
+      "scheme": "xchacha20poly1305-ietf-v1",
+      "keyId": "07000000-0000-7000-8000-000000000902",
+      "check": {
+        "nonce": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYX",
+        "ciphertext": "toZWOFJjR02Crmojg8GTTTMWU0j6cnKa47cKywB8_bVFjzkPNMqb_YPL-zc2XRFnoGc7eEiO47n2m5lH_iOH9dftfRaBDXpITj1EFIwGF4mtN8bl-QlPb4FeSg_N9S2F2_XUDbbkSjyZAhv0lUaxJBykBy7DM-L6TY--X7qGfPqlCSRsEjzT08GUlOpfaHC9zqrBmJZBBvoBbI-T3-5xEgNqPExUJnq9pmMg-tcD"
+      }
+    }
+  },
+  "event": {
+    "encoding": "fulcrum-encrypted-v1",
+    "kind": "event",
+    "keyId": "07000000-0000-7000-8000-000000000902",
+    "nonce": "GBkaGxwdHh8gISIjJCUmJygpKissLS4v",
+    "ciphertext": "ngSYX3DQ_4mGy3JZa6_Z-qhBDHuNzgXCoyhe9ObjKkkV5wt7bdsc5o0p_BgC_gIoxg"
+  },
+  "deviceId": "08000000-0000-7000-8000-000000000001"
+}

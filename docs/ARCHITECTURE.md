@@ -22,7 +22,7 @@ flowchart LR
   Client["MCP client<br/>(e.g. Claude Desktop)"]
   Ollama["Ollama<br/>localhost only"]
   Ctx["Context sidecar (optional)<br/>Graphiti + embedded graph store"]
-  Conn["Connector runtime (optional)<br/>Activepieces or native adapters"]
+  Conn["Connector execution (optional)<br/>Activepieces pieces"]
   WS[("Portable workspace<br/>user-chosen folder")]
   Local[("Machine-local<br/>~/Library/Application Support/Fulcrum")]
 
@@ -75,10 +75,15 @@ Rules (enforced by lint import boundaries once the monorepo exists):
 
 | Layer | May import | Must not |
 |---|---|---|
+| `apps/core` (composition root) | public `domain`, `mcp` and driver APIs, generated types, Node | domain/driver private modules |
 | `apps/desktop`, `packages/mcp` | `domain` public API, generated types | `store`, `index`, any driver |
 | `packages/domain` | generated schema types, `store` and `index` **interfaces** | Node/Tauri APIs, network, model calls |
 | `packages/ingest` | `domain` commands, driver interfaces | write workspace files directly |
 | drivers | Node APIs, their own third-party libs | `domain` internals |
+
+The C6 implementation and development-only transport boundary are described in
+[ADR-0014](decisions/0014-core-transports.md). The production core has no TCP
+listener; its separate browser-development build is not a release artifact.
 
 The **domain** is pure: given current state and a command, it returns either a rejection or a list of field-level ops plus derived questions. That makes every rule unit-testable with fixtures and keeps the AI path and the human path identical.
 
@@ -108,6 +113,9 @@ sequenceDiagram
   D->>W: append event (ops) — or raise Question / store suggestion
   W->>P: fold → read models → card state, rail, graph
 ```
+
+C7 binds the machine-local FTS5 read side through a typed interface; cache
+failures do not revoke acknowledged events. See [ADR-0015](decisions/0015-local-search-cache.md).
 
 Detailed stage contracts: [INGESTION.md](INGESTION.md). A source claim is never authoritative until the reconciler has turned it into a domain command that passed policy.
 
@@ -146,7 +154,7 @@ interface WorkspaceStore {
 
 // packages/index — rebuildable read side
 interface ReadIndex {
-  rebuild(state: WorkspaceState): Promise<void>;
+  rebuild(snapshot: WorkspaceStateDoc): Promise<void>;
   apply(change: AppliedChange): Promise<void>;
   search(text: string, scope?: SearchScope): Promise<SearchHit[]>;
 }
@@ -155,14 +163,15 @@ interface ReadIndex {
 interface SourceAdapter {
   id: string;                                                      // 'gmail' | 'slack' | 'granola' | ...
   scopes(): Promise<SourceScope[]>;                                // accounts/channels/folders the user can opt into
-  pull(scope: SourceScope, cursor: Cursor | null, limits: PullLimits): Promise<{ items: SourceItem[]; next: Cursor | null }>;
+  pull(scope: SourceScope, cursor: Cursor | null, limits: PullLimits): Promise<{ items: SourceItem[]; next: Cursor | null; checkpoint: Cursor }>;
+  read(item: SourceItemRef, signal: AbortSignal): Promise<SourceItem | null>; // transient text; queue retains refs only
   permalink(item: SourceItemRef): string | null;
 }
 
 // packages/llm
 interface ModelRuntime {
   status(): Promise<RuntimeStatus>;                                // installed? model pulled? busy? paused?
-  extract<T>(prompt: ExtractionPrompt, schema: JsonSchema): Promise<Validated<T> | ExtractionFailure>;
+  extract(input: ExtractionInput): Promise<ExtractionResult>;     // typed candidates or explicit failure
   embed?(texts: string[]): Promise<number[][]>;
 }
 
@@ -186,8 +195,8 @@ interface ContextIndex {
 | Core runtime | TypeScript on Node 22+ as a bundled sidecar | preferred *(packaging provisional — S7)* | [0009](decisions/0009-core-process-and-language.md) |
 | Schemas | JSON Schema 2020-12 as source of truth; TS types generated; Ajv at runtime | decided | [0008](decisions/0008-schema-source-of-truth.md) |
 | Local index | SQLite + FTS5 (machine-local only) | preferred | [0005](decisions/0005-portable-workspace-event-log.md) |
-| Connectors | `SourceAdapter` interface; Activepieces is one candidate implementation | *(provisional — S4)* | [0002](decisions/0002-integration-boundary.md) |
-| Local model | Meta Llama via Ollama, hardware-tiered | *(provisional — S2)* | [0003](decisions/0003-local-model-runtime.md) |
+| Connectors | `SourceAdapter` backed by Activepieces pieces; execution mode to measure | direction accepted; execution provisional | [0011](decisions/0011-activepieces-integration-boundary.md) |
+| Model providers | Runtime interfaces; local default, hardware-aware chooser; optional explicit hosted adapters | Selection/installation planned; model adoption pending | [0018](decisions/0018-model-choice-and-setup.md) |
 | Temporal context | Native SQLite `ContextIndex` first; Graphiti adapter if S3 passes | *(provisional — S3)* | [0004](decisions/0004-context-layer.md) |
 | Ingestion host | One designated device per workspace | decided | [0006](decisions/0006-single-ingestion-device.md) |
 | MCP | Local stdio shim, off by default, scoped and logged | decided | [0007](decisions/0007-local-mcp-security.md) |
@@ -199,9 +208,14 @@ interface ContextIndex {
 - [WORKSPACE_FORMAT.md](WORKSPACE_FORMAT.md) — files, events, merge, migration, backup
 - [DOMAIN_COMMANDS.md](DOMAIN_COMMANDS.md) — command catalog, autonomy policy, undo
 - [INGESTION.md](INGESTION.md) — connector → reconciliation pipeline
-- [OPERATIONS.md](OPERATIONS.md) — local-only modes, sleep/wake, resources, model install
+- [OPERATIONS.md](OPERATIONS.md) — local-default modes, sleep/wake, resources, model install
 - [MCP.md](MCP.md) — tool contract
 - [SECURITY_MODEL.md](SECURITY_MODEL.md) — threat model, trust, public repo boundary
 - [ONBOARDING.md](ONBOARDING.md) — install and first run for non-technical users
 - [RISKS.md](RISKS.md) — risk register
 - [SCENARIOS.md](SCENARIOS.md) — golden scenarios and fixtures
+
+Optional hosted adapters (ADR-0018) are infrastructure drivers behind the same
+runtime boundary. Provider calls originate in the core after explicit local
+configuration, never in the UI or domain. Keys remain in Keychain; selected data
+and usage scope are enforced before a call. No app-hosted proxy is introduced.

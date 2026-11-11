@@ -1,0 +1,64 @@
+import{randomUUID}from'node:crypto';import path from'node:path';
+import{LocalPreferences}from'@fulcrum/store';
+import{ManagedOllama,MODEL_CATALOG,OLLAMA_RELEASE,CATALOG_REVISION,requiredModelDisk,detectModelHardware,AnthropicJsonRuntime,NativeProviderSecrets}from'@fulcrum/llm';
+import type{JsonModelRuntime,ProviderSecrets,ModelProgress}from'@fulcrum/llm';
+import{filterModelChoices}from'@fulcrum/domain';
+import type{OriginPreference,AiProfile,AiSetupStatus,AiJob,AdministrationArgs,CommandRequest,Domain}from'@fulcrum/domain';
+const COMPATIBILITY_SLOW_MS=30_000;const COMPATIBILITY_DEADLINE_MS=120_000;const MIN_BUDGET=1000;const MAX_BUDGET=10_000_000;
+const SYNTHETIC_TEST={system:'Return the requested JSON. This is a synthetic connection check with no work content.',input:'Return ok true.',schema:{type:'object',additionalProperties:false,required:['ok'],properties:{ok:{type:'boolean'}}}};
+type Snapshot=ReturnType<Domain['getSnapshot']>;
+interface SetupPorts{managed:ManagedOllama;secrets:ProviderSecrets;hardware:typeof detectModelHardware;hosted?: (key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>)=>JsonModelRuntime}
+export class AiSetup{
+ private readonly credentialsAvailable:boolean;private readonly preferences:LocalPreferences;private readonly ports:SetupPorts;private job:{id:string;state:AiJob;controller:AbortController}|undefined;private budgetTail:Promise<unknown>=Promise.resolve();private profileTail:Promise<unknown>=Promise.resolve();
+ constructor(private readonly directory:string,helper?:string,ports?:SetupPorts){this.credentialsAvailable=ports!==undefined||process.platform==='darwin'&&!!helper;this.preferences=new LocalPreferences(directory);this.ports=ports??{managed:new ManagedOllama(path.join(directory,'managed-ai')),secrets:new NativeProviderSecrets(helper),hardware:detectModelHardware};}
+ async profile():Promise<AiProfile>{
+  const saved=await this.preferences.read('ai');if(saved===undefined)return{kind:'none'};
+  if(!saved||typeof saved!=='object'||Array.isArray(saved))throw new Error('Invalid local AI profile.');
+  const profile=saved as AiProfile;if(Object.keys(profile).some(key=>!['kind','choiceId','digest','revision','compatibility','initiativeIds','dailyTokenBudget'].includes(key)))throw new Error('Invalid local AI profile.');if(!['none','local','hosted'].includes(profile.kind))throw new Error('Invalid local AI profile.');
+  if(profile.kind!=='none'&&!MODEL_CATALOG.some(choice=>choice.id===profile.choiceId&&choice.kind===profile.kind))throw new Error('Unknown local AI profile.');
+  if(profile.kind==='local'&&!MODEL_CATALOG.some(choice=>choice.id===profile.choiceId&&choice.digest===profile.digest))throw new Error('Model profile needs an update.');
+  if(profile.kind==='hosted'&&(!Array.isArray(profile.initiativeIds)||profile.initiativeIds.some(id=>typeof id!=='string')||!Number.isInteger(profile.dailyTokenBudget)||profile.dailyTokenBudget!<MIN_BUDGET||profile.dailyTokenBudget!>MAX_BUDGET))throw new Error('Invalid hosted sharing profile.');
+  const choice=MODEL_CATALOG.find(item=>item.id===profile.choiceId);
+  if(choice&&!filterModelChoices([{...choice,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null}],{...await this.originPreference(),search:''}).length)return{kind:'none'};
+  return profile;
+ }
+ async status():Promise<AiSetupStatus>{const preference=await this.originPreference();const hardware=await this.ports.hardware(this.directory);const profile=await this.profile();const local=MODEL_CATALOG.filter(choice=>choice.kind==='local'&&hardware.availableMemoryBytes>=choice.memoryBytes!&&hardware.availableDiskBytes!==null&&hardware.availableDiskBytes>=requiredModelDisk(choice));return{hardware,profile,preference,runtimeDownloadBytes:OLLAMA_RELEASE.bytes,runtimeVersion:OLLAMA_RELEASE.version,hostedSupported:this.credentialsAvailable,...(this.job?{job:{id:this.job.id,state:this.job.state}}:{}),choices:MODEL_CATALOG.map(choice=>{const{digest:_digest,...metadata}=choice;void _digest;return{...metadata,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null};}),suggestionId:hardware.runtimeSupported?local[0]?.id??null:null};}
+ async originPreference():Promise<OriginPreference>{return this.validatePreference(await this.preferences.read('modelPreferences')??{homeCountry:'',domesticOnly:false,excludedCountries:[],search:''});}
+ private validatePreference(value:unknown):OriginPreference{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid model preferences.');const preference=value as OriginPreference;if(Object.keys(preference).some(key=>!['homeCountry','domesticOnly','excludedCountries','search'].includes(key))||typeof preference.homeCountry!=='string'||preference.homeCountry!==''&&!/^[A-Z]{2}$/.test(preference.homeCountry)||typeof preference.domesticOnly!=='boolean'||preference.domesticOnly&&!preference.homeCountry||typeof preference.search!=='string'||preference.search.length>100||!Array.isArray(preference.excludedCountries)||preference.excludedCountries.some(country=>typeof country!=='string'||!/^[A-Z]{2}$/.test(country)))throw new Error('Invalid model preferences.');return preference;}
+ async savePreference(value:unknown){if(this.job?.state.phase==='running')throw new Error('Wait for setup or cancel it first.');const preference=this.validatePreference(value);const current=await this.profile();await this.preferences.write('modelPreferences',preference);const choice=MODEL_CATALOG.find(item=>item.id===current.choiceId);if(choice&&!filterModelChoices([{...choice,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null}],{...preference,search:''}).length)await this.none();return preference;}
+ async none():Promise<AiProfile>{this.cancel(this.job?.id??'');this.ports.managed.stop();const profile:AiProfile={kind:'none'};await this.saveProfile(profile);return profile;}
+ async start(args:AdministrationArgs['ai.start']):Promise<{id:string}>{
+  if(this.job?.state.phase==='running')throw new Error('Another model setup is running. Cancel it first.');
+  const choice=MODEL_CATALOG.find(choice=>choice.id===args.choiceId);if(!choice||args.licenseAccepted!==true)throw new Error('Choose a model and accept its terms.');
+  if(!filterModelChoices(choice?[{...choice,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null}]:[],await this.originPreference()).length)throw new Error('The selected model is excluded by your preferences.');
+  if(choice.kind==='hosted'&&!this.credentialsAvailable)throw new Error('Open the native application for Keychain-backed provider setup.');
+  if(choice.kind==='hosted'&&(args.sharingAcknowledged!==true||typeof args.apiKey!=='string'||!args.apiKey.trim()||args.apiKey.length>4096||/[\r\n\0]/.test(args.apiKey)||!Array.isArray(args.initiativeIds)||args.initiativeIds.some(id=>typeof id!=='string'||!/^[0-9a-f-]{36}$/.test(id))||!Number.isInteger(args.dailyTokenBudget)||args.dailyTokenBudget!<MIN_BUDGET||args.dailyTokenBudget!>MAX_BUDGET))throw new Error('Hosted setup needs an API key, explicit scope and daily token budget.');
+  const job={id:randomUUID(),state:{phase:'running',message:'Preparing model setup…',completedBytes:null,totalBytes:null}as AiJob,controller:new AbortController()};this.job=job;
+  void this.configure(args,job).catch(()=>{job.state=job.controller.signal.aborted?{phase:'cancelled'}:{phase:'failed',message:'AI setup did not finish. Check disk space, macOS approvals, network and provider access; retry or continue without AI.'};});return{id:job.id};
+ }
+ private async configure(args:AdministrationArgs['ai.start'],job:NonNullable<AiSetup['job']>){
+  await this.saveProfile({kind:'none'},job);job.controller.signal.throwIfAborted();const choice=MODEL_CATALOG.find(choice=>choice.id===args.choiceId)!;const signal=job.controller.signal;let runtime:JsonModelRuntime;
+  if(choice.kind==='local'){
+   const hardware=await this.ports.hardware(this.directory);if(!hardware.runtimeSupported||hardware.availableDiskBytes===null||hardware.availableDiskBytes<requiredModelDisk(choice)||hardware.availableMemoryBytes<choice.memoryBytes!)throw new Error('Not enough verified local disk capacity or unsupported runtime.');
+   const progress=(value:ModelProgress)=>{job.state={phase:'running',...value};};
+   await this.ports.managed.install(job.controller.signal,progress);await this.ports.managed.pull(choice,job.controller.signal,progress);runtime=await this.ports.managed.runtime(choice.model,signal);
+  }else runtime=this.hosted(()=>Promise.resolve(args.apiKey!),tokens=>this.reserve(tokens,args.dailyTokenBudget!));
+  job.state={phase:'running',message:'Testing structured output, response time and resources with synthetic data…',completedBytes:null,totalBytes:null};
+  const started=Date.now();const output=await runtime.generate({...SYNTHETIC_TEST,signal:AbortSignal.any([signal,AbortSignal.timeout(COMPATIBILITY_DEADLINE_MS)])});signal.throwIfAborted();if(!output||typeof output!=='object'||!('ok'in output)||output.ok!==true)throw new Error('Synthetic compatibility check failed.');
+  const compatibility={structuredOutput:true,latencyMs:Date.now()-started,processRssBytes:process.memoryUsage().rss,modelResidentBytes:choice.kind==='local'?await this.ports.managed.residentBytes():null,slow:Date.now()-started>COMPATIBILITY_SLOW_MS,at:new Date().toISOString()};
+  if(choice.kind==='hosted')await this.ports.secrets.set(args.apiKey!);job.controller.signal.throwIfAborted();
+  const profile:AiProfile={kind:choice.kind,choiceId:choice.id,revision:CATALOG_REVISION,compatibility,...(choice.kind==='local'?{digest:choice.digest!}:{initiativeIds:args.initiativeIds!,dailyTokenBudget:args.dailyTokenBudget!})};
+  await this.saveProfile(profile,job);job.controller.signal.throwIfAborted();job.state={phase:'ready',profile};
+ }
+ private saveProfile(profile:AiProfile,job?:NonNullable<AiSetup['job']>):Promise<void>{const operation=this.profileTail.then(async()=>{job?.controller.signal.throwIfAborted();await this.preferences.write('ai',profile);});this.profileTail=operation.catch(()=>undefined);return operation;}
+ statusJob(id:string):AiJob{if(this.job?.id!==id)throw new Error('Setup is no longer available. Retry.');return structuredClone(this.job.state);}
+ cancel(id:string){if(this.job?.id===id&&this.job.state.phase==='running'){this.job.controller.abort();this.ports.managed.stop();}}
+ private hosted(key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>){return this.ports.hosted?.(key,reserve)??new AnthropicJsonRuntime('claude-haiku-4-5-20251001',key,reserve);}
+ private reserve(tokens:number,budget:number):Promise<void>{const operation=this.budgetTail.then(async()=>{const day=new Date().toISOString().slice(0,10);const saved=await this.preferences.read('aiUsage');if(saved!==undefined&&(!saved||typeof saved!=='object'||!('day'in saved)||!('tokens'in saved)||typeof saved.day!=='string'||!Number.isSafeInteger(saved.tokens)||Number(saved.tokens)<0))throw new Error('Usage budget could not be verified.');const used=saved&&typeof saved==='object'&&'day'in saved&&saved.day===day&&'tokens'in saved?Number(saved.tokens):0;if(used+tokens>budget)throw new Error('Daily hosted token budget reached.');await this.preferences.write('aiUsage',{day,tokens:used+tokens});});this.budgetTail=operation.catch(()=>undefined);return operation;}
+ readonly runtime:JsonModelRuntime={generate:async request=>{const profile=await this.profile();const choice=MODEL_CATALOG.find(choice=>choice.id===profile.choiceId);if(!choice||profile.kind==='none')throw new Error('AI is off. Configure a model in Settings.');if(profile.kind==='local')return(await this.ports.managed.runtime(choice.model,request.signal??AbortSignal.timeout(COMPATIBILITY_DEADLINE_MS))).generate(request);return this.hosted(()=>this.ports.secrets.get(),tokens=>this.reserve(tokens,profile.dailyTokenBudget!)).generate(request);}};
+ async context(snapshot:Snapshot,request:CommandRequest):Promise<Snapshot>{
+  const profile=await this.profile();if(profile.kind!=='hosted')return snapshot;const ids=new Set(profile.initiativeIds??[]);if(request.initiativeId&&!ids.has(request.initiativeId))throw new Error('This initiative is outside your hosted sharing scope. Change Local AI settings or use local AI.');
+  const copy=structuredClone(snapshot);const state=copy.state;state.initiatives=state.initiatives.filter(item=>ids.has(item.id));state.nodes=state.nodes.filter(item=>ids.has(item.initiativeId));const nodes=new Set(state.nodes.map(item=>item.id));state.edges=state.edges.filter(item=>ids.has(item.initiativeId)&&nodes.has(item.fromId)&&nodes.has(item.toId));state.groups=state.groups.filter(item=>ids.has(item.initiativeId));const categories=new Set(state.initiatives.flatMap(item=>item.categoryIds));state.categories=state.categories.filter(item=>categories.has(item.id));return copy;
+ }
+ close(){this.cancel(this.job?.id??'');this.ports.managed.stop();}
+}

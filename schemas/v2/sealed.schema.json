@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fulcrum.local/schemas/v2/sealed.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nonce", "ciphertext"],
+  "properties": {
+    "nonce": { "type": "string", "pattern": "^[A-Za-z0-9_-]{32}$" },
+    "ciphertext": { "type": "string", "minLength": 22, "pattern": "^[A-Za-z0-9_-]+$" }
+  }
+}

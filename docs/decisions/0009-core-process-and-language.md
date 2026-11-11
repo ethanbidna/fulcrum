@@ -15,7 +15,7 @@ The UI, MCP clients and background ingestion all need the same domain logic. MCP
 Option 2. `fulcrum-core` is a TypeScript process holding an exclusive lock per Mac; UI (via the Rust shell's socket proxy) and `fulcrum-mcp` are clients over a Unix socket with JSON-RPC. The domain package is pure TypeScript with no runtime-specific APIs, so it also runs in tests and in the browser dev harness.
 
 ## Consequences
-- Adds a ~50–90 MB executable to the bundle (to be measured).
+- Adds standalone runtime executables; measure the actual release size (the original 50–90 MB estimate was too low).
 - SQLite access from the core: prefer built-in `node:sqlite` (or `bun:sqlite`) to avoid native-module packaging; FTS5 availability must be confirmed in S7.
 - If S7 fails (size, startup, signing), fall back to Rust for the store/index drivers while keeping the TypeScript domain in the webview + a headless mode — revisit via a new ADR.
 
@@ -27,3 +27,14 @@ now pass Intel/Apple Silicon CI builds, Rust tests and FTS5/socket launch checks
 Controlled hardware, complete RSS, universal execution and signing remain
 unverified; no packaging runtime
 selection or fallback decision is accepted from this sample.
+
+
+## Engineering checkpoint (2026-11-10)
+
+ADR-0024 selects Node 22 SEA as the provisional implementation route for
+the actual production core/MCP. Both architecture CI builds pass schema/FTS5
+self-tests; native builds pass. This is not a controlled Node-versus-Bun
+performance decision. Two runtime executables increase app size; measure the
+actual universal release rather than relying on the original 50–90 MB estimate.
+Controlled hardware, signing, upgrades and complete RSS remain pending.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).
