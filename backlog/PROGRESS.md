@@ -17,7 +17,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38, #43, #44, #90 | Intel 3B/8B runs recorded. [Qwen3.5 holdout review](../docs/spikes/S2-results/qwen35-holdout/review.md) recommends keeping this configuration out of automatic extraction. Owner checks pending. |
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
-| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39, #92, #93 | Gmail first; [read-only piece prototype](../spikes/s4/gmail-piece/README.md) resumes backfill and history; adapter, live OAuth and footprint checks pending |
+| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39, #92, #93 | Gmail first; [read-only piece prototype](../spikes/s4/gmail-piece/README.md) resumes through SourceAdapter and the SQLite queue in the synthetic probe; live OAuth and footprint checks pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | waiting-owner | [ ] | #81 | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
 | 9 | Decision checkpoint | waiting-owner | [ ] | #82 | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |

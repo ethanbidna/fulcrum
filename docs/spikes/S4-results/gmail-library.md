@@ -32,8 +32,9 @@ accessed the piece's internal action registry. Treat that as spike evidence.
 
 The [read-only piece prototype](../../../spikes/s4/gmail-piece/README.md)
 adds page tokens for label-filtered backfill and incremental history. It
-returns a new history checkpoint only on the final page. Evaluate the
-piece behind `SourceAdapter` before selecting a production execution mode.
+returns a new history checkpoint only on the final page. A synthetic run
+through `SourceAdapter` and the existing SQLite queue resumed after reopening
+the queue. Production execution mode remains provisional.
 
 Live OAuth and refresh, history expiry, thread handling, opening originals,
 rate limits, macOS packaging and runtime footprint remain open. Step 6's live
