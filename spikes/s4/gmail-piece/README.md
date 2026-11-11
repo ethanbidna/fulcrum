@@ -9,8 +9,8 @@ npm run check
 npm test
 ```
 
-The piece uses the public Activepieces action registry in a standalone Node
-process. The synthetic probe intercepts all requests. The package is isolated
+The adapter uses the public Activepieces action registry in a standalone Node
+process and implements Fulcrum's `SourceAdapter` interface. The synthetic probe intercepts all requests. The package is isolated
 from Fulcrum's app and workspace dependency graph.
 
 1. Use `get_history_anchor` before backfill.
@@ -32,7 +32,19 @@ short-lived access token and owns consent, refresh, scope selection, page
 budgets and cursor persistence. Keep continuation state bound to the same
 account and label.
 
-The prototype returns message references and history records. The
-`SourceAdapter` still needs to fetch and normalize message bodies, recheck
-label membership and persist progress. Live OAuth, refresh, links and
-packaging remain S4 acceptance work.
+The adapter uses Fulcrum's existing scheduler and machine-local SQLite queue.
+The synthetic restart probe verifies that the queue retains the original
+backfill window and page token. The queue stores references, hashes and
+cursors. It keeps message text in memory only.
+
+The message action checks the label with a minimal request before retrieving
+the full message and checks the label again on the response. Normalization
+uses inline plain text with a snippet fallback for HTML-only messages or
+attachment-backed bodies. It skips attachments and has no open-original URL.
+History batches are processed in groups of up to five messages, with the
+remaining IDs kept in the continuation until the page is complete.
+
+The injected access-token provider must stay bound to the same account as its
+opaque local account key. This spike runs without production desktop setup.
+Live OAuth, refresh, links, packaging and the production execution decision
+remain pending.
