@@ -49,6 +49,10 @@ Steps done since last audit: 3
 | 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; signed Keychain and two-Mac acceptance pending |
 | 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
+## Local verification
+
+- 2026-11-10 — [Independent checks](../docs/reviews/local-checks-2026-11-10.md): 635 reference/workspace tests, 49 Storybook stories, seven native tests, Intel core/MCP executable self-tests and release notices pass. Owner acceptance remains pending.
+
 ## Owner to-do
 
 ### Step 36 — P6 signed encryption acceptance
