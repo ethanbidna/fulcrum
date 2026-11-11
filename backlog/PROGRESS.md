@@ -14,7 +14,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 |---|---|---|---|---|---|
 | 1 | S1 workspace sync harness | waiting-owner | [ ] | #36 | Harness merged; real two-Mac test pending |
 | 2 | C1 monorepo scaffold | done | n/a | #37 | Workspace, generated types, layer lint, and CI checks |
-| 3 | S2 Llama benchmark | waiting-owner | [ ] | #38, #43, #44 | Intel 3B/8B runs and configuration experiments recorded; owner semantic and hardware checks pending |
+| 3 | S2 Llama benchmark | waiting-owner | [ ] | #38, #43, #44 | Intel 3B/8B runs and configuration experiments recorded; [Qwen3.5 holdout](../docs/spikes/S2-results/qwen35-protocol.md) frozen; inference and owner checks pending |
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
 | 6 | S4 connector capability matrix | waiting-owner | [ ] | #39 | Matrix and read-only probes; fake-account OAuth and footprint checks pending |
