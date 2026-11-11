@@ -25,3 +25,22 @@ node tools/release/notices.mjs /tmp/fulcrum-release-verification/THIRD_PARTY_NOT
 ```
 
 The 49 stories cover the existing AI chooser, onboarding, settings, MCP settings, priorities, timeline, context and evidence components. Full application flows have their own unit checks and still require the owner walkthroughs. Local test results leave the pending owner boxes open. The detailed [P6 local verification](https://github.com/ethanbidna/fulcrum/pull/84) is proposed separately in #84.
+
+
+## Complete application browser checks
+
+A separate disposable file-backed core and Chromium browser exercised the same merged application UI. The preview used its own loopback port and Vite cache to coexist with the existing Storybook server.
+
+- A List title edit survived page reload and appeared with its before/after values in History. History undo restored the original title.
+- The deterministic rename command showed its proposal before any mutation. Explicit Apply changed the same List title, and Undo command restored it. This path ran without inference.
+- A contextual question answer removed the question from the open list. The status Undo restored it. Indefinite deferral then appeared in the Deferred filter with its original context.
+- At a 390-pixel viewport, the deferred Questions view measured a 390-pixel body with no horizontal overflow. The synthetic capture was inspected.
+- Chromium reported no uncaught application errors during these actions.
+
+The first test selectors expected only the confirmation text and an exact label. Playwright includes the status button text and select options in those names. Retesting with the full status and combobox names passed.
+
+The separate startup issue discovered before this walkthrough is fixed in [#86](https://github.com/ethanbidna/fulcrum/pull/86). Its regression failed with the original parser import error, then passed. The full suite with that test passes 79 reference and 557 workspace tests. The walkthrough is an agent check of synthetic data. The owner's week-long usage and native reviews remain pending.
+
+## Release environment prerequisite
+
+The GitHub environment list returned an empty array on November 10. The configured workflow requires a named `release` environment. Secret and variable metadata requests for that environment returned 404. Follow [the P5 release procedure](P5.md#owner-release-procedure) to configure the environment, signing/notary credentials, updater keys and P6 provisioning profile before dispatching a signed build. No credential values were retrieved.

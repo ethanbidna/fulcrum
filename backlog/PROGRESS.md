@@ -55,7 +55,7 @@ The documented `pnpm dev` entry now selects the ESM parser build, matching the c
 
 ## Local verification
 
-- 2026-11-10 — [Independent checks](../docs/reviews/local-checks-2026-11-10.md): 635 reference/workspace tests, 49 Storybook stories, seven native tests, Intel core/MCP executable self-tests and release notices pass. Owner acceptance remains pending.
+- 2026-11-10 — [Independent checks](../docs/reviews/local-checks-2026-11-10.md): 635 reference/workspace tests, 49 Storybook stories, seven native tests, Intel core/MCP executable self-tests and release notices pass. Follow-up browser edit/history/command/question checks pass; the release environment still needs configuration. Owner acceptance remains pending.
 
 ## Owner to-do
 
