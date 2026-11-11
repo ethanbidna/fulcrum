@@ -1,7 +1,7 @@
 import { mkdir, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import { fileImage, WorkspaceArchives } from './archive.js';
-import { atomicCreate, ensureDirectory, StoreError, syncDirectory, resolvedLocation } from './files.js';
+import { atomicCreate, atomicFile, ensureDirectory, StoreError, syncDirectory, resolvedLocation } from './files.js';
 import { acquireCoreLock } from './lock.js';
 import { readWorkspace } from './reader.js';
 import { generateWorkspaceKey, WorkspaceEncryption } from './encryption.js';
@@ -23,7 +23,8 @@ interface DestinationOptions {
   fault?: (phase: 'after-key' | 'before-manifest' | 'after-manifest') => Promise<void>;
 }
 interface CopyOptions extends DestinationOptions { source: string }
-interface RestoreOptions extends CopyOptions { backupId: string; encryption: WorkspaceEncryption }
+interface EncryptedSource { backupId?: string; encryption: WorkspaceEncryption }
+type RestoreOptions = CopyOptions & EncryptedSource & { backupId: string };
 
 export async function importWorkspaceRecovery(manifest: EncryptedManifest, card: string, keys: WorkspaceKeyStore,
   validators: Awaited<ReturnType<typeof loadStoreValidators>>) {
@@ -77,9 +78,13 @@ type Snapshot = Awaited<ReturnType<typeof readWorkspace>>;
 type Validators = Awaited<ReturnType<typeof loadStoreValidators>>;
 
 async function copyVerifiedHistory(options: DestinationOptions, validators: Validators, snapshot: Snapshot,
-  verifySource: () => Promise<void>, assertLock: () => Promise<void>) {
+  sourceDigest: string, verifySource: () => Promise<void>, assertLock: () => Promise<void>) {
   for (const event of snapshot.eventBytes) strictJson(event);
   const manifest = await prepare(options, validators);
+  const journal = path.join(options.localDirectory, `migration-${manifest.workspaceId}.json`);
+  const record = { sourceWorkspaceId: snapshot.manifest.workspaceId, destinationWorkspaceId: manifest.workspaceId,
+    sourceDigest, eventCount: snapshot.events.length, lastHlc: snapshot.events.at(-1)?.hlc ?? null };
+  await atomicCreate(journal, JSON.stringify({ ...record, phase: 'copying' }));
   const session = await verifySavedKey(options, manifest, validators);
   try {
     await mkdir(options.destination, { mode: 0o700 });
@@ -99,9 +104,10 @@ async function copyVerifiedHistory(options: DestinationOptions, validators: Vali
       throw new StoreError('ENCRYPTED_COPY_INVALID', 'Encrypted copy history does not match the backup');
     }
   } finally { fresh.close(); }
+  await atomicFile(journal, JSON.stringify({ ...record, phase: 'verified' }));
   return { directory: options.destination, workspaceId: manifest.workspaceId };
 }
-async function lockedCopy(options: CopyOptions, restore?: Pick<RestoreOptions, 'backupId' | 'encryption'>) {
+async function lockedCopy(options: CopyOptions, encryptedSource?: EncryptedSource) {
   const source = await realpath(options.source);
   const local = await resolvedLocation(options.localDirectory);
   const requested = path.resolve(options.destination);
@@ -111,22 +117,24 @@ async function lockedCopy(options: CopyOptions, restore?: Pick<RestoreOptions, '
     throw new StoreError('ENCRYPTION_PATH_OVERLAP', 'Choose separate source, destination and local profile directories');
   }
   const archive = await WorkspaceArchives.open({ workspaceDirectory: source, localDirectory: local,
-    ...(restore ? { encryption: restore.encryption } : {}),
+    ...(encryptedSource ? { encryption: encryptedSource.encryption } : {}),
     ...(options.schemaDirectory ? { schemaDirectory: options.schemaDirectory } : {}) });
   const lock = await acquireCoreLock(local);
   try {
     const validators = await loadStoreValidators(options.schemaDirectory);
-    const backupId = restore?.backupId ?? (await archive.backup()).id;
+    const backupId = encryptedSource?.backupId ?? (await archive.backup()).id;
     const { directory, read } = await archive.verify(backupId);
     const expected = await fileImage(directory);
     const verifySource = async () => {
-      if ((await fileImage(restore ? directory : source)).digest !== expected.digest) sourceChanged();
+      if ((await fileImage(encryptedSource?.backupId ? directory : source)).digest !== expected.digest) sourceChanged();
     };
     await verifySource();
-    const result = await copyVerifiedHistory({ ...options, destination }, validators, read, verifySource, () => lock.assertOwned());
+    const result = await copyVerifiedHistory({ ...options, localDirectory: local, destination }, validators, read, expected.digest, verifySource, () => lock.assertOwned());
     return { ...result, backupId };
   } finally { await lock.release(); }
 }
 
 export function createEncryptedCopy(options: CopyOptions) { return lockedCopy(options); }
 export function restoreEncryptedCopy(options: RestoreOptions) { return lockedCopy(options, options); }
+
+export function rotateEncryptedCopy(options: CopyOptions & EncryptedSource) { return lockedCopy(options, options); }

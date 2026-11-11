@@ -22,7 +22,7 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
     const snapshot=domain().getSnapshot();const settings=snapshot.state.settings;const devices=snapshot.state.devices??[];
     const event=domain().history().filter(event=>event.deviceId===settings.ingestionDeviceId).at(-1);
     const lastSeen=event?Number(event.hlc.split('-')[0]):null;const current=background.status(Date.now());
-    return {workspaceId:snapshot.workspaceId,workspaceDirectory:options.workspaceDirectory,deviceId,deviceLabel:options.deviceLabel,devices:devices.map(({id,label})=>({id,label})),
+    return {encrypted:options.encryption!==undefined,workspaceId:snapshot.workspaceId,workspaceDirectory:options.workspaceDirectory,deviceId,deviceLabel:options.deviceLabel,devices:devices.map(({id,label})=>({id,label})),
       ingestionDeviceId:settings.ingestionDeviceId??null,ingestionLastSeenAt:lastSeen===null?null:new Date(lastSeen).toISOString(),ingestionStale:lastSeen!==null&&Date.now()-lastSeen>=STALE_DEVICE_MS,
       cachePolicy:settings.defaultCachePolicy??'none',backupFrequency:await archives.cadence(),backups:await archives.list(),backgroundPaused:current.settings.paused,onlyWhenPluggedIn:current.settings.onlyWhenPluggedIn,backgroundReason:current.sourcePause,ingestionEnabled:ingestionEnabled(),backupError,backupRetentionError:archives.retentionFailed};
   }

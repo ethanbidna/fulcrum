@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { AiSetup } from './ai-setup.js';
 import { openAdministration } from './administration.js';
 import { BackgroundPolicy } from '@fulcrum/ingest';
@@ -155,7 +156,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       fingerprint = JSON.stringify([...knownEventIds]); return result;
   };
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
-  const aiSetup=options.aiSetup??new AiSetup(options.localDirectory,options.credentialHelper);
+  const aiProfile = options.encryption ? path.join(options.localDirectory, `ai-${opened.manifest.workspaceId}`) : options.localDirectory;
+  const aiSetup = options.aiSetup ?? new AiSetup(aiProfile, options.credentialHelper);
   const planner = new CommandPlanner(() => domain, options.commandRuntime ?? aiSetup.runtime, Date.now, options.commandRuntime?async snapshot=>snapshot:(snapshot,request)=>aiSetup.context(snapshot,request));
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
@@ -189,7 +191,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },
     configureBackground: settings => { background.configure(settings as Partial<BackgroundSettings>); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); return background.status(Date.now()); },
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
-    commandPlanStatus: id => jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
+    commandPlanStatus: id => options.encryption ? enqueue(async () => { await requireAvailable(); return jobs.status(id); }) : jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
     applyCommandPlan: id => enqueue(async () => {
       await requireAvailable();
       let command;

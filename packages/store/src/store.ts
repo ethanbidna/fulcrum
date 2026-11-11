@@ -20,6 +20,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
   private localDirectory = '';
   private opened: OpenedWorkspace | undefined;
   private identity: DeviceIdentity | undefined;
+  private identityFile = '';
   private validators!: StoreValidators;
   private lock: Awaited<ReturnType<typeof acquireCoreLock>> | undefined;
   private tail: Promise<unknown> = Promise.resolve();
@@ -56,13 +57,15 @@ export class FileWorkspaceStore implements WorkspaceStore {
       const supported = this.options.readerVersion ?? (this.options.encryption ? ENCRYPTED_VERSION : SCHEMA_VERSION);
       if ((read.manifest.minReaderVersion ?? 1) > supported || (read.manifest.encryption && !this.options.encryption)) throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED', 'This reader cannot interpret the workspace');
       await this.rememberStorageVersion(read.manifest);
-      const identity = await loadIdentity(this.localDirectory, this.options.deviceLabel);
+      await assertWorkspaceUnlocked(this.localDirectory, read.manifest.workspaceId, this.options.encryption);
+      this.identityFile = path.join(this.localDirectory, this.options.encryption ? `device-${read.manifest.workspaceId}.json` : 'device.json');
+      const identity = await loadIdentity(this.identityFile, this.options.deviceLabel);
       const saved = identity.lastSeqByWorkspace[read.manifest.workspaceId] ?? 0;
       const maximum = maxSeq(read.events, identity.deviceId);
       const diagnostics = [...read.diagnostics];
       if (maximum > saved) {
         identity.deviceId = uuid(); identity.lastSeqByWorkspace = {};
-        diagnostics.push({ code: 'CLONED_DEVICE_ROTATED' }); await saveIdentity(this.localDirectory, identity);
+        diagnostics.push({ code: 'CLONED_DEVICE_ROTATED' }); await saveIdentity(this.identityFile, identity);
       } else if (maximum < saved) throw new StoreError('WORKSPACE_NOT_FULLY_DOWNLOADED', 'Local acknowledged events are missing from the workspace');
       this.identity = identity;
       const registered = read.events.some(event => event.ops.some(op => op.kind === 'device' && op.op === 'create' && op.id === identity.deviceId));
@@ -85,10 +88,13 @@ export class FileWorkspaceStore implements WorkspaceStore {
     throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED', 'This workspace was previously encrypted on this Mac');
   }
   async read(): Promise<WorkspaceRead> {
-    this.requireOpen(); const read = await readWorkspace(this.directory, this.validators, this.options.encryption);
+    this.requireOpen();
+    await assertWorkspaceUnlocked(this.localDirectory, this.opened!.manifest.workspaceId, this.options.encryption);
+    const read = await readWorkspace(this.directory, this.validators, this.options.encryption);
     if (read.manifest.workspaceId !== this.opened!.manifest.workspaceId || read.manifest.schemaVersion !== this.opened!.manifest.schemaVersion) {
       throw new StoreError('WORKSPACE_IDENTITY_CHANGED', 'Workspace identity changed; reopen it');
     }
+    await assertWorkspaceUnlocked(this.localDirectory, read.manifest.workspaceId, this.options.encryption);
     if (this.maintenanceFailed) read.diagnostics.push({ code: 'CHECKPOINT_WRITE_FAILED' });
     return read;
   }
@@ -109,7 +115,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
     });
   }
   renameDevice(label:string):Promise<void>{
-    return this.serialize(async()=>{if(!this.identity)throw new StoreError('STORE_NOT_OPEN','Open a workspace first');const identity={...this.identity,label};await saveIdentity(this.localDirectory,identity);this.identity=identity;});
+    return this.serialize(async()=>{if(!this.identity)throw new StoreError('STORE_NOT_OPEN','Open a workspace first');const identity={...this.identity,label};await saveIdentity(this.identityFile,identity);this.identity=identity;});
   }
   append(events: ChangeEvent[]): Promise<void> {
     const submitted = structuredClone(events);
@@ -131,7 +137,7 @@ export class FileWorkspaceStore implements WorkspaceStore {
       await writeEvents(this.directory, events, this.options.fault, this.options.encryption);
       await this.options.fault?.('identity-before-save');
       this.identity!.lastSeqByWorkspace[read.manifest.workspaceId] = seq;
-      await saveIdentity(this.localDirectory, this.identity!);
+      await saveIdentity(this.identityFile, this.identity!);
       this.checkpointEvents += events.length;
       this.scheduleCheckpoint();
     } catch (error) { this.failed = true; throw error; }
@@ -218,6 +224,8 @@ export class FileWorkspaceStore implements WorkspaceStore {
           if (latest?.maxHlc !== checkpoint.maxHlc) await this.checkpoint(checkpoint, await this.requireWritable());
         }
       }
+    } catch (error) {
+      if (!(error instanceof StoreError) || error.code !== 'WORKSPACE_LOCKED') throw error;
     } finally {
       this.options.encryption?.close();
       this.stopped = true; for (const stop of [...this.watchers]) stop();
@@ -241,3 +249,10 @@ export class FileWorkspaceStore implements WorkspaceStore {
   }
 }
 function maxSeq(events: ChangeEvent[], deviceId: string): number { return events.filter(event => event.deviceId === deviceId).reduce((maximum, event) => Math.max(maximum, event.seq), 0); }
+
+async function assertWorkspaceUnlocked(local: string, id: string, encryption: StoreOptions['encryption']) {
+  if (!encryption) return;
+  try { await lstat(path.join(local, `locked-${id}`)); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
+  throw new StoreError('WORKSPACE_LOCKED', 'Unlock the workspace from the native app');
+}

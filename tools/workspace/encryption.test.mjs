@@ -190,3 +190,51 @@ test('trusted core composition replays v2, executes domain commands and fails cl
     }
   } finally { await host.close(); }
 }));
+
+test('native key driver uses scoped binary frames and validates a missing key before storing recovery', () => fixture(async options => {
+  await createEncryptedCopy(options);
+  const manifest = JSON.parse(await readFile(path.join(options.destination, 'workspace.json'), 'utf8'));
+  const key = await options.keys.get(manifest.workspaceId, manifest.encryption.keyId);
+  const { NativeWorkspaceKeys, unlockConfiguredWorkspace } = await import('../../apps/core/src/workspace-keys.ts');
+  const { StoreError } = await import('../../packages/store/src/index.ts');
+  const identity = { workspaceId: manifest.workspaceId, keyId: manifest.encryption.keyId };
+  const account = `${identity.workspaceId}:${identity.keyId}`;
+  const card = createRecoveryCard(identity, key);
+  const calls = [];
+  let saved;
+  const keys = new NativeWorkspaceKeys(async (action, frame) => {
+    calls.push(action);
+    expect(Buffer.from(frame.subarray(0, 73)).toString()).toBe(account);
+    if (action === 'get') {
+      if (!saved) throw new StoreError('WORKSPACE_KEY_MISSING','Missing');
+      return Buffer.from(saved, 'hex');
+    }
+    if (action === 'recover') return Buffer.from(card);
+    if (action === 'add') { expect(frame.length).toBe(105); saved = frame.slice(73).toString('hex'); return Buffer.alloc(0); }
+    throw new Error('Unexpected operation');
+  });
+  const schema = new URL('../../schemas/v1/', import.meta.url);
+  await expect(unlockConfiguredWorkspace(options.destination, options.localDirectory, schema, false, keys)).rejects.toMatchObject({code:'WORKSPACE_KEY_MISSING'});
+  expect(calls).toEqual(['get']);
+  const session = await unlockConfiguredWorkspace(options.destination, options.localDirectory, schema, true, keys);
+  session.close();
+  expect(calls).toEqual(['get','get','recover','add','get']);
+  key.fill(0);
+}));
+
+test('a native lock marker blocks an already-open session and future opens', () => fixture(async options => {
+  await createEncryptedCopy(options);
+  const manifest = JSON.parse(await readFile(path.join(options.destination, 'workspace.json'), 'utf8'));
+  const key = await options.keys.get(manifest.workspaceId, manifest.encryption.keyId);
+  const validators = await loadStoreValidators();
+  const session = await WorkspaceEncryption.unlock(manifest, key, validators);
+  const store = new FileWorkspaceStore({localDirectory:options.localDirectory,deviceLabel:'Synthetic',encryption:session});
+  await store.open(options.destination);
+  await writeFile(path.join(options.localDirectory,`locked-${manifest.workspaceId}`),'{}',{mode:0o600});
+  try { await expect(store.read()).rejects.toMatchObject({code:'WORKSPACE_LOCKED'}); }
+  finally { await store.close(); }
+  const fresh = await WorkspaceEncryption.unlock(manifest, key, validators);
+  key.fill(0);
+  await expect(new FileWorkspaceStore({localDirectory:options.localDirectory,deviceLabel:'Synthetic',encryption:fresh}).open(options.destination))
+    .rejects.toMatchObject({code:'WORKSPACE_LOCKED'});
+}));

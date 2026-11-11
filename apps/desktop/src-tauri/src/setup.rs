@@ -14,7 +14,7 @@ const POLL_INTERVAL: Duration = Duration::from_millis(100);
 const MAX_KEYCHAIN_BYTES: u64 = 8192;
 struct Selection { token: String, directory: PathBuf, mode: String, started: bool }
 #[derive(Default)]
-pub struct SetupState { selected: Mutex<Option<Selection>> }
+pub struct SetupState { selected: Mutex<Option<Selection>>, pub(super) lifecycle: Mutex<()> }
 #[cfg(target_os = "macos")]
 extern "C" {
     fn fulcrum_choose_directory(initial: *const std::ffi::c_char) -> *mut std::ffi::c_char;
@@ -30,18 +30,18 @@ fn native_string(value: *mut std::ffi::c_char) -> Result<String, String> {
     unsafe { fulcrum_free_setup_string(value); }
     Ok(result)
 }
-fn identifier() -> Result<String, String> {
+pub(super) fn identifier() -> Result<String, String> {
     #[cfg(target_os = "macos")] { native_string(unsafe { fulcrum_new_identifier() }) }
     #[cfg(not(target_os = "macos"))] { Err("MACOS_REQUIRED".into()) }
 }
-fn choose(initial: &Path) -> Result<PathBuf, String> {
+pub(super) fn choose(initial: &Path) -> Result<PathBuf, String> {
     #[cfg(target_os = "macos")] {
         let text = CString::new(initial.to_string_lossy().as_bytes()).map_err(|_| "INVALID_FOLDER")?;
         native_string(unsafe { fulcrum_choose_directory(text.as_ptr()) }).map(PathBuf::from)
     }
     #[cfg(not(target_os = "macos"))] { let _ = initial; Err("MACOS_REQUIRED".into()) }
 }
-fn read_private(file: &Path, owner: u32) -> Result<Option<Value>, String> {
+pub(super) fn read_private(file: &Path, owner: u32) -> Result<Option<Value>, String> {
     let metadata = match std::fs::symlink_metadata(file) { Ok(value) => value, Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None), Err(_) => return Err("LOCAL_PROFILE_UNAVAILABLE".into()) };
     if !metadata.is_file() || metadata.file_type().is_symlink() || metadata.uid() != owner || metadata.mode() & 0o777 != 0o600 || metadata.len() > MAX_PROFILE_BYTES { return Err("LOCAL_PROFILE_UNSAFE".into()); }
     let bytes = std::fs::read(file).map_err(|_| "LOCAL_PROFILE_UNAVAILABLE")?;
@@ -52,7 +52,7 @@ fn profile_directory(core: &CoreSocket) -> Result<(), String> {
     let stat = std::fs::symlink_metadata(&core.profile).map_err(|_| "LOCAL_PROFILE_UNAVAILABLE")?;
     if !stat.is_dir() || stat.file_type().is_symlink() || stat.uid() != core.owner || stat.mode() & 0o777 != 0o700 { return Err("LOCAL_PROFILE_UNSAFE".into()); } Ok(())
 }
-fn write_private(file: &Path, value: &Value) -> Result<(), String> {
+pub(super) fn write_private(file: &Path, value: &Value) -> Result<(), String> {
     let parent = file.parent().ok_or("LOCAL_PROFILE_INVALID")?;
     let temporary = parent.join(format!(".setup-{}", identifier()?));
     let result = (|| {
@@ -67,22 +67,27 @@ fn cloud_locations(home: &Path) -> (Option<PathBuf>, Option<PathBuf>) {
     if let Ok(entries) = std::fs::read_dir(home.join("Library/CloudStorage")) { for entry in entries.flatten() { if !entry.path().is_dir() { continue; } let name = entry.file_name().to_string_lossy().into_owned(); if name.starts_with("Dropbox") { dropbox = Some(entry.path()); } if name.starts_with("GoogleDrive-") { drive = Some(entry.path()); } } }
     (dropbox, drive)
 }
-fn core_command(app: &tauri::AppHandle) -> Result<Command, String> {
+pub(super) fn core_command(app: &tauri::AppHandle) -> Result<Command, String> {
     #[cfg(debug_assertions)] if let Some(binary) = std::env::var_os("FULCRUM_DEV_CORE") { return Ok(Command::new(binary)); }
     let binary = app.path().resource_dir().map_err(|_| "BUNDLED_CORE_UNAVAILABLE")?.join("bin/fulcrum-core");
     if !binary.is_file() { return Err("BUNDLED_CORE_UNAVAILABLE".into()); } Ok(Command::new(binary))
 }
-fn launch(app: &tauri::AppHandle, core: &CoreSocket, directory: &Path, user: &str, label: &str, create: bool) -> Result<(), String> {
+pub(super) fn launch(app: &tauri::AppHandle, core: &CoreSocket, directory: &Path, user: &str, label: &str, create: bool, recover: bool) -> Result<(), String> {
     let mut command = core_command(app)?;
     command.args(["--workspace", directory.to_str().ok_or("INVALID_FOLDER")?, "--user-entity", user, "--device-label", label]);
     if create { command.arg("--create"); }
+    if recover { command.arg("--recover-workspace"); }
     let helper = std::env::current_exe().map_err(|_| "KEYCHAIN_HELPER_UNAVAILABLE")?;
     command.arg("--credential-helper").arg(helper);
     let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn().map_err(|_| "BUNDLED_CORE_UNAVAILABLE")?;
     let started = Instant::now();
-    while started.elapsed() < STARTUP_TIMEOUT {
+    while started.elapsed() < if recover { Duration::from_secs(330) } else { STARTUP_TIMEOUT } {
         if child.try_wait().map_err(|_| "CORE_STARTUP_FAILED")?.is_some() { return Err("CORE_STARTUP_FAILED".into()); }
-        if core.connect().and_then(|mut client| client.request("health", json!({}))).is_ok() { return Ok(()); }
+        let ready = core.connect().and_then(|mut client| client.request("health", json!({}))).is_ok();
+        let saved = read_private(&core.profile.join("active-workspace.json"), core.owner).ok().flatten();
+        let matches = saved.as_ref().and_then(|profile| profile["workspaceDirectory"].as_str())
+            .is_some_and(|saved_path| Path::new(saved_path) == directory);
+        if ready && matches { return Ok(()); }
         std::thread::sleep(POLL_INTERVAL);
     }
     let _ = child.kill(); let _ = child.wait(); Err("CORE_STARTUP_TIMEOUT".into())
@@ -93,7 +98,7 @@ fn ensure_saved(app: &tauri::AppHandle, core: &CoreSocket, profile: &Value) -> R
     let user = profile["userEntityId"].as_str().ok_or("LOCAL_PROFILE_INVALID")?;
     let label = profile["deviceLabel"].as_str().unwrap_or("Local Mac");
     if !directory.is_absolute() || user.len() != 36 { return Err("LOCAL_PROFILE_INVALID".into()); }
-    launch(app, core, &directory, user, label, false)
+    launch(app, core, &directory, user, label, false, false)
 }
 pub(super) fn stop_core(core: &CoreSocket) -> Result<(), String> {
     core.stop(); if let Ok(mut client) = core.connect() { client.request("shutdown", json!({}))?; } else { return Ok(()); }
@@ -110,6 +115,7 @@ fn validate_folder(directory: &Path, mode: &str) -> Result<(), String> {
 pub async fn setup_request(app: tauri::AppHandle, core: tauri::State<'_, Arc<CoreSocket>>, state: tauri::State<'_, Arc<SetupState>>, name: String, args: Value) -> Result<Value, String> {
     let core = core.inner().clone(); let state = state.inner().clone();
     tauri::async_runtime::spawn_blocking(move || {
+        let _guard = state.lifecycle.lock().map_err(|_| "SETUP_UNAVAILABLE")?;
         let home = app.path().home_dir().map_err(|_| "HOME_UNAVAILABLE")?; profile_directory(&core)?;
         match name.as_str() {
             "status" => {
@@ -141,7 +147,7 @@ pub async fn setup_request(app: tauri::AppHandle, core: tauri::State<'_, Arc<Cor
                 let user = if same { saved.as_ref().and_then(|value| value["userEntityId"].as_str()).ok_or("LOCAL_PROFILE_INVALID")?.to_owned() } else { identifier()? };
                 stop_core(&core)?;
                 if !same { write_private(&core.profile.join("mcp-access.json"), &json!({"enabled":false,"readOnly":true,"sharingAcknowledged":false,"sourceExcerpts":false,"questionsVisible":true}))?; }
-                launch(&app, &core, &directory, &user, label, create)?; Ok(json!({"opened":true}))
+                launch(&app, &core, &directory, &user, label, create, !create)?; Ok(json!({"opened":true}))
             }
             _ => Err("SETUP_METHOD_NOT_ALLOWED".into())
         }

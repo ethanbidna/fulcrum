@@ -34,3 +34,38 @@ export const InApplication:Story={beforeEach:()=>{window.location.hash='#setting
 export const HistoryUnavailable:Story={beforeEach:()=>{window.location.hash='#settings/backup';},args:{query:fn(async()=>{throw new Error('Unavailable');}) as CoreTransport['query']},play:async({canvas,userEvent})=>{await canvas.findByText('Could not load retained changes.');await expect(canvas.queryByText('No retained changes are available to preview.')).not.toBeInTheDocument();await userEvent.click(canvas.getByRole('button',{name:'Retry history'}));await canvas.findByText('Could not load retained changes.');}};
 
 export const McpInApplication:Story={beforeEach:()=>{window.location.hash='#settings/mcp';},render:()=>{const fixture=workshopFixture();fixture.transport.administer=administer;return <App platform={fixture.platform}/>;},play:async({canvas})=>{await canvas.findByRole('checkbox',{name:'Allow MCP clients'});}};
+
+const privacy = fn<(action: 'copy' | 'lock' | 'restore', backupId?: string) => Promise<void>>(async () => {});
+export const PlaintextPrivacy:Story={
+  args:{privacy},
+  beforeEach:()=>{window.location.hash='#settings/privacy';privacy.mockClear();},
+  play:async({canvas,userEvent})=>{
+    const button=await canvas.findByRole('button',{name:'Create encrypted copy…'});
+    button.focus();
+    await userEvent.keyboard('{Enter}');
+    await expect(privacy).toHaveBeenCalledWith('copy');
+  },
+};
+export const EncryptedPrivacy:Story={
+  args:{privacy},
+  beforeEach:()=>{current={...structuredClone(initial),encrypted:true};window.location.hash='#settings/privacy';privacy.mockClear();},
+  play:async({canvas,userEvent})=>{
+    await canvas.findByText('This workspace’s canonical history is encrypted.');
+    await userEvent.click(canvas.getByRole('button',{name:'Lock workspace'}));
+    await expect(privacy).toHaveBeenCalledWith('lock');
+    await expect(canvas.queryByRole('button',{name:'Create encrypted copy…'})).not.toBeInTheDocument();
+  },
+};
+
+export const EncryptedBackupRestore:Story={
+ args:{privacy},
+ beforeEach:()=>{current={...structuredClone(initial),encrypted:true};window.location.hash='#settings/backup';privacy.mockClear();},
+ play:async({canvas,userEvent})=>{
+  await userEvent.selectOptions(await canvas.findByLabelText('Backup'),initial.backups[0]!.id);
+  const button=canvas.getByRole('button',{name:'Restore as new workspace'});
+  await expect(button).toBeDisabled();
+  await userEvent.click(canvas.getByRole('checkbox',{name:'Create a new encrypted workspace with a new recovery card; keep the original and backup.'}));
+  await userEvent.click(button);
+  await expect(privacy).toHaveBeenCalledWith('restore',initial.backups[0]!.id);
+ },
+};
