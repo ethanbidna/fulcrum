@@ -24,4 +24,4 @@ node tools/release/sea.mjs /tmp/fulcrum-release-verification
 node tools/release/notices.mjs /tmp/fulcrum-release-verification/THIRD_PARTY_NOTICES.txt
 ```
 
-The 49 stories cover the existing AI chooser, onboarding, settings, MCP settings, priorities, timeline, context and evidence components. Full application flows have their own unit checks and still require the owner walkthroughs. Local test results leave the pending owner boxes open. The detailed [P6 local verification](P6-local-verification.md) is proposed separately in #84.
+The 49 stories cover the existing AI chooser, onboarding, settings, MCP settings, priorities, timeline, context and evidence components. Full application flows have their own unit checks and still require the owner walkthroughs. Local test results leave the pending owner boxes open. The detailed [P6 local verification](https://github.com/ethanbidna/fulcrum/pull/84) is proposed separately in #84.
