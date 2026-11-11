@@ -1,8 +1,8 @@
 # Workspace encryption design
 
-Status: design for P6 / step 35; implementation is step 36. Current readers
-reject encrypted workspaces. This document does not enable encryption or change
-`schemas/v1/`. [ADR-0021](decisions/0021-workspace-encryption.md) records the decision.
+Status: P6 implementation requires a signed, provisioned macOS build. See
+[the P6 review and acceptance procedure](reviews/P6.md). The v1 schemas are
+unchanged. Actual signed Keychain and two-Mac acceptance remains open.
 
 ## Scope and threat boundary
 
@@ -136,7 +136,7 @@ key backup. Rotation or suspected compromise requires an explicit copy to a
 new workspace/key and new recovery card, using the migration rules below.
 There is no remote revocation: old keys still decrypt old copies/history.
 
-## Version 2 storage contract — proposed, not installed
+## Version 2 storage contract
 
 Step 36 adds `schemas/v2/` and a storage codec; it must not repurpose v1's
 reserved fields or weaken its validators. The directory layout stays exactly

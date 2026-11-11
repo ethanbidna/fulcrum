@@ -85,6 +85,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
           rm "$certificate"
       - run: node tools/release/assemble.mjs
+        env:
+          APPLE_WORKSPACE_PROVISION_PROFILE: ${{ secrets.APPLE_WORKSPACE_PROVISION_PROFILE }}
       - uses: tauri-apps/tauri-action@v0
         with:
           projectPath: apps/desktop

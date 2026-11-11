@@ -1,3 +1,5 @@
+mod workspace_privacy;
+mod workspace_keys;
 mod socket;
 mod system;
 mod setup;
@@ -95,6 +97,7 @@ fn core_profile(home: &std::path::Path) -> PathBuf {
     home.join("Library/Application Support/Fulcrum")
 }
 fn main() {
+    if let Some(code) = workspace_keys::helper_mode() { std::process::exit(code); }
     if let Some(code) = setup::keychain_mode() { std::process::exit(code); }
     let app = tauri::Builder::default()
         .setup(|app| {
@@ -114,7 +117,7 @@ fn main() {
                 let _ = window.hide();
             }
         })
-        .invoke_handler(tauri::generate_handler![core_request, core_subscribe, core_unsubscribe, setup::setup_request])
+        .invoke_handler(tauri::generate_handler![core_request, core_subscribe, core_unsubscribe, setup::setup_request, workspace_privacy::privacy_request])
         .build(tauri::generate_context!()).expect("Fulcrum shell startup failed");
     app.run(|app, event| {
         match event {

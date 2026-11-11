@@ -3,6 +3,7 @@ import type { WorkspaceStateDoc } from '@fulcrum/schema';
 export type BackupFrequency = 'disabled' | 'daily' | 'weekly';
 export interface LocalBackup { kind: 'manual' | 'daily' | 'weekly'; id: string; workspaceId: string; createdAt: string; eventCount: number; lastHlc: string | null }
 export interface LocalConfiguration {
+  encrypted?: boolean;
   workspaceId: string; workspaceDirectory: string; deviceId: string; deviceLabel: string;
   cachePolicy: 'none' | 'excerpt'; ingestionDeviceId: string | null;
   devices: {id: string; label: string}[]; ingestionLastSeenAt: string | null; ingestionStale: boolean;

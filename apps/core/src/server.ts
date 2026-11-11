@@ -73,7 +73,7 @@ export async function startCoreServer(options: ServerOptions) {
           case 'query': result = await host.query(String(params.name), params.args); break;
           case 'execute': result = await host.execute(validateCommand(params)); break;
           case 'planCommand': if (!host.planCommand) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = await host.planCommand(params); if (result && typeof result === 'object' && 'id' in result && typeof result.id === 'string') planningJobs.add(result.id); break;
-          case 'commandPlanStatus': if (!host.commandPlanStatus) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = host.commandPlanStatus(String(params.id)); break;
+          case 'commandPlanStatus': if (!host.commandPlanStatus) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = await host.commandPlanStatus(String(params.id)); break;
           case 'cancelCommandPlan': host.cancelCommandPlan?.(String(params.id)); result = {}; break;
           case 'applyCommandPlan': if (!host.applyCommandPlan) throw new Error('COMMAND_PLANNER_UNAVAILABLE'); result = await host.applyCommandPlan(String(params.id)); break;
           case 'mcp.query': if (!host.mcpQuery) throw new Error('MCP_DISABLED'); result = await host.mcpQuery(String(params.name), params.args); break;

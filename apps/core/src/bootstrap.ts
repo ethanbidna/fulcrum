@@ -26,7 +26,11 @@ export async function startCore(options: WorkspaceOptions & { idleMs?: number },
     // The profile's exclusive store lock is held before removing a crash-left socket.
     try { const entry = await lstat(socketPath); if (!entry.isSocket() || entry.uid !== process.getuid?.()) throw new Error('SOCKET_PATH_UNSAFE'); await unlink(socketPath); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
-    await new LocalPreferences(options.localDirectory).write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId:options.userEntityId,deviceLabel:options.deviceLabel,workspaceId:(await host.administer!('status',{}) as {workspaceId:string}).workspaceId});
-    return await startCoreServer({ socketPath, secret, host, ...(options.idleMs === undefined ? {} : { idleMs: options.idleMs }) });
+    const workspaceId=(await host.administer!('status',{}) as {workspaceId:string}).workspaceId;
+    const server=await startCoreServer({ socketPath, secret, host, ...(options.idleMs === undefined ? {} : { idleMs: options.idleMs }) });
+    try {
+      await new LocalPreferences(options.localDirectory).write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId:options.userEntityId,deviceLabel:options.deviceLabel,workspaceId});
+      return server;
+    } catch (error) { await server.close(); throw error; }
   } catch (error) { await host.close(); throw error; }
 }

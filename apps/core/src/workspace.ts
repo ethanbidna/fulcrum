@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { AiSetup } from './ai-setup.js';
 import { openAdministration } from './administration.js';
 import { BackgroundPolicy } from '@fulcrum/ingest';
@@ -17,6 +18,7 @@ import { SqliteContextIndex, snapshotEpisodes } from '@fulcrum/context';
 import { SqliteReadIndex } from '@fulcrum/index';
 import type { IndexProgress } from '@fulcrum/index';
 import { FileWorkspaceStore, loadStoreValidators, questionId } from '@fulcrum/store';
+import type { WorkspaceEncryption } from '@fulcrum/store';
 import type { WorkspaceStateDoc } from '@fulcrum/schema';
 import type { CoreHost } from './host.js';
 
@@ -25,6 +27,7 @@ export interface WorkspaceOptions {
   onIndexProgress?: (progress: IndexProgress) => void;
   commandRuntime?: JsonModelRuntime;
   credentialHelper?:string;
+  encryption?: WorkspaceEncryption;
   aiSetup?:AiSetup;
   ingestion?: WorkspaceIngestion;
   background?: Partial<BackgroundSettings>;
@@ -37,11 +40,12 @@ function emptyState(workspaceId: string): WorkspaceStateDoc {
 }
 export async function openWorkspaceHost(options: WorkspaceOptions): Promise<CoreHost> {
   const preferences = new LocalPreferences(options.localDirectory);
-  const mcpAccess = validateMcpAccess(options.mcp ?? await preferences.read('mcp') ?? MCP_DEFAULTS);
+  const mcpAccess = validateMcpAccess(options.encryption ? MCP_DEFAULTS : options.mcp ?? await preferences.read('mcp') ?? MCP_DEFAULTS);
   options = {...options, mcp:mcpAccess};
   const schema = options.schemaDirectory ? { schemaDirectory: options.schemaDirectory } : {};
+  if (options.encryption && (options.create || options.ingestion)) throw new Error('ENCRYPTED_WORKSPACE_SETUP_REQUIRED');
   if (options.create) await FileWorkspaceStore.create(options.workspaceDirectory, new Date(), schema);
-  const store = new FileWorkspaceStore({ localDirectory: options.localDirectory, deviceLabel: options.deviceLabel, ...schema });
+  const store = new FileWorkspaceStore({ localDirectory: options.localDirectory, deviceLabel: options.deviceLabel, ...schema, ...(options.encryption ? { encryption: options.encryption } : {}) });
   const background = new BackgroundPolicy(options.background, options.backgroundUnavailableReason);
   const opened = await store.open(options.workspaceDirectory);
   const listeners = new Set<(change: AppliedChange) => void>();
@@ -68,10 +72,9 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const reload = async () => {
     try {
       const read = await store.read(); const next = JSON.stringify(read.events.map(event => event.eventId));
-      if (read.manifest.encryption || (read.manifest.minReaderVersion ?? 1) > 1) throw new Error('WORKSPACE_VERSION_UNSUPPORTED');
       const nextManifest = JSON.stringify(read.manifest);
       if (domain && next === fingerprint && nextManifest === manifestFingerprint && !unavailable) return;
-      writable = !opened.readOnly && read.manifest.schemaVersion === 1;
+      writable = !opened.readOnly;
       const previousDomain = domain;
       const validators = await loadStoreValidators(options.schemaDirectory);
       domain = new Domain(emptyState(read.manifest.workspaceId), read.events, {
@@ -85,14 +88,14 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
           status: () => index?.status() ?? { phase: 'unavailable', completed: 0, total: 0 },
         },
         ...(options.mcp ? { mcp: options.mcp } : {}),
-        readOnly: opened.readOnly || read.manifest.schemaVersion > 1, commit: drafts => store.commit(drafts),
+        readOnly: opened.readOnly, commit: drafts => store.commit(drafts),
         validateState: value => validators.checkpoint(value) ? [] : validators.checkpoint.errors ?? [],
         validateEvent: value => validators.event(value) ? [] : validators.event.errors ?? [],
       });
       unsubscribe?.(); unsubscribe = domain.subscribe(change => {
         for (const listener of listeners) { try { listener(structuredClone(change)); } catch { continue; } }
       });
-      if (previousDomain && read.manifest.schemaVersion === 1) await maintainQuestions();
+      if (previousDomain && writable) await maintainQuestions();
       if (index) await index.rebuild(domain.getSnapshot()).catch(() => undefined);
       await refreshContext();
       fingerprint = JSON.stringify(domain.history().map(event => event.eventId)); manifestFingerprint = nextManifest; unavailable = false;
@@ -153,7 +156,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       fingerprint = JSON.stringify([...knownEventIds]); return result;
   };
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
-  const aiSetup=options.aiSetup??new AiSetup(options.localDirectory,options.credentialHelper);
+  const aiProfile = options.encryption ? path.join(options.localDirectory, `ai-${opened.manifest.workspaceId}`) : options.localDirectory;
+  const aiSetup = options.aiSetup ?? new AiSetup(aiProfile, options.credentialHelper);
   const planner = new CommandPlanner(() => domain, options.commandRuntime ?? aiSetup.runtime, Date.now, options.commandRuntime?async snapshot=>snapshot:(snapshot,request)=>aiSetup.context(snapshot,request));
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
@@ -187,7 +191,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },
     configureBackground: settings => { background.configure(settings as Partial<BackgroundSettings>); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); return background.status(Date.now()); },
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
-    commandPlanStatus: id => jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
+    commandPlanStatus: id => options.encryption ? enqueue(async () => { await requireAvailable(); return jobs.status(id); }) : jobs.status(id), cancelCommandPlan: id => jobs.cancel(id),
     applyCommandPlan: id => enqueue(async () => {
       await requireAvailable();
       let command;

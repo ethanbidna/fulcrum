@@ -11,3 +11,9 @@ export { LocalPreferences } from './preferences.js';
 export { LocalMcpActivity } from './activity.js';
 export type { McpActivity } from './activity.js';
 export { McpInstallation } from './mcp-installation.js';
+
+export { WorkspaceEncryption, generateWorkspaceKey } from './encryption.js';
+export { createEncryptedCopy, importWorkspaceRecovery, restoreEncryptedCopy, rotateEncryptedCopy } from './encrypted-copy.js';
+export type { WorkspaceKeyStore } from './encrypted-copy.js';
+export { inspectManifest } from './reader.js';
+export type { EncryptedManifest } from './encryption.js';

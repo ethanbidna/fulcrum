@@ -5,12 +5,13 @@ import type { WorkspaceManifest } from '@fulcrum/schema';
 import { durableFile, syncDirectory, atomicFile, uuid, UUID, StoreError, resolvedLocation } from './files.js';
 import { inventory, readWorkspace } from './reader.js';
 import { loadStoreValidators } from './validation.js';
+import type { WorkspaceEncryption } from './encryption.js';
 import type { StoreValidators } from './validation.js';
 export type BackupCadence = 'disabled' | 'daily' | 'weekly';
 export type BackupKind = 'manual' | 'daily' | 'weekly';
 export interface BackupSummary { kind: BackupKind; id: string; workspaceId: string; createdAt: string; eventCount: number; lastHlc: string | null }
 interface Receipt extends BackupSummary { digest: string }
-export interface ArchiveOptions { workspaceDirectory: string; localDirectory: string; schemaDirectory?: URL; now?: () => Date; fault?: (stage: 'backup-before-manifest' | 'backup-before-receipt' | 'restore-before-manifest' | 'retention-before-remove') => Promise<void> }
+export interface ArchiveOptions { encryption?: WorkspaceEncryption; workspaceDirectory: string; localDirectory: string; schemaDirectory?: URL; now?: () => Date; fault?: (stage: 'backup-before-manifest' | 'backup-before-receipt' | 'restore-before-manifest' | 'retention-before-remove') => Promise<void> }
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CADENCE_MS = { daily: DAY_MS, weekly: 7 * DAY_MS };
 const PRIVATE_DIRECTORY_MODE = 0o700;
@@ -71,7 +72,9 @@ export class WorkspaceArchives {
     return {directory,read};
   }
   async restore(id:string):Promise<{workspaceId:string;directory:string}> {
-    const source=await this.verify(id);const before=await fileImage(source.directory);
+    const source=await this.verify(id);
+    if(source.read.manifest.encryption)throw new StoreError('ENCRYPTED_RESTORE_REQUIRED','An encrypted backup requires a new encrypted copy and recovery key');
+    const before=await fileImage(source.directory);
     const root=path.join(this.options.localDirectory,'restored');await privateDirectory(root);
     const manifest:WorkspaceManifest={format:'fulcrum-workspace',schemaVersion:1,workspaceId:uuid(),createdAt:this.now().toISOString()};
     const directory=path.join(root,manifest.workspaceId);await privateDirectory(directory);
@@ -92,7 +95,7 @@ export class WorkspaceArchives {
     await syncDirectory(await this.backupRoot());
   }
   private now(){return this.options.now?.()??new Date();}
-  private async readSupported(directory:string){const read=await readWorkspace(directory,this.validators);if(read.manifest.schemaVersion!==1||read.manifest.encryption)throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED','Archives require a supported workspace codec');return read;}
+  private async readSupported(directory:string){const read=await readWorkspace(directory,this.validators,this.options.encryption);if(read.manifest.schemaVersion!==1&&!this.options.encryption)throw new StoreError('WORKSPACE_VERSION_UNSUPPORTED','Archives require a supported workspace codec');return read;}
   private async backupRoot(){const root=path.join(this.options.localDirectory,'backups');await privateDirectory(root);return root;}
   private async receipt(id:string):Promise<Receipt>{
     if(!UUID.test(id))throw new StoreError('BACKUP_INVALID','Invalid backup selection');
@@ -106,7 +109,7 @@ async function requirePrivateDirectory(directory:string){const stat=await lstat(
 async function privateDirectory(directory:string){await mkdir(directory,{recursive:true,mode:PRIVATE_DIRECTORY_MODE});await requirePrivateDirectory(directory);}
 async function regularBytes(file:string){const stat=await lstat(file);if(!stat.isFile()||stat.isSymbolicLink())throw new StoreError('ARCHIVE_PATH_UNSAFE','Expected a regular archive file');return readFile(file);}
 async function regularFile(file:string){return (await regularBytes(file)).toString('utf8');}
-async function fileImage(directory:string){
+export async function fileImage(directory:string){
   const before=await inventory(directory);const digest=createHash('sha256');
   for(const relative of before.files){digest.update(relative);digest.update('\0');digest.update(await regularBytes(path.join(directory,relative)));digest.update('\0');}
   if(before.fingerprint!==(await inventory(directory)).fingerprint)throw new StoreError('WORKSPACE_CHANGING','Workspace changed during archive verification');

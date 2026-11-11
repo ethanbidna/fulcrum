@@ -14,6 +14,7 @@ pub fn install(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let menu = Menu::default(app.handle())?;
     let item = MenuItem::with_id(app, "check-updates", "Check for Updates…", true, None::<&str>)?;
     if let Some(MenuItemKind::Submenu(submenu)) = menu.items()?.first() { submenu.append(&item)?; }
+    super::workspace_privacy::add_menu(app, &menu)?;
     app.set_menu(menu)?;
     app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
     app.on_menu_event(|app, event| {

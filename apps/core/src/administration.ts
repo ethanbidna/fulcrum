@@ -10,7 +10,7 @@ import type { BackgroundPolicy } from '@fulcrum/ingest';
 const STALE_DEVICE_MS = 7 * 24 * 60 * 60 * 1000;
 const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'ai.preferences':['preference'],'ai.status':[],'ai.start':['choiceId','licenseAccepted','sharingAcknowledged','apiKey','initiativeIds','dailyTokenBudget'],'ai.job':['id'],'ai.cancel':['id'],'ai.none':[],'workspace.setupStatus':[],'workspace.configure':['deviceLabel','ingestion','handoverConfirmed','userEntityId'],'workspace.finishSetup':[],'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
 export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>},ai:AiSetup,configureIdentity:(userEntityId:string,label:string)=>Promise<void>) {
-  const archives=await WorkspaceArchives.open({workspaceDirectory:options.workspaceDirectory,localDirectory:options.localDirectory,...(options.schemaDirectory?{schemaDirectory:options.schemaDirectory}:{})});
+  const archives=await WorkspaceArchives.open({workspaceDirectory:options.workspaceDirectory,localDirectory:options.localDirectory,...(options.encryption?{encryption:options.encryption}:{}),...(options.schemaDirectory?{schemaDirectory:options.schemaDirectory}:{})});
   let backupError=false;
   const preferences=new LocalPreferences(options.localDirectory);
   const saved=await preferences.read('background');
@@ -22,7 +22,7 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
     const snapshot=domain().getSnapshot();const settings=snapshot.state.settings;const devices=snapshot.state.devices??[];
     const event=domain().history().filter(event=>event.deviceId===settings.ingestionDeviceId).at(-1);
     const lastSeen=event?Number(event.hlc.split('-')[0]):null;const current=background.status(Date.now());
-    return {workspaceId:snapshot.workspaceId,workspaceDirectory:options.workspaceDirectory,deviceId,deviceLabel:options.deviceLabel,devices:devices.map(({id,label})=>({id,label})),
+    return {encrypted:options.encryption!==undefined,workspaceId:snapshot.workspaceId,workspaceDirectory:options.workspaceDirectory,deviceId,deviceLabel:options.deviceLabel,devices:devices.map(({id,label})=>({id,label})),
       ingestionDeviceId:settings.ingestionDeviceId??null,ingestionLastSeenAt:lastSeen===null?null:new Date(lastSeen).toISOString(),ingestionStale:lastSeen!==null&&Date.now()-lastSeen>=STALE_DEVICE_MS,
       cachePolicy:settings.defaultCachePolicy??'none',backupFrequency:await archives.cadence(),backups:await archives.list(),backgroundPaused:current.settings.paused,onlyWhenPluggedIn:current.settings.onlyWhenPluggedIn,backgroundReason:current.sourcePause,ingestionEnabled:ingestionEnabled(),backupError,backupRetentionError:archives.retentionFailed};
   }
