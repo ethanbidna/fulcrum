@@ -46,7 +46,7 @@ Steps done since last audit: 3
 | 33 | P1 MCP server | waiting-owner | [ ] | #78 | Scoped live settings, disclosure/read-only/excerpt gates, private activity, confirmed client install, headless lifecycle and UI/MCP parity; packaged runtime and actual Claude check pending |
 | 34 | P2 first-run wizard | waiting-owner | [ ] | #79 | Native workspace/device setup, shared model chooser, pinned managed downloads, scoped/budgeted optional provider keys and synthetic tests; clean-user/native/download/provider acceptance pending P5 |
 | 35 | P6 encryption — design | done | n/a | #71 | ADR-0021 and v2 encoding/key/recovery/copy-migration contract; design only, step 36 implements; merging the PR is approval |
-| 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; signed Keychain and two-Mac acceptance pending |
+| 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; local rerun recorded in #84; signed Keychain and two-Mac acceptance pending |
 | 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
 ## Owner to-do
