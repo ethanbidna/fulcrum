@@ -17,6 +17,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 - [x] Run the Gmail piece directly with synthetic responses and identify OAuth and pagination gaps. [Gmail library probe](../docs/spikes/S4-results/gmail-library.md)
 - [x] Prototype the read-only Gmail Activepieces piece with resumable pagination. [Piece and probe](../spikes/s4/gmail-piece/README.md)
 - [x] Connect the Gmail piece to `SourceAdapter` and resume through Fulcrum's SQLite queue. [Adapter probe](../spikes/s4/gmail-piece/README.md)
+- [x] Prepare a count-only live probe for OAuth refresh, backfill and incremental sync. [Live probe](../spikes/s4/gmail-piece/README.md#live-probe)
 - [ ] Validate live read-only OAuth and choose a production route before enabling Gmail in the desktop app.
 
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)

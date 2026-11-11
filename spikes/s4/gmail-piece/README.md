@@ -48,3 +48,31 @@ The injected access-token provider must stay bound to the same account as its
 opaque local account key. This spike runs without production desktop setup.
 Live OAuth, refresh, links, packaging and the production execution decision
 remain pending.
+
+## Live probe
+
+Use the [S4 Gmail setup](../README.md#gmail-native-api-probe) to prepare a
+throwaway account, enable the Gmail API, and obtain a refresh token limited to
+`gmail.readonly`. For this probe, prepare two recent synthetic messages with
+plain-text bodies and apply the test label to only the first one. The command
+will prompt you to label the second message after the first scan.
+
+Run in zsh from this directory after `npm ci --ignore-scripts`:
+
+```sh
+(
+  export S4_SYNTHETIC_ONLY=yes
+  read -r 'GMAIL_TEST_LABEL?Gmail test label ID: '
+  read -rs 'GMAIL_TEST_CLIENT_ID?Test OAuth client ID: '; print
+  read -rs 'GMAIL_TEST_CLIENT_SECRET?Test OAuth client secret: '; print
+  read -rs 'GMAIL_TEST_REFRESH_TOKEN?Test refresh token: '; print
+  export GMAIL_TEST_LABEL GMAIL_TEST_CLIENT_ID GMAIL_TEST_CLIENT_SECRET GMAIL_TEST_REFRESH_TOKEN
+  node --experimental-transform-types live.mjs
+)
+```
+
+The probe refreshes credentials before each scan, closes and reopens the
+disposable SQLite queue, and prints page and message counts. Each scan allows
+at most ten pages. An expired history cursor fails the probe so a recovery
+backfill cannot be mistaken for an incremental read. Record the counts and
+outcome in a reviewed S4 results PR.
