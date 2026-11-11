@@ -17,7 +17,7 @@ records the resulting decisions.
 | S5 Granola | Official API/export/integration research; no private data accessed | API via Activepieces default, CSV fallback only when API unavailable | Eligible access, scopes, full transcripts/cursors, speaker identity, import dialect and repeat identity |
 | S6/P1 MCP | SDK legacy/current and Inspector report; full tools, scopes, write policy, private log/install/headless tests | stdio shim to shared authenticated core; off/read-only/excerpt-off defaults | Claude Desktop dialogs/confirmation and actual packaged Keychain/headless behavior |
 | S7/P5 packaging | Node/Bun sidecar/app CI reports; production Node SEA schema/FTS5 and native Intel/ARM CI | Tauri + provisional Node SEA, explicit signed updates, no development transport | Controlled hardware, complete shell/WebKit footprint, actual universal signed/notarized DMG and upgrade |
-| Schemas | C1 generation check, runtime Ajv validation and golden replay | Keep JSON Schema v1 authoritative | Any later schema change needs migration/version plan; P6 remains unimplemented |
+| Schemas | C1 generation check, runtime Ajv validation and golden replay | Keep JSON Schema v1 authoritative | Signed Keychain and two-Mac v2 acceptance pending; see [local P6 verification](reviews/P6-local-verification.md) |
 
 Historical S4 native-adapter advice is superseded by ADR-0011. Original Llama-only
 tiers/hosted exclusions are superseded by ADRs 0018/0023. Single runner samples
@@ -38,13 +38,14 @@ and a synthetic compatibility probe do not resolve either adoption decision.
 
 ## Sequence after this batch
 
-Two implementation steps remain outside this batch:
+The first real connector remains blocked, and encryption engineering has merged:
 
 - I2 / step 25: first real Activepieces connector, currently blocked on S4's
   owner results and selected execution route. Preserve the boundary and exact
   gap report in reviews/I2-prerequisites.md.
-- P6 / step 36: encrypted workspace implementation under ADR-0021. Its earlier
-  preflight-only PR #72 was closed unmerged; do not treat it as encryption.
+- P6 / step 36: encrypted workspace implementation merged in #83 under ADR-0021.
+  Local synthetic checks, native tests and Intel executable self-tests pass.
+  Signed Keychain and two-Mac acceptance remain pending in reviews/P6.md.
 
 Owner validation remains on sync, model quality/hardware, connector accounts,
 MCP, UI usage, background behavior, onboarding and signed release/update. The
