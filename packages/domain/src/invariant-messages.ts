@@ -1,0 +1,23 @@
+const MESSAGES: Record<string, string> = {
+  DUPLICATE_ID: 'An object with this ID already exists.',
+  NODE_INITIATIVE_MISSING: 'The node must belong to an existing initiative.',
+  GROUP_OUTSIDE_INITIATIVE: 'A visual group must belong to the same initiative as its nodes.',
+  DECISION_OUTCOME_UNKNOWN: 'Choose an existing option for this Decision.',
+  DECISION_OUTCOME_MISSING: 'A decided Decision needs an outcome.',
+  EDGE_ENDPOINT_MISSING: 'Both relationship endpoints must exist.',
+  EDGE_SELF_LOOP: 'A node cannot connect to itself.',
+  EDGE_HOME_INITIATIVE_MISMATCH: 'The relationship must belong to its source node’s initiative.',
+  EDGE_CROSS_INITIATIVE_FORBIDDEN: 'Only prerequisites and related relationships can cross initiatives.',
+  CONTAINS_REQUIRES_TASKS: 'Contains relationships can only connect Tasks.',
+  CONTAINS_MULTIPLE_PARENTS: 'A child Task can belong to only one parent Task.',
+  CONTAINS_CYCLE: 'A Task cannot contain itself through its descendants.',
+  DEPENDS_ON_CYCLE: 'This prerequisite would create a dependency cycle.',
+  CONDITION_REQUIRES_DECISION_LEADS_TO: 'A conditional route must lead from a Decision.',
+  CONDITION_UNKNOWN_OPTION: 'The route must use an existing Decision option.',
+  PREREQUISITE_GROUP_REQUIRES_DEPENDS_ON: 'Prerequisite groups apply only to prerequisite relationships.',
+  PREREQUISITE_GROUP_UNKNOWN: 'Choose a prerequisite group defined on the dependent node.',
+  QUESTION_TARGET_INVALID: 'The question must refer to an existing object in its initiative.',
+  ASSERTION_TARGET_INVALID: 'The assertion must refer to an existing object.',
+  EVIDENCE_SOURCE_MISSING: 'The evidence must refer to an existing source.',
+};
+export function invariantMessage(code: string): string { return MESSAGES[code] ?? 'This edit violates a graph constraint.'; }

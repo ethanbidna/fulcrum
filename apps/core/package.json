@@ -1,0 +1,27 @@
+{
+  "name": "@fulcrum/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:dev": "node build.mjs --dev"
+  },
+  "dependencies": {
+    "@fulcrum/domain": "workspace:*",
+    "@fulcrum/store": "workspace:*",
+    "@fulcrum/schema": "workspace:*",
+    "@fulcrum/index": "workspace:*",
+    "@fulcrum/mcp": "workspace:*",
+    "@modelcontextprotocol/server": "2.4.0",
+    "@fulcrum/llm": "workspace:*",
+    "@fulcrum/sources": "workspace:*",
+    "@fulcrum/ingest": "workspace:*",
+    "@fulcrum/context": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "ws": "8.22.2",
+    "@types/ws": "8.18.1"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "entities": [
+    {"id":"08000000-0000-7000-8000-000000000201","type":"person","label":"Reviewer North","aliases":["North","Reviewer"],"externalIds":[{"connector":"slack","remoteId":"synthetic-north"}]},
+    {"id":"08000000-0000-7000-8000-000000000202","type":"person","label":"Reviewer South","aliases":["South","Reviewer"],"externalIds":[{"connector":"gmail","remoteId":"synthetic-north"}]},
+    {"id":"08000000-0000-7000-8000-000000000203","type":"initiative_alias","label":"Vendor evaluation","aliases":["Vendor pilot","Pilot"]}
+  ],
+  "mentions": [
+    {"text":"  NORTH  ","type":"person"},
+    {"text":"Vendor pilot","type":"initiative_alias"},
+    {"text":"Reviewer","type":"person"},
+    {"text":"Reviewer","externalId":{"connector":"slack","remoteId":"synthetic-north"}},
+    {"text":"Reviewer","externalId":{"connector":"gmail","remoteId":"synthetic-north"}}
+  ],
+  "expected": [
+    {"status":"resolved","entityId":"08000000-0000-7000-8000-000000000201"},
+    {"status":"resolved","entityId":"08000000-0000-7000-8000-000000000203"},
+    {"status":"ambiguous","candidateIds":["08000000-0000-7000-8000-000000000201","08000000-0000-7000-8000-000000000202"]},
+    {"status":"resolved","entityId":"08000000-0000-7000-8000-000000000201"},
+    {"status":"resolved","entityId":"08000000-0000-7000-8000-000000000202"}
+  ]
+}

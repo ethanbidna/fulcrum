@@ -11,7 +11,9 @@
 - Priorities: strategic objectives/KPIs ordered, ties supported; MoSCoW Must Do/Should Do/Could Do/Won't Do separate
 - Questions: quiet badge and per-initiative questions; no interruption and no growing uncategorized inbox
 - Timeline optional when dates exist. No fabricated percent completion
-- No in-app AI chat; use external MCP clients only
+- Natural-language commands are available inline and through external MCP clients.
+  Keep one request and a structured, explicitly applied review; no ongoing in-app
+  chat transcript. Direct edit forms are secondary fallbacks (ADR-0017).
 
 ## Visual vocabulary
 Use a restrained typographic system, white/neutral surfaces, near-monochrome sidebar/navigation and a single muted blue accent. Make hierarchy through spacing, weight and shape, not cards-inside-cards or badge overload. Flow nodes: Task (square), Dependency (distinct link/hourglass mark), Decision (diamond), Milestone (flag/terminal), initiative as canvas title/container, not a redundant first graph node. Semantic status: blocked red, waiting amber, completed muted green, inferred subdued dashed edge or indicator.

@@ -1,6 +1,6 @@
 # MCP server contract
 
-Fulcrum has **no built-in chat**. Conversation happens in the user's own MCP client. The MCP server exposes the same domain queries and commands as the UI — no separate policy engine ([ADR-0007](decisions/0007-local-mcp-security.md)).
+Fulcrum has **no built-in chat**. External conversation happens in the user's own MCP client; an in-app command bar also drafts local edits for explicit review (ADR-0017). The MCP server exposes the same domain queries and commands as the UI — no separate policy engine ([ADR-0007](decisions/0007-local-mcp-security.md)).
 
 ## Transport and lifecycle
 
@@ -30,11 +30,11 @@ All inputs/outputs are JSON-Schema-described in the tool definitions generated f
 
 | Tool | Maps to | Mode |
 |---|---|---|
-| `list_initiatives` `{groupBy?, moscow?, categoryId?, lifecycle?}` | `portfolio.list` | read |
+| `list_initiatives` `{moscow?, categoryId?, lifecycle?}` | `portfolio.list` | read |
 | `get_initiative` `{initiativeId}` → initiative + card state + open questions | `initiative.get` | read |
 | `get_graph` `{initiativeId, focusNodeId?}` → nodes, edges, derived actionability | `graph.get` / `graph.focus` | read |
 | `search` `{query, scope?}` | `search` | read |
-| `get_evidence` `{target}` → sources, assertions (excerpts only if allowed) | `context.forTarget` | read |
+| `get_evidence` `{target}` → sources, assertions (excerpts only if allowed) | `evidence.list` | read |
 | `list_questions` `{initiativeId?}` | `questions.list` | read |
 | `list_objectives` | `objectives.list` | read |
 | `get_history` `{target?, since?}` | `history.list` | read |
@@ -62,3 +62,20 @@ Fulcrum cannot stop a client model from following injected text, but it never pl
 ## Protected fields via MCP
 
 `set_moscow` from MCP is treated as the user's intent (the user asked their client). It is applied, tagged `actor: mcp`, highlighted in Meaningful changes, and undoable. Clients that support MCP elicitation get a confirmation prompt first; if a client does not, the write still requires Read-and-write mode.
+
+## Implementation and validation
+
+The production adapter and setup are documented in [packages/mcp](../packages/mcp/README.md).
+All write tools expose `{args, idempotencyKey}` using Domain argument names;
+plain aliases in this table and generated names such as `node_create` share the
+same schema. Read tools advertise their concrete supported arguments.
+`get_evidence` accepts an exact target. Grouping remains a UI concern; `list_initiatives` filters MoSCoW,
+category and lifecycle and defaults to active initiatives.
+
+Settings changes apply live. Source excerpts remain off until opted in.
+Scoped legacy board/rail reads are denied; cross-scope graph/history references
+are denied or withheld rather than returned as a misleading complete view.
+Activity stores call/outcome/returned IDs without argument text. Optional MCP
+resources/notifications are not implemented. SDK operation, confirmation and
+filesystem checks do not establish actual Claude Desktop or packaged headless
+startup: follow [the owner review](reviews/P1.md) after P5 packaging.

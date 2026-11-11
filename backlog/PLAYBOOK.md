@@ -17,14 +17,19 @@ Columns:
 | 5 | S6 MCP shim | #6 | 2 | Add it to Claude Desktop and complete the manual checklist | Serve from `fixtures/states/portfolio.state.json`. Provide copy-paste client config and a short checklist. |
 | 6 | S4 connector capability matrix | #4 | — | Create a throwaway Slack workspace and Google account containing only fake messages; register OAuth apps as instructed; run the prototypes | Research first, then small prototypes in `spikes/s4/` for Slack and Gmail. Credentials only from environment variables; never committed. |
 | 7 | S5 Granola access | #5 | — | — | Research only; no reverse-engineering of private files. Output `docs/spikes/S5.md` with a recommendation. |
-| 8 | S3 Graphiti | #3 | 3 | Run the spike on hardware and commit results | Compare against a minimal native SQLite alias resolver on the same fixtures. |
-| 9 | Decision checkpoint | — | 1, 3, 4, 5, 6, 7, 8 | Review and approve the PR (merging it = approval) | Read every `docs/spikes/*`. Update ADRs 0001–0005 and 0007–0009 to Accepted or Superseded from measured results; update `docs/OPERATIONS.md` tiers/thresholds and `docs/RISKS.md`; adjust later backlog items and this playbook's extra instructions where assumptions changed. One PR summarizing every decision change. |
+| 8 | S3 Graphiti | #3 | 3 | Run the spike on hardware and commit results | Compare against the production native SQLite alias resolver on the same fixtures. Harness preparation may precede S2 acceptance under the batch authorization; resource/model measurements wait for S2 and a supported store. |
+| 9 | Decision checkpoint | — | 1, 3, 4, 5, 6, 7, 8 | Merge engineering checkpoint, then review measured adoption results and tick step 9 | Read every `docs/spikes/*`. Record Accepted/Superseded architecture decisions separately from pending empirical gates; after owner results, accept/decline each tier/feature in a final adoption PR; update `docs/OPERATIONS.md` tiers/thresholds and `docs/RISKS.md`; adjust later backlog items and this playbook's extra instructions where assumptions changed. One PR summarizing every decision change. |
 
 ## Phase B — core product on fixtures (M1)
 
+The owner authorized model-independent core work alongside the feasibility
+studies on 2026-11-08. C2 can start after C1; unfinished hardware checks and
+model/context adoption still require the decision checkpoint. This changes the
+build order, not the criteria for accepting a runtime or driver.
+
 | Step | Item | Issue | Needs | Owner action | Extra instructions |
 |---|---|---|---|---|---|
-| 10 | C2 invariants and policy | #9 | 2, 9 | — | Port `tools/reference/invariants.mjs` and `card-state.mjs` into `packages/domain` (TypeScript); keep reference tests as cross-checks. |
+| 10 | C2 invariants and policy | #9 | 2 | — | Port `tools/reference/invariants.mjs` and `card-state.mjs` into `packages/domain` (TypeScript); keep reference tests as cross-checks. |
 | 11 | C3 commands, events, undo | #10 | 10 | — | — |
 | 12 | C4 store driver | #11 | 11 | — | Apply S1 findings; reuse the S1 harness tests. |
 | 13 | C5 projections | #12 | 11 | — | — |
@@ -34,19 +39,38 @@ Columns:
 | 17 | U2 portfolio board | #16 | 15, 16 | Review | Attach screenshots made from fixtures to the PR. |
 | 18 | U3 flow canvas | #17 | 17 | Review | Attach screenshots or a short recording. |
 | 19 | U4 inspector and focused view | #18 | 18 | Review | Demonstrate that an edit in the focused view appears in the full canvas. |
+| 19a | U4a in-app command bar | #57 | 19 | Review local command entry, preview/apply and undo | Owner explicitly requested both in-app and MCP before U5; ADR-0017 |
 | 20 | U5 list and history | #19 | 19 | Use the app by hand for about a week; file issues for anything that bothers you | — |
+
+For U2, the owner explicitly delegated U1 review/merge and asked to proceed on
+2026-11-08. Its U1 implementation prerequisite is satisfied by merged #52;
+subjective usability and native launch checks remain pending in step 16. This
+exception does not complete any Owner checkbox or accept a model/runtime.
+
+For U3, the owner delegated agent review/merge of U2 and continuation on
+2026-11-08. Merged #53 satisfies the implementation prerequisite; portfolio
+usability and native checks remain pending, with no Owner box completed.
+
+For U4, the owner delegated agent review/merge of U3 and continuation on
+2026-11-08. Merged #54 satisfies the implementation prerequisite; owner usability
+and native checks remain pending. No Owner checkbox is completed by this exception.
 
 ## Phase C — context and ingestion (M2)
 
 | Step | Item | Issue | Needs | Owner action | Extra instructions |
 |---|---|---|---|---|---|
 | 21 | I1 adapters, queue, scheduler | #20 | 20 | — | — |
-| 22 | I3 extraction | #22 | 21 | — | Use the S2 eval set and the accepted model tier. |
+| 22 | I3 extraction | #22 | 21 | — | Use the S2 eval set. Until the decision checkpoint accepts a tier, engineering checks use an explicit provisional local model; no unattended writes or model adoption. |
 | 23 | I4 native ContextIndex | #23 | 15, 21 | — | Add the Graphiti adapter only if ADR-0004 accepted it at step 9. |
 | 24 | I5 reconciler | #24 | 22, 23 | — | — |
-| 25 | I2 first real connector | #21 | 21 | Connect the test account; optionally a real account with a narrow scope | Follow the S4 outcome recorded in ADR-0002. |
+| 25 | I2 first real connector | #21 | 21, 6 | Connect the test account; optionally a real account with a narrow scope | Follow the reviewed S4 outcome through ADR-0011 (supersedes ADR-0002); Activepieces execution remains provisional until recorded. |
 | 26 | U6 context view | #25 | 19, 21 | — | — |
 | 27 | U7 timeline | #26 | 19 | — | — |
+
+For I1, the owner requested continuation after merged U5 (#59) on 2026-11-09.
+That satisfies the implementation prerequisite for step 21; step 20's week-long
+usability review remains unchecked. This exception accepts no model, connector
+or hardware behavior.
 
 ## Phase D — autonomy and questions (M3)
 
@@ -63,7 +87,7 @@ Columns:
 | 31 | P3 background, sleep/wake, resources | #32 | 21 | Run the Intel manual test (scenario 12) | — |
 | 32 | P4 settings, backup, hand-over | #33 | 12, 31 | — | — |
 | 33 | P1 MCP server | #30 | 14, 5 | Test in Claude Desktop | Build on the S6 shim. |
-| 34 | P2 first-run wizard | #31 | 17, 22 | Run it on a clean macOS user account | — |
+| 34 | P2 first-run wizard | #31 | 17, 22 | Run it on a clean macOS user account | ADR-0018: hardware suggestions, model/origin choices, managed downloads, optional API keys; no Terminal |
 | 35 | P6 encryption — design | #35 | 12 | Approve the design PR (merging it = approval) | Design doc + ADR only; no implementation. |
 | 36 | P6 encryption — implement | #35 | 35 | — | Implement the approved design. |
 | 37 | P5 signing, notarization, updates | #34 | 4 | Get an Apple Developer ID and add the GitHub Actions secrets Codex lists | Write the workflow; never commit secrets; no public downloads until signing works. |
@@ -71,3 +95,45 @@ Columns:
 ## Audit (recurring)
 
 After every 5 steps marked `done`, the next run is an audit instead of a step: check the code and UI against the [AGENTS.md product invariants](../AGENTS.md#product-invariants-you-must-not-break) and the spec's non-goals (progress displays, status columns, Task owners, nested graphs, chat, AI-written summaries, wrong MoSCoW values, unprotected AI writes, data outside the workspace layout, real personal data). Open GitHub issues for violations, fix nothing, and record the audit in PROGRESS.md.
+
+### Owner priority: conversational parity
+
+On 2026-11-09 the owner asked that every manual addition also be generatable
+from an AI command, before continuing the list. Bring the command adapter portion
+of P1 forward after U4.
+P1 remains incomplete until its scoped settings, installation, headless startup,
+packaging and owner client checks pass. The owner then explicitly requested BOTH MCP and an in-app command bar; U4a
+implements that interaction before U5 under ADR-0017. The owner authorized
+agent review/merge and then U5 after U4a implementation review;
+existing owner/native checks remain pending. See ADR-0016.
+
+
+### Standing review and merge authorization
+
+On 2026-11-09 the owner authorized agents to review, approve and merge plan PRs
+after required checks pass, then continue one plan unit per request. This does
+not complete Owner checkboxes or accept pending model, connector, usability or
+hardware results.
+
+### Remaining-step batch authorization — 2026-11-10
+
+The owner requested the remaining nine todo items as a batch: 8, 9, 26, 27,
+30, 32, 33, 34 and 37. Continue one logical PR per item, with the recurring
+audit when due. Merged implementation prerequisites may support engineering
+work while their owner usability/hardware checks remain pending; this does not
+complete Owner boxes or accept models, connectors, sync or signing. The decision
+checkpoint still requires recorded feasibility results. Unavailable external
+acceptance checks must be reported separately from implementation work.
+
+The owner clarified on 2026-11-10: “Just do them; we'll test later.” Prepare
+all nine implementations and provisional decision work without waiting for
+measurement prerequisites. Keep actual hardware/client/signing/model results
+open; no unrun test is promoted to a pass and no model is adopted from mocks.
+
+The 2026-11-10 checkpoint is split under the owner's “Just do them; we'll test
+later” instruction. Merging ADR-0026 approves the engineering direction; step 9
+remains waiting-owner until the final adoption review in docs/CHECKPOINT.md.
+Do not convert missing results into Accepted hardware/model/provider claims.
+For P5, use ADR-0024's actual production core/MCP release workflow; S7's small
+health-only executable is not the shipped core. I2 still requires the S4
+Activepieces execution result. P6 implementation remains a separate step 36.

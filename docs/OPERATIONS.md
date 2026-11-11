@@ -11,7 +11,11 @@
 | **Ingestion — full** | + larger model, embeddings, optional Graphiti sidecar. | Apple Silicon with ≥16 GB. |
 | **Paused** | Ingestion queue frozen; UI fully usable. | User toggle, battery, thermal, or fullscreen/presentation. |
 
-All modes are local-only: no hosted inference, no telemetry, no app backend. The only network traffic is to the user's opted-in source APIs, model downloads the user starts, and (if enabled) an MCP client the user runs.
+All modes default to local inference, with no telemetry or app backend. Optional
+hosted inference requires explicit provider/content-scope opt-in and a user API
+key (ADR-0018); local failures never enable it automatically. Other traffic is
+limited to opted-in source APIs, user-started model/runtime downloads and updates,
+and an explicitly enabled MCP client.
 
 ## Sleep and wake
 
@@ -43,26 +47,72 @@ results are committed; the values here are not measured thresholds.
 
 ## Model tiers
 
-Candidates only — the Llama models are under the Meta Llama Community License, downloaded through Ollama on the user's request, never bundled ([LICENSING.md](LICENSING.md)).
+Candidates only; profiles must identify purpose, runtime, quantization, model
+digest, hardware measurements and accuracy-evaluation status. An installed or
+fast model is not automatically accepted for extraction. [ADR-0018](decisions/0018-model-choice-and-setup.md)
+supersedes the original automatic Llama 3B/1B fallback assumptions.
 
-| Hardware (detected) | Starting candidate | ContextIndex | Notes |
-|---|---|---|---|
-| Intel, 8 GB | none by default; offer viewer mode or 1B | native | Likely too constrained; S2 decides. |
-| Intel, 16 GB+ (target) | Llama 3.2 3B instruct, 4-bit | native | 1B fallback if 3B swaps or is too slow. |
-| Apple Silicon, 8 GB | Llama 3.2 3B instruct, 4-bit | native | |
-| Apple Silicon, 16 GB+ | Llama 3.1 8B instruct, 4-bit | native or Graphiti | Graphiti only if S3 passes. |
+| Hardware | Provisional starting point | Acceptance still required |
+|---|---|---|
+| Intel / limited memory | User-selected compatible local candidate, background use, or optional hosted setup | No default extractor accepted; check latency/resources and accuracy |
+| Apple Silicon, about 16 GB | Pinned Qwen3 4B Instruct 2507 candidate from the setup catalog | Comparable full extraction holdout and actual device test |
+| Apple Silicon, about 24–32 GB+ | Llama 3.1 8B quantized candidate | Device test and semantic/accuracy review |
 
-The app stores the selected model **by tested capability tag**, not just name, so a future model can be swapped in after passing the same extraction eval set.
+These are proposed profiles, not minimum RAM guarantees. A bounded synthetic
+self-test checks local compatibility and responsiveness. The existing resource
+policy remains in force. ContextIndex/Graphiti selection is independent.
 
-## Model install (first run or Settings → Local AI)
+## Model install (first run or Settings → AI)
 
-1. Detect architecture, RAM, macOS version, free disk.
-2. Detect Ollama (`127.0.0.1:11434/api/version`). If missing, explain in one sentence and offer to download the official Ollama app (opens the vendor page; Fulcrum does not silently install software). Bundling the Ollama binary is a later productization option.
-3. Show the model's license summary and link; require the user to accept before download.
-4. Pull the tier's model with progress, pause/resume and disk-space check.
-5. Run a 30-second self-test on synthetic text: JSON validity and latency. Show the result honestly ("Works, but slow on this Mac — Fulcrum will process in the background while plugged in").
-6. If anything fails: plain-language reason + Retry + "Continue without local AI" (viewer mode).
+The [onboarding flow](ONBOARDING.md#ai-selection-and-setup-p2-contract) owns model
+choice, origin filters, license consent, managed runtime/download progress,
+verification, cancellation/recovery and self-test. Local is the default; hosted
+setup is a separate explicit path with Keychain credentials, sharing scope and
+usage limits. No Terminal or manual model-pull command is required of end users.
+No model weights or API keys are bundled or synced. Install records and provider
+settings remain machine-local; runtime adapters stay behind public interfaces.
 
 ## Diagnostics
 
 Settings → About → Diagnostics shows versions, mode, queue length, last pulls, model status, workspace sync health (torn tails, conflicted copies seen, online-only files), and offers "Copy diagnostics" — text with **no source content, names or paths** (paths replaced by `<workspace>`).
+
+## P3 implementation boundary
+
+[ADR-0020](decisions/0020-background-control-plane.md) implements the admission
+policy with native Rust/AppKit/IOKit observations and authenticated core controls.
+`status.background` reports current signals, settings and pause reasons;
+`background.configure` accepts session settings (pause, presentation,
+plugged-in-only, battery override, thresholds, model bytes, memory multiplier,
+batch/wake/observation intervals). Startup configuration uses the same validator.
+P4 owns persistence and the settings UI. Missing model bytes prevent extraction;
+missing/stale native observations pause all ingestion. Closing the shell does
+not establish headless background support.
+
+The core lowers its own priority when ingestion is configured; failure pauses
+work without blocking editing. The explicit managed Ollama driver uses
+`OLLAMA_NUM_PARALLEL=1`, one loaded model and background QoS; P2 wires a separate owned managed runtime for explicit command setup. This does
+not enable unattended extraction or accept an extraction model. External servers require their owner's matching
+configuration. Runtime requests explicitly set five-minute `keep_alive` and
+serialize per endpoint within the core. Neither contract proves that an Ollama
+version stops CPU within five seconds after client cancellation.
+
+Follow [P3 review](reviews/P3.md) for the disposable synthetic native harness
+and Intel scenario 12. Actual hardware checks, S2 thresholds and model adoption
+remain pending. No real connector or unattended reconciliation is enabled.
+
+## Checkpoint acceptance boundary
+
+The [2026-11-10 engineering checkpoint](CHECKPOINT.md) retains these thresholds
+as provisional policy settings. No measured replacement values exist. Viewer/
+manual editing works without AI; no background extraction tier is accepted.
+P2's current local catalog contains pinned Qwen3 4B Instruct 2507 and Llama 3.1
+8B candidates, with explicit license and resource checks. A compatibility result
+is not an extraction quality benchmark or a RAM guarantee. Unknown/insufficient
+resources must remain visible; never silently choose a smaller/hosted fallback.
+
+Native SQLite remains the context implementation on every tier. The current
+FalkorDBLite Intel wheel fails execution; Graphiti stays outside the app pending
+supported-store, quality/resource and distribution review. P5 provides a
+provisional universal Node SEA release workflow and user-started signed update
+checks, with actual signing/upgrade/clean-user acceptance pending. Only those
+measurements can close the named hardware/release gates.

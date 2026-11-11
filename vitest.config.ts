@@ -1,7 +1,2 @@
 import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    include: ['apps/**/*.test.ts', 'packages/**/*.test.ts', 'tools/workspace/**/*.test.mjs'],
-  },
-});
+export default defineConfig({ test: { maxWorkers: 2, projects: ['./vitest.unit.config.ts', './vitest.storybook.config.ts'] } });

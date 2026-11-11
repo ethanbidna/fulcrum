@@ -46,7 +46,10 @@ Schema: [`change-event.schema.json`](../schemas/v1/change-event.schema.json). On
 
 1. Domain validates the command and produces ops.
 2. Store assigns `seq`, `hlc`; serializes to one line; `appendFile` + `fsync` on the current segment.
-3. Only after fsync is the change acknowledged to the UI/MCP.
+3. Only after fsync is the change acknowledged to the UI/MCP. C4 also persists
+   local sequence metadata before returning success. New segments use no-replace
+   publication; multi-event batches publish as one complete segment, capped at
+   1 MiB ([ADR-0013](decisions/0013-workspace-store-publication.md)).
 4. Every N events (default 500) or on clean shutdown, write a checkpoint: write `checkpoints/<deviceId>/.tmp-<uuid>` then `rename` into place (atomic on APFS). Delete older checkpoints beyond 3.
 
 ## Reading and folding
@@ -63,9 +66,9 @@ Reference: [`tools/reference/workspace-reader.mjs`](../tools/reference/workspace
 
 - **Field-level last-writer-wins** in total order. Commutative and idempotent, so every device converges.
 - **Conflict detection**: when a `set` op's `baseEventId` is not the field's current writer, the author had not seen that write ⇒ concurrent edit. The fold records `{kind, id, field, values, eventIds, winner, material}`.
-- **Material fields** (`initiative.moscow|lifecycle|title`, `node.state|outcome|title|type`, `edge` endpoints/type/condition): the device that notices raises a `sync_conflict` Question with `dedupeKey = sync:<kind>:<id>:<field>` (deterministic ID ⇒ no duplicate questions if both Macs notice). Resolutions: keep the winner / take the other value.
+- **Material fields** (`initiative.moscow|lifecycle|title`, `node.state|outcome|title|type`, `edge` endpoints/type/condition): the device that notices raises a `sync_conflict` Question with `dedupeKey = sync:<kind>:<id>:<field>` (deterministic ID ⇒ no duplicate questions if both Macs notice). Resolutions: keep the winner / take the other value. After a closed occurrence, a new collision adds its winning-event occurrence to the key ([ADR-0019](decisions/0019-question-lifecycle-and-sync.md)).
 - **Non-material fields**: winner stands silently; the conflict appears in History.
-- `set` after `tombstone` ⇒ `write_after_delete` (material; question offers restore). Duplicate `create` ⇒ first wins.
+- `set` after `tombstone` ⇒ `write_after_delete` (material; question offers restore). Duplicate live `create` ⇒ first wins. A compensating `create` with `undoOf` may restore a tombstoned record ([ADR-0012](decisions/0012-command-transactions-and-undo.md)).
 
 Golden test: [`fixtures/scenarios/expectations.json#crossDeviceCollision`](../fixtures/scenarios/expectations.json).
 
@@ -94,7 +97,7 @@ The app must detect online-only placeholders (read fails / zero-length) and show
 
 ## Backup and restore
 
-- **Automatic**: daily zip of `workspace.json`, `log/`, latest checkpoint into machine-local `backups/` (keep 14 daily, 8 weekly). Optional second backup location chosen by the user.
+- **Automatic**: opt-in daily or weekly verified directory copies of `workspace.json`, retained `log/` and checkpoints into machine-local `backups/` (keep 14 daily, 8 weekly; manual copies are retained). The original zip proposal is refined by [ADR-0022](decisions/0022-verified-directory-backups.md); a second destination remains deferred until a native destination flow is available.
 - **Restore**: always into a *new* workspace folder (new `workspaceId`) — never overwrite in place, so a synced bad state cannot clobber a good one.
 - **Point-in-time view**: History can fold events up to any HLC for inspection without restoring.
 - Sync-provider version history (Dropbox/Drive) is a secondary safety net, not relied upon.
@@ -103,6 +106,26 @@ The app must detect online-only placeholders (read fails / zero-length) and show
 
 Expected volume for one user: low thousands of events per month; excerpts ≤ 4 KB each. Segments are never deleted in v1. If the log grows past a threshold (e.g. 200 MB), a future **archive** command can snapshot state and move old segments to `archive/` after all devices' frontiers have passed them — design deferred until measured.
 
-## Encryption (deferred)
+## Encryption (design accepted; implementation pending)
 
-`workspace.json#encryption` is reserved. When enabled, each event line's payload is encrypted with a workspace key held in the Keychain; the key must be transferred to a second Mac out of band. Required before recommending a personal sync folder for employer data. Tracked as a backlog item, not designed in detail yet.
+Current v1 readers reject encryption; the reserved `encryption` descriptor does
+not enable it. [ENCRYPTION.md](ENCRYPTION.md) and
+[ADR-0021](decisions/0021-workspace-encryption.md) specify the proposed v2 codec,
+Keychain/recovery flow and copy migration. Step 36 must add versioned schemas
+and validate the implementation before encrypted workspaces can be opened.
+
+The plan encrypts entire events/checkpoints with authenticated encryption,
+retains canonical event bytes and merge/undo semantics, and migrates into a
+new workspace identity only after backup and full replay verification. Source
+logs stay unchanged. Old plaintext copies, provider history, exports and local
+caches are not erased or protected by enabling workspace encryption. No key
+belongs in the portable folder. Personal cloud storage still requires the
+owner's authorization; encryption is not a compliance determination.
+
+## Executable driver
+
+`packages/store` implements C4. Its tests cover the cross-device fixture and
+local process crashes; real sync-provider behavior remains provisional. The
+application binds a domain snapshot provider for checkpoint maintenance and
+retains full logs for undo/protection reconstruction. Details and operational
+limits: [store README](../packages/store/README.md).

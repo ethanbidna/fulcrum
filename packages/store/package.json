@@ -6,5 +6,16 @@
   "exports": {
     ".": "./src/index.ts",
     "./interfaces": "./src/interfaces.ts"
+  },
+  "dependencies": {
+    "@fulcrum/schema": "workspace:*",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "jsonc-parser": "3.3.1",
+    "libsodium-wrappers-sumo": "0.8.4",
+    "proper-lockfile": "4.1.2"
+  },
+  "devDependencies": {
+    "@types/proper-lockfile": "4.1.4"
   }
 }

@@ -31,14 +31,14 @@ All data is synthetic. People, companies and messages in fixtures are invented.
 
 | # | Scenario | Verified by | Status |
 |---|---|---|---|
-| 1 | Seven days asleep → wake → clear portfolio, no admin backlog | Ingestion catch-up integration test with a synthetic adapter producing 7 days of items | Backlog (M2) |
-| 2 | "I'll test the vendor" → one Task + clickable source | Fixture shape ✅; extraction eval (S2) + reconciler test | Partly (shape only) |
-| 3 | Colleague's promised review → Dependency, not Task | Schema forbids owned Tasks ✅; reconciler test | Partly |
-| 4 | New idea proposed, not activated without approval | Fixture ✅; policy P1 test | Partly |
-| 5 | External opinion doesn't override protected MoSCoW | Fixture ✅ (`domain.test.mjs`); policy P4 test | Partly |
-| 6 | Aliases resolve or raise one identity question | ContextIndex test with alias fixtures | Backlog (M2) |
+| 1 | Seven days asleep → wake → clear portfolio, no admin backlog | `tools/workspace/ingestion.test.mjs`: 7 days, newest-first, durable resume, truthful status; extraction/reconciliation later | Partly (I1 ingestion) |
+| 2 | "I'll test the vendor" → one Task + clickable source | `reconciliation.test.mjs`: explicit user commitment, canonical evidence, dedupe and run undo | Synthetic Domain integration (I5); model quality pending |
+| 3 | Colleague's promised review → Dependency, not Task | `reconciliation.test.mjs`: canonical sender/resolved identity, Dependency creation and false-user abstention | Synthetic Domain integration (I5) |
+| 4 | New idea proposed, not activated without approval | `reconciliation.test.mjs`: proposed record and user-only contextual approval | Synthetic Domain integration (I5) |
+| 5 | External opinion doesn't override protected MoSCoW | `reconciliation.test.mjs`: suggestion/question, no classification write | Synthetic Domain integration (I5) |
+| 6 | Aliases resolve or raise one identity question | `context-index.test.mjs` + `identity.json`: exact alias/ID resolution; one material contextual domain question, selection and undo | Synthetic integration (I4); unattended reconciliation remains I5 |
 | 7 | Unavailable approval blocks only dependent work | `domain.test.mjs` ✅ | Reference ✅ |
-| 8 | Conflicting source claims: both shown, chronology kept, user choice preserved | Reconciler test | Backlog (M3) |
+| 8 | Conflicting source claims: both shown, chronology kept, user choice preserved | `reconciliation.test.mjs`: conflicting assertions, both source refs, event-time ordering, keep/apply and obsolescence | Synthetic Domain integration (I5); Context UI later |
 | 9 | Second Mac: indexes rebuilt, no credentials, no duplicate IDs | Store test with two simulated devices ✅ (fold); manual two-Mac test (S1) | Partly |
 | 10 | Model/connector unavailable → prior state + truthful freshness | Status projection test | Backlog (M2) |
 | 11 | MCP and UI edits share commands and history | MCP contract test asserting identical events | Backlog (M4) |

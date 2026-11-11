@@ -1,0 +1,14 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn } from 'storybook/test';
+import { projectBoard } from '@fulcrum/domain';
+import { App } from './app.js';
+import { Inspector } from './inspector.js';
+import { workshopFixture } from './workshop-fixture.js';
+import './tokens.css';
+const fixture = workshopFixture();
+const initiativeId = fixture.snapshot.state.initiatives[0]!.id;
+const meta = { component: App, title: 'Context/Application', args: { platform: fixture.platform }, beforeEach: () => { window.location.hash = `#initiatives/${initiativeId}/context`; }, parameters: { layout: 'fullscreen' } } satisfies Meta<typeof App>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const ContextInApp: Story = { play: async ({ canvas }) => { await expect(canvas.findByRole('heading', { name: 'Context', level: 2 })).resolves.toBeVisible(); } };
+export const ObjectInspector: Story = { render: () => <Inspector target={{ kind: 'node', id: fixture.snapshot.state.nodes[0]!.id }} initiativeId={initiativeId} board={projectBoard(fixture.snapshot.state, [], {now:'2026-11-10T12:00:00Z'})} query={fixture.transport.query} execute={fixture.transport.execute} close={fn()} select={fn()} focus={fn()} />, play: async ({ canvas }) => { await canvas.findByRole('heading', { name: 'Evidence', level: 2 }); } };

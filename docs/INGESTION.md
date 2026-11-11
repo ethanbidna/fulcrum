@@ -24,7 +24,7 @@ flowchart LR
 - First connection offers a bounded backfill (default 14 days) — not unlimited history.
 - Respect rate limits; exponential backoff; resumable mid-page.
 - Required per item: `connector`, `remoteId`, `threadRemoteId?`, `permalink?`, `happenedAt`, author identity, text.
-- Adapter implementations: Activepieces-backed or native ([ADR-0002](decisions/0002-integration-boundary.md)). Order: Slack, Gmail, Granola; then Google Drive, Dropbox, Google Calendar.
+- Adapter implementations use Activepieces pieces ([ADR-0011](decisions/0011-activepieces-integration-boundary.md)); extend or add pieces for missing capabilities. Order: Slack, Gmail, Granola; then Google Drive, Dropbox, Google Calendar. Granola uses its API by default; CSV is a fallback through the same integration boundary when API access is unavailable.
 
 ## 2. Normalize
 
@@ -90,3 +90,90 @@ On wake (or app start): pull each scope from its cursor; process **newest-first 
 | Connector auth expired | Scope marked "Needs reconnect" in Settings → Sources; no popups; small indicator on freshness. |
 | Context sidecar down | Fall back to native ContextIndex. |
 | Extraction invalid JSON twice | Item marked `extraction_failed`; no state change; retry on model upgrade. |
+
+## Implemented I1 boundary
+
+The synthetic adapter, reference-only SQLite queue and single-flight scheduler
+are implemented in `packages/sources` and `packages/ingest`. The core accepts
+explicit programmatic adapter/scope configuration; default operation stays off.
+Pages and continuations commit atomically, successful hashes dedupe, changed
+payloads queue separately, revoked scopes are purged, and handover checks consult
+the current workspace ingestion-device setting before and after requests.
+
+Full source text is rehydrated at processing time rather than written to the
+queue. Delivery is at least once: consumers must use the supplied stable
+connector/remote-id/hash idempotency key for Domain commands. Healthy scopes
+continue when an independent source fails. Missing/changed rehydrated sources
+and failed consumers remain explicit failures; no silent successful retry.
+
+`status.freshness` is a core read query: pending references without an extraction
+consumer remain “Local AI unavailable”; a complete scan alone cannot report
+current while relevant work waits. The seven-day synthetic integration covers
+the ingestion portion of scenario 1. Real extraction, thread-context batching,
+superseded assertions, reconciliation, Settings controls, native sleep/resource
+hooks and live connectors remain later steps. No actual sleep/wake or account
+behavior is accepted by these tests.
+
+## Implemented I3 boundary
+
+`ModelRuntime.extract` returns validated typed candidates or explicit
+invalid-output/unavailable/deadline/aborted/input-limit failures. The Ollama
+driver wraps the existing local JSON runtime; callers must select a model
+explicitly. The same structured wrapper accepts other configured generators
+without changing candidate types. No hosted adapter or automatic model choice
+is enabled. See [runtime/evaluation contract](../packages/llm/README.md).
+
+The frozen S2 candidate schema and prompt are checked for parity. Invalid JSON,
+schema or evidence spans get one repair using unchanged source text and a fixed
+repair instruction; invalid model output never becomes trusted instructions.
+A second invalid result returns no candidates. Syntactically valid wrong
+predictions are preserved as results and never repaired to improve scores.
+
+The 48-case oracle mock suite checks plumbing, not learned quality. A bounded
+local smoke run is recorded in [I3 review](reviews/I3.md). Model quality and
+hardware tiers remain provisional under ADR-0018. Queue acknowledgement,
+canonical source/evidence writes, entity resolution and reconciliation remain
+I4/I5; these candidates cannot yet change the portfolio unattended.
+
+## Implemented I4 boundary
+
+The native `ContextIndex` in `packages/context` resolves canonical entities by
+exact aliases and scoped external IDs, retrieves related temporal claims and
+uses FTS5 for titles/aliases/permitted excerpts. The core refreshes its separate
+machine-local cache from acknowledged folded state. It is rebuildable and has
+no domain write authority; Graphiti/model adoption remains pending.
+
+Scenario 6's synthetic person/project aliases resolve, or a material Dependency
+ambiguity produces a fixed contextual question plan. The integration test sends
+repeated plans through `Domain.execute`, verifies one question, chooses an
+identity and undoes the choice. This does not enable unattended processing.
+See [API, bounds and failure behavior](../packages/context/README.md). I5 still
+owns candidate reconciliation and queue acknowledgement. Audit issue #63's
+handover hash mismatch remains open and must be fixed before unattended work.
+
+
+## Implemented I5 boundary
+
+`packages/ingest.reconcile` produces pure command/question/suggestion plans from
+typed candidates and canonical context. Synthetic integrations exercise scenarios
+2, 3, 4, 5 and 8 through the real Domain: update before create, explicit personal
+Tasks, external Dependencies, proposed initiatives, protected MoSCoW, conflicting
+assertions, user choices, chronology, question obsolescence and whole-run undo.
+All S2 injection cases exercise the fixed candidate-to-command boundary with a
+mock extractor; this tests plumbing and allowed effects, not model quality.
+
+The production scheduler still has no automatic reconciliation consumer. The
+planner neither records sources nor acknowledges queue items. Model adoption
+and the #63 handover-dedupe correction remain prerequisites for unattended
+processing. [API, execution requirements and limits](../packages/ingest/RECONCILIATION.md).
+
+### P3 resource admission
+
+The core binds the scheduler to [ADR-0020's native admission policy](decisions/0020-background-control-plane.md).
+Signals and trusted session settings can interrupt an in-flight request without
+acknowledging its queue item. Memory/profile/Intel throughput checks apply before
+each extraction; resource pause leaves source/queue freshness explicit. A source
+scan alone cannot claim current state while extraction is pending. The scheduler
+checks observation expiry every second; enabled paused ingestion keeps the core
+alive. The callback must honor AbortSignal before any atomic Domain.execute;
+no unattended consumer is introduced and #63 remains unresolved.

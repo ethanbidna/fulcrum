@@ -28,3 +28,12 @@ tests and launch/FTS5 checks. Controlled hardware, visible GUI, universal and
 notarization validation remain pending. Packaging stays provisional.
 
 Bundle size, cold start, idle RAM on Intel and Apple Silicon; universal binary; notarization dry run.
+
+
+## Engineering checkpoint (2026-11-10)
+
+P2/P5 now implement native folder setup, model choice and production SEA
+resources. Intel/Apple Silicon native and SEA/notice CI pass. ADR-0024 selects
+the provisional engineering release route; actual universal execution, complete
+RSS, clean-user launch and signing remain owner gates.
+See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).
