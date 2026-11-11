@@ -1,6 +1,6 @@
 # Remaining work
 
-Updated November 10, 2026. Current work is **integrating the model benchmark and experiment reviews**.
+Updated November 10, 2026. Next is **preparing the broader Qwen3.5 evaluation**.
 
 The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Update this checklist in each follow-up PR, link its evidence, and push each completed task. An owner acceptance checkbox is completed by the owner after its procedure.
 
@@ -14,7 +14,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 
 ## Next engineering work
 
-- [ ] Review and integrate the original benchmark results and experiment branch, resolve conflicts with current main, run the required checks, and merge the engineering artifacts. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
+- [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [ ] Freeze a broader Qwen3.5 evaluation protocol and new case coverage using the observed attribution, dependency, state, multiple-fact and mixed-attack failures.
 - [ ] Run the frozen candidate evaluation locally with saved requests, runtime identity, native thermal monitoring and explicit budget/incomplete counts.
 - [ ] Replay and inspect those results, then publish an adoption recommendation with resource and quality limits.
