@@ -10,7 +10,9 @@ const { build } = coreRequire('esbuild');
 const { createServer } = await import(desktopRequire.resolve('vite'));
 const output = path.join(root, 'apps/core/dist-dev/fixture.mjs');
 await mkdir(path.dirname(output), { recursive: true });
-await build({ entryPoints: [path.join(root, 'apps/core/dev/fixture.ts')], outfile: output, bundle: true, format: 'esm', platform: 'node', target: 'node22', banner: { js: "import { createRequire as fixtureRequire } from 'node:module'; const require = fixtureRequire(import.meta.url);" } });
+await build({ entryPoints: [path.join(root, 'apps/core/dev/fixture.ts')], outfile: output, bundle: true,
+  alias: { 'jsonc-parser': path.join(root, 'packages/store/node_modules/jsonc-parser/lib/esm/main.js') },
+  format: 'esm', platform: 'node', target: 'node22', banner: { js: "import { createRequire as fixtureRequire } from 'node:module'; const require = fixtureRequire(import.meta.url);" } });
 const directory = await mkdtemp(path.join(tmpdir(), 'fulcrum-shell-'));
 let fixture; let server;
 const close = async () => { await server?.close(); await fixture?.close(); await rm(directory, { recursive: true, force: true }); };

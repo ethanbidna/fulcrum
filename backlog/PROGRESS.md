@@ -49,6 +49,10 @@ Steps done since last audit: 3
 | 36 | P6 encryption — implement | waiting-owner | [ ] | #83 | v2 storage, native recovery, lock, migration and encrypted restore; local rerun recorded in #84; signed Keychain and two-Mac acceptance pending |
 | 37 | P5 signing, notarization, updates | waiting-owner | [ ] | #80 | Universal production SEA resources, signing/notary workflow, explicit signed updater and generated notices; credentials and actual release/upgrade acceptance pending |
 
+## Development startup follow-up
+
+The documented `pnpm dev` entry now selects the ESM parser build, matching the core/release bundlers. The startup regression failed before the fix and passes afterward. Full checks pass with 79 reference and 557 workspace tests. Owner acceptance remains pending.
+
 ## Local verification
 
 - 2026-11-10 — [Independent checks](../docs/reviews/local-checks-2026-11-10.md): 635 reference/workspace tests, 49 Storybook stories, seven native tests, Intel core/MCP executable self-tests and release notices pass. Owner acceptance remains pending.
