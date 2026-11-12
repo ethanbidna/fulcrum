@@ -18,6 +18,7 @@ type Position = HistoryPosition | BackfillPosition | HistoryBatch;
 
 interface Options {
   accountKey: string;
+  historyExpiry?: "restart-backfill" | "fail";
   labels: SourceScope[];
   accessToken(signal: AbortSignal): Promise<string>;
   now(): number;
@@ -139,7 +140,7 @@ export class GmailSourceAdapter implements SourceAdapter {
       if (page.checkpoint === null) throw new Error("missing_gmail_checkpoint");
       return { phase: "history-batch", ids, resume: { phase: "history", anchor: page.checkpoint }, complete: true };
     } catch (error) {
-      if (error instanceof Error && error.message === "gmail_history_expired") return null;
+      if (this.options.historyExpiry !== "fail" && error instanceof Error && error.message === "gmail_history_expired") return null;
       throw error;
     }
   }
