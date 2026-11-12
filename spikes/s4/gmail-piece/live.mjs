@@ -52,28 +52,39 @@ export async function runLiveProbe(environment, betweenScans) {
   const labelId = environment.GMAIL_TEST_LABEL;
   if (!labelId?.trim()) throw new Error("missing_label");
 
+  const probe = await openGmailProbe(labelId, () => refreshGoogle(environment));
+  try {
+    const backfill = await probe.backfill();
+    await betweenScans(backfill);
+    return { backfill, incremental: await probe.incremental(), refreshes: 2, reopenedQueue: true };
+  } finally {
+    await probe.close();
+  }
+}
+
+export async function openGmailProbe(labelId, refresh) {
   const directory = await mkdtemp(join(tmpdir(), "fulcrum-s4-gmail-"));
   const options = {
     localDirectory: join(directory, "local"),
     workspaceDirectory: join(directory, "workspace"),
     workspaceId: "synthetic-gmail",
   };
-  try {
-    await Promise.all([mkdir(options.localDirectory), mkdir(options.workspaceDirectory)]);
-    const labels = [{ id: labelId, label: "Synthetic Gmail" }];
-    const makeAdapter = token => new GmailSourceAdapter({
+  const close = () => rm(directory, { recursive: true, force: true });
+  const labels = [{ id: labelId, label: "Synthetic Gmail" }];
+  async function run(mode) {
+    const token = await refresh();
+    const adapter = new GmailSourceAdapter({
       labels, accountKey: "synthetic-gmail", historyExpiry: "fail", accessToken: async () => token, now: Date.now,
     });
-    const first = makeAdapter(await refreshGoogle(environment));
-    const [scope] = await first.scopes();
-    const backfill = await scan(options, first, scope, "backfill");
-    await betweenScans(backfill);
-
-    const second = makeAdapter(await refreshGoogle(environment));
-    const incremental = await scan(options, second, scope, "incremental");
-    return { backfill, incremental, refreshes: 2, reopenedQueue: true };
-  } finally {
-    await rm(directory, { recursive: true, force: true });
+    const [scope] = await adapter.scopes();
+    return scan(options, adapter, scope, mode);
+  }
+  try {
+    await Promise.all([mkdir(options.localDirectory), mkdir(options.workspaceDirectory)]);
+    return { backfill: () => run("backfill"), incremental: () => run("incremental"), close };
+  } catch (error) {
+    await close();
+    throw error;
   }
 }
 
