@@ -13,5 +13,11 @@ test project. The account granted read-only Gmail access.
 
 Each scan succeeded using the probe path that refreshes the access token
 before scanning. The incremental scan reopened the disposable SQLite queue.
-This run used the test page in Chrome. Native webview acceptance, runtime
-footprint, and selection of the production route remain pending.
+The OAuth and sync run above used the test page in Chrome.
+
+An owner screenshot of the native **Fulcrum Gmail Test** macOS window shows
+the synthetic label selected, with 1 message across 1 page reported for
+backfill and 1 message across 1 page reported for incremental sync. This
+confirms the native window displayed successful results for both scans.
+The screenshot does not show the browser consent handoff. Runtime footprint
+and selection of the production route remain pending.
