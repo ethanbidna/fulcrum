@@ -1,6 +1,6 @@
 # ADR-0011: Route source integrations through Activepieces
 
-- **Status:** Accepted for integration direction; execution mode provisional
+- **Status:** Accepted; [ADR-0027](0027-gmail-piece-execution.md) selects the Gmail execution mode
 - **Date:** 2026-11-08
 - **Supersedes:** [ADR-0002](0002-integration-boundary.md)
 
@@ -25,19 +25,16 @@ direction. Their capability and permission findings remain useful evidence.
   changes canonical state. No model or source may select arbitrary piece actions,
   API routes, credentials or recipients.
 - Use the open-source edition/components. Hosted Activepieces is not enabled
-  by default. Piece-as-library execution and a self-hosted runtime remain
-  candidates to measure; this ADR does not claim either can be packaged on
-  Intel or that a daemon/database is already approved for installation.
+  by default. Choose how to execute each piece using its measured capabilities
+  and footprint. This ADR does not approve a daemon or database server.
 - Preserve local inference, read-only source permissions, machine-local secrets
   and non-technical setup goals. Any conflict with the selected execution mode
   must be surfaced and resolved explicitly rather than hidden in a fallback.
 
 ## First connector
 
-Gmail is first for personal use. Prioritize the direct execution candidate and
-prototype a read-only Gmail extension. See the
-[Gmail library probe](../spikes/S4-results/gmail-library.md). The production
-execution mode remains provisional.
+Gmail is first for personal use. [ADR-0027](0027-gmail-piece-execution.md)
+records the execution mode and evidence for I2.
 
 ## Consequences and validation
 

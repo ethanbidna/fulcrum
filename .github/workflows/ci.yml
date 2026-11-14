@@ -20,6 +20,12 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Check the isolated Gmail probe
+        working-directory: spikes/s4/gmail-piece
+        run: |
+          npm ci --ignore-scripts
+          npm run check
+          npm test
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --project spikes/s3 --frozen
       - run: uv run --project spikes/s3 python spikes/s3/check_clients.py

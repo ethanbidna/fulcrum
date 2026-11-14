@@ -195,7 +195,7 @@ interface ContextIndex {
 | Core runtime | TypeScript on Node 22+ as a bundled sidecar | preferred *(packaging provisional — S7)* | [0009](decisions/0009-core-process-and-language.md) |
 | Schemas | JSON Schema 2020-12 as source of truth; TS types generated; Ajv at runtime | decided | [0008](decisions/0008-schema-source-of-truth.md) |
 | Local index | SQLite + FTS5 (machine-local only) | preferred | [0005](decisions/0005-portable-workspace-event-log.md) |
-| Connectors | `SourceAdapter` backed by Activepieces pieces; execution mode to measure | direction accepted; execution provisional | [0011](decisions/0011-activepieces-integration-boundary.md) |
+| Connectors | `SourceAdapter` backed by Activepieces pieces; Gmail runs in the local core | Gmail selected for I2 | [0011](decisions/0011-activepieces-integration-boundary.md), [0027](decisions/0027-gmail-piece-execution.md) |
 | Model providers | Runtime interfaces; local default, hardware-aware chooser; optional explicit hosted adapters | Selection/installation planned; model adoption pending | [0018](decisions/0018-model-choice-and-setup.md) |
 | Temporal context | Native SQLite `ContextIndex` first; Graphiti adapter if S3 passes | *(provisional — S3)* | [0004](decisions/0004-context-layer.md) |
 | Ingestion host | One designated device per workspace | decided | [0006](decisions/0006-single-ingestion-device.md) |

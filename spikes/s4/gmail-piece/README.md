@@ -46,10 +46,57 @@ remaining IDs kept in the continuation until the page is complete.
 
 The injected access-token provider must stay bound to the same account as its
 opaque local account key. This spike runs without production desktop setup.
-Live OAuth, refresh, links, packaging and the production execution decision
-remain pending.
+See the [live OAuth and sync results](../../../docs/spikes/S4-results/gmail-desktop.md)
+and the [Gmail decision](../../../docs/decisions/0027-gmail-piece-execution.md).
+Production packaging and links remain open.
 
-## Live probe
+## Desktop test build
+
+A developer prepares the Google project once. Enable the Gmail API, set the
+OAuth audience to External → Testing, and add the throwaway Gmail account.
+Create a **Desktop app** OAuth client and download its JSON configuration
+outside the checkout. [Google desktop OAuth](https://developers.google.com/identity/protocols/oauth2/native-app)
+describes the client and loopback flow.
+
+Install the root and probe dependencies with Node 22 LTS. To launch the native
+window, also install Rust/Cargo and Xcode Command Line Tools. From the root:
+
+```sh
+pnpm install --frozen-lockfile
+npm --prefix spikes/s4/gmail-piece ci --ignore-scripts
+read -r 'FULCRUM_GMAIL_TEST_CLIENT_FILE?Path to Desktop OAuth client JSON: '
+read -r 'FULCRUM_GMAIL_TEST_ACCOUNT?Throwaway Gmail address: '
+export FULCRUM_GMAIL_TEST_CLIENT_FILE FULCRUM_GMAIL_TEST_ACCOUNT
+node --experimental-transform-types tools/dev-shell.mjs
+```
+
+In a second Terminal at the root:
+
+```sh
+pnpm --filter @fulcrum/desktop tauri dev --config '{"build":{"beforeDevCommand":null},"plugins":{"updater":{"pubkey":""}}}'
+```
+
+The window opens directly to the test. Use two plain-text synthetic messages
+received in the last 14 days. Apply a test label to the first one.
+
+1. Click **Connect Gmail**, sign in with the designated account, and grant the
+   read-only scope. Return to Fulcrum and choose the test label.
+2. Click **Run backfill**. Confirm the count is one.
+3. Apply the same label to the second message in Gmail. Click **Check for new
+   mail** and confirm the incremental count is one.
+4. Record pass/fail and counts only in `docs/spikes/S4-results/`. Stop the dev
+   server to discard the in-memory OAuth grant and disposable local queue.
+
+This build uses the same adapter and queue as the CLI probe. The browser
+callback uses PKCE and binds to loopback. The grant stays in the test process
+and is refreshed before each scan. Only label names and IDs and the scan
+counts reach the window. Google grants mailbox-wide read access, so use a
+throwaway account. Testing-mode authorization expires after seven days.
+The test does not open a Fulcrum workspace or exercise production credential
+persistence. For a browser preview of the same UI, open
+`http://127.0.0.1:5173` on the Mac running the dev server.
+
+## Optional CLI live probe
 
 Use the [S4 Gmail setup](../README.md#gmail-native-api-probe) to prepare a
 throwaway account, enable the Gmail API, and obtain a refresh token limited to
