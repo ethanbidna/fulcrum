@@ -7,9 +7,6 @@
     "check": "tsc --noEmit --strict --noUncheckedIndexedAccess --exactOptionalPropertyTypes --skipLibCheck --module nodenext --target es2022 --types node --allowImportingTsExtensions adapter.ts",
     "test": "node --experimental-transform-types --test *.test.mjs"
   },
-  "dependencies": {
-    "@activepieces/pieces-framework": "0.32.0"
-  },
   "devDependencies": {
     "@types/node": "22.15.29",
     "typescript": "5.9.3"

@@ -16,3 +16,8 @@ It retains successful/ignored hash receipts; changed text queues a new version.
 Full text is fetched again at processing time and a changed/missing source fails
 closed. Queue files are private, versioned and bound to one workspace identity.
 Corruption fails closed; it is never silently replaced with an empty queue.
+
+The Gmail adapter is available at `@fulcrum/sources/gmail`. It runs a
+read-only Activepieces piece in the local process, using an injected access
+token provider. Its synthetic coverage lives in the
+[S4 Gmail harness](../../spikes/s4/gmail-piece/README.md).

@@ -15,3 +15,25 @@ for implementation. The execution route is recorded in
 
 I2 still needs production validation, including Keychain storage, packaged
 execution and the open-original checks in the ADR.
+
+## Packaged Gmail test
+
+Use a designated throwaway Gmail account with synthetic mail. Configure a
+Google Desktop OAuth client with Gmail API enabled and the account on its
+test-user list. Install the downloaded client JSON outside the workspace:
+
+```sh
+mkdir -p "$HOME/Library/Application Support/Fulcrum"
+install -m 600 "/path/to/desktop-client.json" "$HOME/Library/Application Support/Fulcrum/gmail-oauth-client.json"
+```
+
+Restart the native app and its core. Open a disposable workspace, designate
+this Mac for ingestion, then open **Settings → Sources & Integrations**.
+Connect the test account, select a synthetic label, and choose **Start sync**.
+Check freshness before and after adding a newly labeled message. Restart the
+app and core and confirm sync resumes without another consent prompt. Choose
+**Disconnect Gmail** and confirm sync stops and the workspace's
+`Fulcrum.Connector.Gmail` entry is removed from Keychain.
+
+The adapter leaves exact Gmail links empty. An open-original fallback has
+yet to be validated. Record counts and observations only.
