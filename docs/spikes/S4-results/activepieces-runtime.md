@@ -49,4 +49,4 @@ read-only Gmail OAuth, backfill and incremental sync. Its development
 server reached 174.3 MiB sampled RSS during the one-message backfill.
 That process RSS and the container memory above use different methods.
 The results favor continuing with direct piece execution for the first
-Gmail connector. The production execution decision remains open.
+Gmail connector. [ADR-0027](../../decisions/0027-gmail-piece-execution.md) records that choice.

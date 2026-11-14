@@ -17,7 +17,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 3 | S2 Llama benchmark | waiting-owner | [ ] | #38, #43, #44, #90 | Intel 3B/8B runs recorded. [Qwen3.5 holdout review](../docs/spikes/S2-results/qwen35-holdout/review.md) recommends keeping this configuration out of automatic extraction. Owner checks pending. |
 | 4 | S7 Tauri + core sidecar packaging | waiting-owner | [ ] | #40 | Node/Bun apps, Rust tests and FTS5 pass Intel/ARM CI; controlled hardware/universal pending; no Developer ID |
 | 5 | S6 MCP shim | waiting-owner | [ ] | #41 | SDK and Inspector stdio checks pass; Claude Desktop and confirmation UX pending |
-| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39, #92, #93, #94, #95, #96 | Gmail first; [read-only piece prototype](../spikes/s4/gmail-piece/README.md) resumes through SourceAdapter and the SQLite queue in the synthetic probe; [Live Gmail browser OAuth and sync passed](../docs/spikes/S4-results/gmail-desktop.md); [self-hosted footprint measured](../docs/spikes/S4-results/activepieces-runtime.md); runtime Gmail auth and remaining account checks open |
+| 6 | S4 connector capability matrix | waiting-owner | [ ] | #39, #92, #93, #94, #95, #96 | Gmail first; [read-only piece prototype](../spikes/s4/gmail-piece/README.md) resumes through SourceAdapter and the SQLite queue in the synthetic probe; [Live Gmail browser OAuth and sync passed](../docs/spikes/S4-results/gmail-desktop.md); [self-hosted footprint measured](../docs/spikes/S4-results/activepieces-runtime.md); [Gmail execution selected](../docs/decisions/0027-gmail-piece-execution.md); owner review of results and deferred cases pending |
 | 7 | S5 Granola access | done | n/a | #42 | API default through Activepieces; CSV fallback only; official research, no live access |
 | 8 | S3 Graphiti | waiting-owner | [ ] | #81 | Shared-fixture native/Graphiti harness, locked local-only clients and count-only reports; Intel store probe fails OS error 86; model/Apple Silicon comparison pending |
 | 9 | Decision checkpoint | waiting-owner | [ ] | #82 | Engineering checkpoint and ADR dispositions prepared; final model/hardware/sync/connector/release adoption review awaits recorded owner results |
@@ -37,7 +37,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
-| 25 | I2 first real connector | blocked | [ ] | #67 | Gmail selected for personal use. S4 live results and production execution mode are pending; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
+| 25 | I2 first real connector | blocked | [ ] | #67 | Direct Gmail piece selected. Waiting on step 6 owner review and promotion; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
 | 26 | U6 context view | done | n/a | #73 | Canonical aggregate/object evidence, provenance/claims/two clocks, safe links, stale-response guards and Storybook keyboard/accessibility checks; synthetic only |
 | 27 | U7 timeline | done | n/a | #75 | Optional canonical target-date/milestone timeline, explicit undated prerequisites, simple SVG plus accessible list; synthetic browser/domain checks |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
@@ -242,14 +242,17 @@ Wait until S2 finishes before controlled builds/measurements. Follow [spikes/s7/
 
 ### Step 6 — S4 connector tests
 
-Wait for the S2 benchmark to finish before live API/runtime measurements. Use only new throwaway accounts containing fake content; do not use connected real accounts.
-
-1. Install Node 22 LTS and follow [spikes/s4/README.md](../spikes/s4/README.md) in full. Run `npm ci` and `npm test` (after C1 merges, use `corepack enable` and `pnpm install --frozen-lockfile` instead of `npm ci`).
-2. Create the fake Slack workspace/channel/thread. Register the internal app with the documented read-only user scopes and enter its token/channel ID through the procedure's hidden/environment prompts. Run `node spikes/s4/cli.mjs slack backfill`, then `node spikes/s4/cli.mjs slack resume` while incomplete. Test the selected private/DM scopes and exact permalink manually.
-3. Create the fake Google account/label and own OAuth test project, enable Gmail API and only `gmail.readonly`, then follow the manual token/refresh setup. Run `node spikes/s4/cli.mjs gmail backfill`, `node spikes/s4/cli.mjs gmail resume` while incomplete, and `node spikes/s4/cli.mjs gmail incremental` after adding fake mail. Record refresh, quota, history expiry and open-original limitations.
-4. Run the [Gmail desktop test](../spikes/s4/gmail-piece/README.md#desktop-test-build) with the same throwaway Google OAuth setup. Follow the remaining library/runtime comparison instructions after S2. Record real versions, permissions, setup friction, RAM/disk and any not-run reasons across all six source × option rows in `docs/spikes/S4.md`.
-5. Review count-only reports under `spikes/s4/out/`; commit reviewed copies under `docs/spikes/S4-results/` with observations in a PR referencing #4. Never commit continuation files, tokens, IDs, links, addresses, paths or raw provider responses.
-6. Tick the Owner box for step 6 above.
+1. Review [PR #96](https://github.com/ethanbidna/fulcrum/pull/96), including the
+   [desktop Gmail result](../docs/spikes/S4-results/gmail-desktop.md), the
+   [runtime comparison](../docs/spikes/S4-results/activepieces-runtime.md), and
+   the [Gmail decision](../docs/decisions/0027-gmail-piece-execution.md).
+2. Review the deferred Slack and Gmail cases in the
+   [S4 matrix](../docs/spikes/S4.md#owner-results). If any additional case is
+   required before closeout, follow its [test procedure](../spikes/s4/README.md)
+   with a throwaway account and synthetic data. Record count-only results in
+   `docs/spikes/S4-results/` and update the matrix.
+3. If the recorded results and deferrals are sufficient, merge PR #96 and
+   tick the Owner box for step 6 above.
 
 ### Step 3 — S2 local Llama benchmark
 

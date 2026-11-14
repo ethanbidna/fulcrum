@@ -46,8 +46,9 @@ remaining IDs kept in the continuation until the page is complete.
 
 The injected access-token provider must stay bound to the same account as its
 opaque local account key. This spike runs without production desktop setup.
-Live OAuth, refresh, links, packaging and the production execution decision
-remain pending.
+See the [live OAuth and sync results](../../../docs/spikes/S4-results/gmail-desktop.md)
+and the [Gmail decision](../../../docs/decisions/0027-gmail-piece-execution.md).
+Production packaging and links remain open.
 
 ## Desktop test build
 

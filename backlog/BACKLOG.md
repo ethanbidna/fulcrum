@@ -39,7 +39,7 @@ Labels: spike, ingestion
 - [ ] For Slack and Gmail, each of: Activepieces pieces as libraries, self-hosted Activepieces runtime, native SDK — record auth/refresh, backfill depth, incremental cursor, threads/DMs, permalink precision (message-level, thread-level), rate limits, memory/disk footprint, install steps for a non-technical user.
 - [ ] OAuth reality documented: Google restricted-scope verification needs, Slack app distribution/admin approval, "bring your own OAuth app" path for alpha.
 - [ ] Uses a test workspace/account with synthetic content only; no real data committed.
-- [ ] Recommendation for the `SourceAdapter` implementation strategy; ADR-0002 updated.
+- [ ] Recommendation for the `SourceAdapter` implementation strategy recorded in the current integration ADRs.
 
 ### S5 · Spike: Granola access path
 Labels: spike, ingestion
