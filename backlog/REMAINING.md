@@ -20,7 +20,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 - [x] Prepare a count-only live probe for OAuth refresh, backfill and incremental sync. [Live probe](../spikes/s4/gmail-piece/README.md#live-probe)
 - [x] Add a [desktop test flow](../spikes/s4/gmail-piece/README.md#desktop-test-build) for browser OAuth, label selection, and scan counts.
 - [x] Validate [live read-only OAuth and sync](../docs/spikes/S4-results/gmail-desktop.md) in the Gmail test page.
-- [ ] Record the remaining S4 comparisons and choose a production route before enabling Gmail in the desktop app.
+- [x] Complete S4 with the recorded test deferrals and [select local execution for Gmail](../docs/decisions/0027-gmail-piece-execution.md).
 
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [x] Freeze the broader Qwen3.5 evaluation protocol and 24 new cases. [Protocol and fixture](../docs/spikes/S2-results/qwen35-protocol.md)
@@ -50,10 +50,10 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 
 ## Connector and release work
 
-- [ ] Step 25 — Implement and exercise the first real connector after step 6 supplies the selected execution route.
+- [ ] Step 25 — Implement and exercise the read-only Gmail connector using the route selected in step 6.
 - [ ] Step 37 (deferred for personal use) — Configure the GitHub release environment, Developer ID/notary credentials, updater keys and provisioning profile. Build and test the signed universal release and signed update.
 - [ ] Step 34 — Complete clean-user onboarding and managed download/cancel/retry checks with the signed build.
 - [ ] Step 33 — Test packaged Claude Desktop installation, sharing scopes, writes and headless startup.
 - [ ] Step 36 — Test signed Keychain/recovery/lock/rotation/restore and encrypted two-Mac sync.
 
-The release environment was absent at the last check. The 12-case Qwen3.5 development result leaves model adoption pending. The original progress tracker has 19 waiting-owner steps and step 25 blocked.
+The release environment was absent at the last check. The 12-case Qwen3.5 development result leaves model adoption pending. Step 25 is ready to implement.

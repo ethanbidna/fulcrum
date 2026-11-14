@@ -1,7 +1,8 @@
 # I2 prerequisite review
 
-I1 is complete. Step 25 remains blocked until the owner reviews and
-completes step 6. The execution route is recorded in
+I1 and S4 are complete. The owner approved the S4 results and deferrals
+in [PR #96](https://github.com/ethanbidna/fulcrum/pull/96). Step 25 is ready
+for implementation. The execution route is recorded in
 [ADR-0027](../decisions/0027-gmail-piece-execution.md).
 
 - The [Gmail desktop probe](../spikes/S4-results/gmail-desktop.md) passed
@@ -12,7 +13,5 @@ completes step 6. The execution route is recorded in
 - The [S4 matrix](../spikes/S4.md#owner-results) records measured results and
   explicit reasons for cases that did not run.
 
-Review the recorded cases and tick the Owner box for step 6 when its checks
-are complete. Promote step 6 to done before making step 25 runnable.
-I2 still needs its own production validation, including the Keychain,
-packaged execution and open-original checks in the ADR.
+I2 still needs production validation, including Keychain storage, packaged
+execution and the open-original checks in the ADR.
