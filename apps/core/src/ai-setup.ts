@@ -1,7 +1,9 @@
+import { NativeProviderSecrets } from './provider-secrets.js';
+import type { ProviderSecrets } from './provider-secrets.js';
 import{randomUUID}from'node:crypto';import path from'node:path';
 import{LocalPreferences}from'@fulcrum/store';
-import{ManagedOllama,MODEL_CATALOG,OLLAMA_RELEASE,CATALOG_REVISION,requiredModelDisk,detectModelHardware,AnthropicJsonRuntime,NativeProviderSecrets}from'@fulcrum/llm';
-import type{JsonModelRuntime,ProviderSecrets,ModelProgress}from'@fulcrum/llm';
+import{ManagedOllama,MODEL_CATALOG,OLLAMA_RELEASE,CATALOG_REVISION,requiredModelDisk,detectModelHardware,AnthropicJsonRuntime}from'@fulcrum/llm';
+import type{JsonModelRuntime,ModelProgress}from'@fulcrum/llm';
 import{filterModelChoices}from'@fulcrum/domain';
 import type{OriginPreference,AiProfile,AiSetupStatus,AiJob,AdministrationArgs,CommandRequest,Domain}from'@fulcrum/domain';
 const COMPATIBILITY_SLOW_MS=30_000;const COMPATIBILITY_DEADLINE_MS=120_000;const MIN_BUDGET=1000;const MAX_BUDGET=10_000_000;

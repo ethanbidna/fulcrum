@@ -1,5 +1,7 @@
 import { createAction, createPiece, PieceAuth, Property } from "@activepieces/pieces-framework";
 
+import { GMAIL_READONLY } from './oauth.ts';
+
 const GMAIL_MAILBOX = "https://gmail.googleapis.com/gmail/v1/users/me/";
 const MAX_PAGE_SIZE = 50;
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -7,7 +9,7 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const auth = PieceAuth.OAuth2({
   authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
-  scope: ["https://www.googleapis.com/auth/gmail.readonly"],
+  scope: [GMAIL_READONLY],
   required: true,
 });
 

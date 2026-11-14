@@ -23,9 +23,18 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
     @autoreleasepool {
         NSData *bytes = [[NSString stringWithUTF8String:input] dataUsingEncoding:NSUTF8StringEncoding];
         NSDictionary *request = [NSJSONSerialization JSONObjectWithData:bytes options:0 error:nil];
-        if (![request isKindOfClass:NSDictionary.class] || ![request[@"provider"] isEqual:@"anthropic"]) return NULL;
+        if (![request isKindOfClass:NSDictionary.class]) return NULL;
+        NSString *service;
+        NSString *account;
+        if ([request[@"provider"] isEqual:@"anthropic"]) {
+            service = @"Fulcrum.Provider.Anthropic";
+            account = @"api-key";
+        } else if ([request[@"provider"] isEqual:@"gmail"]) {
+            service = @"Fulcrum.Connector.Gmail";
+            account = @"refresh-token";
+        } else return NULL;
         NSMutableDictionary *query = [@{(__bridge id)kSecClass:(__bridge id)kSecClassGenericPassword,
-            (__bridge id)kSecAttrService:@"Fulcrum.Provider.Anthropic", (__bridge id)kSecAttrAccount:@"api-key"} mutableCopy];
+            (__bridge id)kSecAttrService:service, (__bridge id)kSecAttrAccount:account} mutableCopy];
         NSString *operation = [NSString stringWithUTF8String:action];
         NSDictionary *result;
         if ([operation isEqual:@"get"]) {
