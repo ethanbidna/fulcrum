@@ -21,8 +21,7 @@ backfill and 1 message across 1 page reported for incremental sync. This
 confirms the native window displayed successful results for both scans.
 The owner also confirmed that reconnecting from the native window opened
 Google consent in Chrome and that the synthetic label appeared after
-returning to Fulcrum. Runtime footprint and selection of the production
-route remain pending.
+returning to Fulcrum. Selection of the production route remains pending.
 
 ## Local footprint
 
@@ -31,6 +30,7 @@ Measured on Intel macOS 15.7.9 with Node 23.11.0.
 | Measurement | Result |
 | --- | ---: |
 | Existing live test server at idle, median of 30 RSS samples | 178,376 KiB (174.2 MiB) |
+| Same server during a successful live Gmail backfill, highest sampled RSS | 178,488 KiB (174.3 MiB) |
 | Isolated probe with mocked Gmail responses, RSS after import | 226,942,976 bytes (216.4 MiB) |
 | Same isolated probe, process peak RSS over backfill and incremental sync | 238,411,776 bytes (227.4 MiB) |
 | SQLite queue after two synthetic messages and close | 28,672 bytes (28 KiB) |
@@ -38,9 +38,9 @@ Measured on Intel macOS 15.7.9 with Node 23.11.0.
 | Installed Activepieces framework directory alone | 1,048 KiB (1.0 MiB) |
 | Native debug test app bundle | 41,240 KiB (40.3 MiB) |
 
-Idle RSS includes the development server. Peak RSS comes from a separate
-Node process running the real probe and SQLite queue against mocked provider
-responses. Disk sizes use allocated space. The two memory measurements have
-different process boundaries. The live backfill retry failed before returning
-a result and a reconnect prompted for Google consent. Live peak RSS and the
-self-hosted runtime comparison remain pending.
+The live backfill read one synthetic message across one page after fresh
+Google consent. The highest RSS came from 45 samples in the window covering
+the scan and its reported result. Live samples cover the Node development
+server. The separate isolated probe measured process peak RSS with mocked
+Gmail responses. Disk sizes use allocated space. The self-hosted runtime
+comparison remains pending.
