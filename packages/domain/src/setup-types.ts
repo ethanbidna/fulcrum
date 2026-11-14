@@ -17,6 +17,15 @@ export function filterModelChoices(choices:ModelChoice[],preference:OriginPrefer
 }
 export interface HardwareProfile {architecture:'intel'|'apple_silicon'|'unsupported';availableMemoryBytes:number;totalMemoryBytes:number;availableDiskBytes:number|null;runtimeSupported:boolean;runtimeReason:string|null}
 export interface CompatibilityResult {structuredOutput:boolean;latencyMs:number;processRssBytes:number;modelResidentBytes:number|null;slow:boolean;at:string}
+const BYTES_PER_GIB=1024**3;
+export const SYSTEM_MEMORY_RESERVE_BYTES=4*BYTES_PER_GIB;
+export type LocalModelFit='fits'|'tight'|'too_large';
+/** Total memory decides whether a model can run at all; macOS reports little free memory because it caches, so current free memory only marks a tight fit. */
+export function localModelFit(choice:Pick<ModelChoice,'memoryBytes'>,hardware:Pick<HardwareProfile,'availableMemoryBytes'|'totalMemoryBytes'>):LocalModelFit{
+  if(choice.memoryBytes===null)return 'fits';
+  if(hardware.totalMemoryBytes<choice.memoryBytes+SYSTEM_MEMORY_RESERVE_BYTES)return 'too_large';
+  return hardware.availableMemoryBytes<choice.memoryBytes?'tight':'fits';
+}
 export interface AiProfile {kind:'none'|'local'|'hosted';choiceId?:string;digest?:string;revision?:string;compatibility?:CompatibilityResult;initiativeIds?:string[];dailyTokenBudget?:number}
 export interface AiSetupStatus {hardware:HardwareProfile;choices:ModelChoice[];profile:AiProfile;suggestionId:string|null;runtimeDownloadBytes:number;runtimeVersion:string;hostedSupported:boolean;preference:OriginPreference;job?:{id:string;state:AiJob}}
 export type AiJob = {phase:'running';message:string;completedBytes:number|null;totalBytes:number|null}|{phase:'ready';profile:AiProfile}|{phase:'failed';message:string}|{phase:'cancelled'};
