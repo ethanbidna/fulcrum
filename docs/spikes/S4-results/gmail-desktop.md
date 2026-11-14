@@ -42,5 +42,5 @@ The live backfill read one synthetic message across one page after fresh
 Google consent. The highest RSS came from 45 samples in the window covering
 the scan and its reported result. Live samples cover the Node development
 server. The separate isolated probe measured process peak RSS with mocked
-Gmail responses. Disk sizes use allocated space. The self-hosted runtime
-comparison remains pending.
+Gmail responses. Disk sizes use allocated space. See the [self-hosted runtime comparison](activepieces-runtime.md)
+for the separate container and VM measurements.
