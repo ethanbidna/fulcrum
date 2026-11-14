@@ -19,5 +19,7 @@ An owner screenshot of the native **Fulcrum Gmail Test** macOS window shows
 the synthetic label selected, with 1 message across 1 page reported for
 backfill and 1 message across 1 page reported for incremental sync. This
 confirms the native window displayed successful results for both scans.
-The screenshot does not show the browser consent handoff. Runtime footprint
-and selection of the production route remain pending.
+The owner also confirmed that reconnecting from the native window opened
+Google consent in Chrome and that the synthetic label appeared after
+returning to Fulcrum. Runtime footprint and selection of the production
+route remain pending.
