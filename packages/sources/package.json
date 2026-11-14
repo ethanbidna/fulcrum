@@ -5,6 +5,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./interfaces": "./src/interfaces.ts"
+    "./interfaces": "./src/interfaces.ts",
+    "./gmail": "./src/gmail/adapter.ts"
+  },
+  "dependencies": {
+    "@activepieces/pieces-framework": "0.32.0"
   }
 }

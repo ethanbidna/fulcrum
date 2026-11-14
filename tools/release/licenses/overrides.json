@@ -1,4 +1,16 @@
 {
+  "@activepieces/pieces-framework@0.32.0": {
+    "file": "activepieces.txt",
+    "sha256": "d490fc48488c4f5a721d354f0a5cce0972c7e3de768ac3e0c5851c3de79f3c9b",
+    "license": "MIT",
+    "repository": "https://github.com/activepieces/activepieces/tree/f094366e79840fd68ba7ffcdd9ed9766b2484fbf"
+  },
+  "@activepieces/shared@0.95.1": {
+    "file": "activepieces.txt",
+    "sha256": "d490fc48488c4f5a721d354f0a5cce0972c7e3de768ac3e0c5851c3de79f3c9b",
+    "license": "MIT",
+    "repository": "https://github.com/activepieces/activepieces/tree/f094366e79840fd68ba7ffcdd9ed9766b2484fbf"
+  },
   "alloc-stdlib@0.3.0": {
     "file": "alloc-stdlib.txt",
     "sha256": "c0c56f26d9c051cac4d200c34c84e7ae9aaa853e01a982a1df08b09931e518ae",
@@ -10,11 +22,6 @@
     "repository": "https://github.com/madsmtm/objc2"
   },
   "dispatch2@0.3.1": {
-    "file": "objc2.txt",
-    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
-    "repository": "https://github.com/madsmtm/objc2"
-  },
-  "objc2@0.6.5": {
     "file": "objc2.txt",
     "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
     "repository": "https://github.com/madsmtm/objc2"
@@ -69,6 +76,11 @@
     "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
     "repository": "https://github.com/madsmtm/objc2"
   },
+  "objc2@0.6.5": {
+    "file": "objc2.txt",
+    "sha256": "ef12c642b3cc0414cb7536b8ed5833359bdcf7147d6cdde56b6ec783c5b61b47",
+    "repository": "https://github.com/madsmtm/objc2"
+  },
   "selectors@0.38.0": {
     "file": "selectors.txt",
     "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
@@ -78,5 +90,9 @@
     "file": "tauri-plugin.txt",
     "sha256": "9dd42ea92cff2ede5cd477cbfcce051b2d0115c0ac7f368ee88cb545055dff1d",
     "repository": "https://github.com/tauri-apps/tauri"
+  },
+  "xmlhttprequest-ssl@2.1.2": {
+    "license": "MIT",
+    "repository": "https://github.com/mjwwit/node-XMLHttpRequest/tree/bfa05a48d89da1b13b570de4cc114a6bf0fab3ba"
   }
 }
