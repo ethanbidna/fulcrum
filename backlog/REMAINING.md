@@ -19,7 +19,8 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 - [x] Connect the Gmail piece to `SourceAdapter` and resume through Fulcrum's SQLite queue. [Adapter probe](../spikes/s4/gmail-piece/README.md)
 - [x] Prepare a count-only live probe for OAuth refresh, backfill and incremental sync. [Live probe](../spikes/s4/gmail-piece/README.md#live-probe)
 - [x] Add a [desktop test flow](../spikes/s4/gmail-piece/README.md#desktop-test-build) for browser OAuth, label selection, and scan counts.
-- [ ] Validate live read-only OAuth in the test build and choose a production route before enabling Gmail in the desktop app.
+- [x] Validate [live read-only OAuth and sync](../docs/spikes/S4-results/gmail-desktop.md) in the Gmail test page.
+- [ ] Record the remaining S4 comparisons and choose a production route before enabling Gmail in the desktop app.
 
 - [x] Integrate the original benchmark results and experiment review, with offline replay and full checks. [#43](https://github.com/ethanbidna/fulcrum/pull/43), [#44](https://github.com/ethanbidna/fulcrum/pull/44)
 - [x] Freeze the broader Qwen3.5 evaluation protocol and 24 new cases. [Protocol and fixture](../docs/spikes/S2-results/qwen35-protocol.md)
