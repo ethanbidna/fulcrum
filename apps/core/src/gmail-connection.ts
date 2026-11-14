@@ -20,8 +20,8 @@ export interface GmailConnectionOptions {
   fetcher?: typeof fetch;
 }
 
-export function nativeGmailConnection(client: GmailClient, account: string, helper: string) {
-  return new GmailConnection({ client, account, credentials: new NativeProviderSecrets(helper, 'gmail') });
+export function nativeGmailConnection(client: GmailClient, account: string, helper: string, workspaceId: string) {
+  return new GmailConnection({ client, account, credentials: new NativeProviderSecrets(helper, 'gmail', workspaceId) });
 }
 
 export class GmailConnection {

@@ -31,7 +31,9 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
             account = @"api-key";
         } else if ([request[@"provider"] isEqual:@"gmail"]) {
             service = @"Fulcrum.Connector.Gmail";
-            account = @"refresh-token";
+            id workspaceId = request[@"workspaceId"];
+            if (![workspaceId isKindOfClass:NSString.class] || ![[NSUUID alloc] initWithUUIDString:workspaceId]) return NULL;
+            account = [workspaceId lowercaseString];
         } else return NULL;
         NSMutableDictionary *query = [@{(__bridge id)kSecClass:(__bridge id)kSecClassGenericPassword,
             (__bridge id)kSecAttrService:service, (__bridge id)kSecAttrAccount:account} mutableCopy];

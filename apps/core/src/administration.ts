@@ -1,3 +1,4 @@
+import type { GmailSettings } from './gmail-settings.js';
 import { releaseLaunch } from './release-paths.js';
 import type {AiSetup}from'./ai-setup.js';
 import os from 'node:os';
@@ -8,8 +9,8 @@ import { WorkspaceArchives, LocalPreferences } from '@fulcrum/store';
 import type { WorkspaceOptions } from './workspace.js';
 import type { BackgroundPolicy } from '@fulcrum/ingest';
 const STALE_DEVICE_MS = 7 * 24 * 60 * 60 * 1000;
-const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'ai.preferences':['preference'],'ai.status':[],'ai.start':['choiceId','licenseAccepted','sharingAcknowledged','apiKey','initiativeIds','dailyTokenBudget'],'ai.job':['id'],'ai.cancel':['id'],'ai.none':[],'workspace.setupStatus':[],'workspace.configure':['deviceLabel','ingestion','handoverConfirmed','userEntityId'],'workspace.finishSetup':[],'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
-export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>},ai:AiSetup,configureIdentity:(userEntityId:string,label:string)=>Promise<void>) {
+const ALLOWED_FIELDS: Record<AdministrationName, string[]> = {'gmail.status':[],'gmail.connect':['account','acknowledged'],'gmail.select':['id'],'gmail.disconnect':[],'ai.preferences':['preference'],'ai.status':[],'ai.start':['choiceId','licenseAccepted','sharingAcknowledged','apiKey','initiativeIds','dailyTokenBudget'],'ai.job':['id'],'ai.cancel':['id'],'ai.none':[],'workspace.setupStatus':[],'workspace.configure':['deviceLabel','ingestion','handoverConfirmed','userEntityId'],'workspace.finishSetup':[],'mcp.install':['confirmed'], 'mcp.status':[], 'mcp.activity':[], 'mcp.configure':['enabled','readOnly','sharingAcknowledged','sourceExcerpts','questionsVisible','initiativeIds','categoryIds'], status:[], 'backup.create':[], 'backup.configure':['frequency'], 'backup.restore':['backupId'], 'history.preview':['eventId'], 'background.configure':['paused','onlyWhenPluggedIn']};
+export async function openAdministration(options: WorkspaceOptions, deviceId: string, domain: ()=>Domain, background: BackgroundPolicy, ingestionEnabled: ()=>boolean, mcp: {status():AdministrationResults['mcp.status'];configure(input:unknown):Promise<AdministrationResults['mcp.configure']>;activity():Promise<AdministrationResults['mcp.activity']>},ai:AiSetup,configureIdentity:(userEntityId:string,label:string)=>Promise<void>,gmail:GmailSettings) {
   const archives=await WorkspaceArchives.open({workspaceDirectory:options.workspaceDirectory,localDirectory:options.localDirectory,...(options.encryption?{encryption:options.encryption}:{}),...(options.schemaDirectory?{schemaDirectory:options.schemaDirectory}:{})});
   let backupError=false;
   const preferences=new LocalPreferences(options.localDirectory);
@@ -30,6 +31,10 @@ export async function openAdministration(options: WorkspaceOptions, deviceId: st
     if(!Object.hasOwn(ALLOWED_FIELDS,name)||!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!ALLOWED_FIELDS[name].includes(key)))throw new Error('INVALID_ADMINISTRATION_REQUEST');
     const args=input as Record<string,unknown>;let result:AdministrationResults[AdministrationName];
     switch(name){
+      case 'gmail.status':result=gmail.status();break;
+      case 'gmail.connect':gmail.start(args.account,args.acknowledged);result={};break;
+      case 'gmail.select':await gmail.select(args.id);result={};break;
+      case 'gmail.disconnect':await gmail.disconnect();result={};break;
       case 'ai.status':result=await ai.status();break;
       case 'ai.preferences':result=await ai.savePreference(args.preference);break;
       case 'ai.start':result=await ai.start(args as unknown as AdministrationArgs['ai.start']);break;
