@@ -6,6 +6,8 @@ import type { PortfolioBoard, PortfolioCard } from '@fulcrum/domain';
 import { PortfolioCardView } from './portfolio-card.js';
 import { PortfolioRailView } from './portfolio-rail.js';
 import { NewInitiative } from './new-initiative.js';
+import { FulcrumActivity } from './fulcrum-activity.js';
+import type { CoreTransport } from '../core-transport.js';
 import type { ExecuteCommand } from './new-initiative.js';
 import { groupCards, moveRanks, sortCards } from './portfolio-model.js';
 import type { GroupBy, SortBy, CardGroup } from './portfolio-model.js';
@@ -33,7 +35,7 @@ function SortableCard({ card, index, group, board, disabled, move }: { card: Por
     <button className="order-step" disabled={disabled || index === group.cards.length - 1} aria-label={`Move ${card.initiative.title} later`} onClick={() => move(id, index + 1)}><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg></button>
   </div>} /></div>;
 }
-export function Portfolio({ board, execute }: { board: PortfolioBoard; execute: ExecuteCommand }) {
+export function Portfolio({ board, execute, query }: { board: PortfolioBoard; execute: ExecuteCommand; query: CoreTransport['query'] }) {
   const [groupBy, setGroupBy] = useState<GroupBy>('category'); const [sortBy, setSortBy] = useState<SortBy>('manual');
   const [railOpen, setRailOpen] = useState(true); const [creating, setCreating] = useState(false);
   const [pending, setPending] = useState(false); const busy = useRef(false); const [error, setError] = useState(''); const [announcement, setAnnouncement] = useState('');
@@ -51,11 +53,12 @@ export function Portfolio({ board, execute }: { board: PortfolioBoard; execute: 
     finally { busy.current = false; setPending(false); }
   };
   return <div className="portfolio">
-    <div className="portfolio-toolbar"><div className="view-controls"><label>Group by<select value={groupBy} onChange={event => setGroupBy(event.target.value as GroupBy)} disabled={pending}><option value="category">Category</option><option value="moscow">MoSCoW</option><option value="team">Team</option><option value="objective">Objective</option><option value="none">None</option></select></label><label>Sort<select value={sortBy} onChange={event => setSortBy(event.target.value as SortBy)} disabled={pending}><option value="manual">Manual order</option><option value="moscow">MoSCoW</option><option value="changed">Last changed</option><option value="date">Date</option></select></label></div><div className="toolbar-actions"><button className="secondary-button" aria-expanded={railOpen} aria-controls="portfolio-context" onClick={() => setRailOpen(!railOpen)}>{railOpen ? 'Hide context' : 'Show context'}</button><button className="primary-button" onClick={() => setCreating(!creating)} aria-expanded={creating}>New initiative</button></div></div>
+    <div className="portfolio-toolbar"><div className="view-controls"><label>Group by<select value={groupBy} onChange={event => setGroupBy(event.target.value as GroupBy)} disabled={pending}><option value="category">Category</option><option value="moscow">MoSCoW</option><option value="team">Team</option><option value="objective">Objective</option><option value="none">None</option></select></label><label>Sort<select value={sortBy} onChange={event => setSortBy(event.target.value as SortBy)} disabled={pending}><option value="manual">Manual order</option><option value="moscow">MoSCoW</option><option value="changed">Last changed</option><option value="date">Date</option></select></label></div><div className="toolbar-actions"><button className="secondary-button" aria-expanded={railOpen} aria-controls="portfolio-context" onClick={() => setRailOpen(!railOpen)}>{railOpen ? 'Hide context' : 'Show context'}</button><button className="secondary-button" onClick={() => setCreating(!creating)} aria-expanded={creating}>New initiative</button></div></div>
+    <FulcrumActivity board={board} query={query} execute={execute} />
     {creating && <NewInitiative execute={execute} close={() => setCreating(false)} />}
     {error && <p className="command-error" role="alert">{error}</p>}<p className="visually-hidden" role="status">{announcement}</p>
     <div className={`portfolio-layout ${railOpen ? 'with-rail' : ''}`} aria-busy={pending}>
-      <div className="portfolio-groups">{board.cards.length === 0 && <section className="board-empty"><h2>No active initiatives yet</h2><p>Create an initiative to start organizing your work.</p></section>}{groups.map(group => <section className="portfolio-group" key={group.id} aria-label={group.label}><h2>{group.label}<span>{group.cards.length}</span></h2><DragDropProvider plugins={portfolioDragPlugins} onDragEnd={event => { const source = event.operation.source; if (event.canceled || !isSortable(source) || source.initialIndex === source.index) return; const card = group.cards[source.initialIndex]; if (card) void reorder(group, card.initiative.id, source.index); }}><div className="initiative-grid">{group.cards.map((card, index) => <SortableCard key={card.initiative.id} card={card} index={index} group={group} board={board} disabled={sortBy !== 'manual' || pending} move={(id, target) => { void reorder(group, id, target); }} />)}</div></DragDropProvider></section>)}</div>
+      <div className="portfolio-groups">{board.cards.length === 0 && <section className="board-empty"><h2>Your portfolio will appear here</h2><p>Fulcrum builds it from your connected sources. You can also add an initiative yourself.</p></section>}{groups.map(group => <section className="portfolio-group" key={group.id} aria-label={group.label}><h2>{group.label}<span>{group.cards.length}</span></h2><DragDropProvider plugins={portfolioDragPlugins} onDragEnd={event => { const source = event.operation.source; if (event.canceled || !isSortable(source) || source.initialIndex === source.index) return; const card = group.cards[source.initialIndex]; if (card) void reorder(group, card.initiative.id, source.index); }}><div className="initiative-grid">{group.cards.map((card, index) => <SortableCard key={card.initiative.id} card={card} index={index} group={group} board={board} disabled={sortBy !== 'manual' || pending} move={(id, target) => { void reorder(group, id, target); }} />)}</div></DragDropProvider></section>)}</div>
       {railOpen && <PortfolioRailView board={board} />}
     </div>
   </div>;
