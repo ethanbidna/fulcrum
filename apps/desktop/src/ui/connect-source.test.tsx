@@ -33,34 +33,32 @@ test('starts by choosing a source; only Gmail can be connected', async () => {
   expect(screen.getAllByText('Coming soon').length).toBe(3);
 });
 
-test('one click signs in with Google; no address is asked for', async () => {
+test('choosing Gmail signs in with Google right away; no address is asked for', async () => {
   const f = fake(); render(<ConnectSource {...f.props} />);
   fireEvent.click(await screen.findByRole('button', { name: /Gmail/ }));
-  const go = await screen.findByRole('button', { name: 'Sign in with Google' });
-  expect((go as HTMLButtonElement).disabled).toBe(false);
-  expect(screen.queryByLabelText('Gmail address')).toBeNull();
-  expect(screen.getByText(/Google grants Fulcrum read access to your mailbox/)).toBeTruthy();
-  fireEvent.click(go);
   await waitFor(() => expect(calls(f, 'gmail.connect')[0]?.[1]).toEqual({ acknowledged: true }));
+  expect(screen.queryByLabelText('Gmail address')).toBeNull();
   expect(await screen.findByText(/Finish signing in with Google in your browser/)).toBeTruthy();
 });
 
-test('a Mac that is not the reading Mac is offered one clear step to become it', async () => {
+test('a Mac that is not the reading Mac becomes it and signs in in one step', async () => {
   const f = fake({ ingestionDeviceId: null }); render(<ConnectSource {...f.props} />);
   fireEvent.click(await screen.findByRole('button', { name: /Gmail/ }));
-  fireEvent.click(await screen.findByRole('button', { name: 'Use this Mac to read Gmail' }));
+  expect(screen.getByText(/Credentials stay on the Mac that reads/)).toBeTruthy();
+  fireEvent.click(await screen.findByRole('button', { name: 'Sign in with Google' }));
   await waitFor(() => expect(calls(f, 'workspace.configure')[0]?.[1]).toMatchObject({ deviceLabel: 'Synthetic Mac', ingestion: 'this_mac', handoverConfirmed: false, userEntityId: 'u-1' }));
-  expect(await screen.findByRole('button', { name: 'Sign in with Google' })).toBeTruthy();
+  await waitFor(() => expect(calls(f, 'gmail.connect')[0]?.[1]).toEqual({ acknowledged: true }));
 });
 
 test('moving reading from another Mac needs an explicit confirmation', async () => {
   const f = fake({ ingestionDeviceId: 'dev-2' }); render(<ConnectSource {...f.props} />);
   fireEvent.click(await screen.findByRole('button', { name: /Gmail/ }));
-  const move = await screen.findByRole('button', { name: 'Move reading to this Mac' });
+  const move = await screen.findByRole('button', { name: 'Move reading here and sign in with Google' });
   expect((move as HTMLButtonElement).disabled).toBe(true);
   fireEvent.click(screen.getByRole('checkbox', { name: /I will reconnect credentials here/ }));
   fireEvent.click(move);
   await waitFor(() => expect(calls(f, 'workspace.configure')[0]?.[1]).toMatchObject({ ingestion: 'this_mac', handoverConfirmed: true }));
+  await waitFor(() => expect(calls(f, 'gmail.connect').length).toBe(1));
 });
 
 test('while Google sign-in is open it can be cancelled', async () => {
@@ -82,9 +80,9 @@ test('after sign-in the user picks exactly one label and then reading starts', a
 
 test('a failed sign-in explains and lets the user try again', async () => {
   render(<ConnectSource {...fake({ gmail: { phase: 'failed' } }).props} />);
-  fireEvent.click(await screen.findByRole('button', { name: /Gmail/ }));
   expect(await screen.findByRole('alert')).toBeTruthy();
-  expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /Gmail/ }));
+  await waitFor(() => expect(screen.getByText(/Finish signing in with Google/)).toBeTruthy());
 });
 
 test('without a configured Google client it says so instead of offering a dead end', async () => {

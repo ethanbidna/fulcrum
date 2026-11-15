@@ -42,6 +42,7 @@ export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
     finally { setBusy(false); setAttempt(value => value + 1); }
   }
 
+  const signIn = () => administer('gmail.connect', { acknowledged: true });
   const designated = !!setup && setup.ingestionDeviceId === setup.deviceId;
   const readsElsewhere = !!setup && setup.ingestionDeviceId !== null && !designated;
 
@@ -73,23 +74,28 @@ export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
     if (!chosen) return <>
       <h2>Choose a source</h2>
       <p>Fulcrum reads it for you, proposes initiatives and asks only what it needs to know.</p>
+      {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Choose Gmail to try again.</p>}
+      {error && <p role="alert">{error}</p>}
       <ul className="source-choices">
-        <li><button className="source-choice" onClick={() => setChosen(true)}><strong>Gmail</strong><span>Read mail from one label you pick</span></button></li>
+        <li><button className="source-choice" disabled={busy} onClick={() => { if (designated && gmail.phase !== 'unavailable') void perform(signIn); else setChosen(true); }}><strong>Gmail</strong><span>Read mail from one label you pick</span></button></li>
         {COMING_SOON.map(name => <li key={name} className="source-soon"><strong>{name}</strong><span>Coming soon</span></li>)}
       </ul>
     </>;
     if (gmail.phase === 'unavailable') return <><h2>Gmail</h2><p>Gmail is not set up in this build. It needs the native app with a configured Google Desktop OAuth client.</p></>;
     if (!designated) return <form onSubmit={event => {
       event.preventDefault();
-      void perform(() => administer('workspace.configure', { deviceLabel: setup.deviceLabel, ingestion: 'this_mac', handoverConfirmed: handover, ...(setup.userEntityId ? { userEntityId: setup.userEntityId } : {}) }));
+      void perform(async () => {
+        await administer('workspace.configure', { deviceLabel: setup.deviceLabel, ingestion: 'this_mac', handoverConfirmed: handover, ...(setup.userEntityId ? { userEntityId: setup.userEntityId } : {}) });
+        await signIn();
+      });
     }}>
       <h2>Read Gmail on this Mac</h2>
       <p>{readsElsewhere ? 'Another Mac currently reads your sources.' : 'One Mac reads your sources in the background so they are never read twice.'} Credentials stay on the Mac that reads.</p>
       {readsElsewhere && <label className="check-label"><input type="checkbox" checked={handover} disabled={busy} onChange={event => setHandover(event.target.checked)} />I will reconnect credentials here and choose what to read.</label>}
       {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy || readsElsewhere && !handover}>{readsElsewhere ? 'Move reading to this Mac' : 'Use this Mac to read Gmail'}</button>
+      <button className="primary-button" disabled={busy || readsElsewhere && !handover}>{readsElsewhere ? 'Move reading here and sign in with Google' : 'Sign in with Google'}</button>
     </form>;
-    return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.connect', { acknowledged: true })); }}>
+    return <form onSubmit={event => { event.preventDefault(); void perform(signIn); }}>
       <h2>Sign in with Google</h2>
       <p>Google grants Fulcrum read access to your mailbox. You pick the one label it reads next.</p>
       {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again.</p>}
