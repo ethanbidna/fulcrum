@@ -59,7 +59,7 @@ export class ManagedOllama{
   if(!success)throw new Error('Model download was incomplete. Retry to resume.');
   const tags=await this.ports.request(`${origin}/api/tags`,{signal});if(!tags.ok)throw new Error('Could not verify the installed model.');
   const installed=await tags.json()as{models?:{name:string;digest:string}[]};
-  if(!installed.models?.some(item=>item.name===choice.model&&item.digest===choice.digest))throw new Error('The installed model digest differs from this profile. Choose another model or retry after a profile update.');
+  if(!installed.models?.some(item=>item.name===choice.model&&bareDigest(item.digest)===bareDigest(choice.digest)))throw new Error('The installed model digest differs from this profile. Choose another model or retry after a profile update.');
  }
  async runtime(model:string,signal:AbortSignal){return new OllamaJsonRuntime(model,await this.start(signal),this.ports.request);}
  async residentBytes():Promise<number|null>{
@@ -68,6 +68,8 @@ export class ManagedOllama{
  }
  stop(){this.child?.kill('SIGTERM');this.child=undefined;this.origin=undefined;}
 }
+// Ollama reports the manifest digest as bare hex; the catalog pins it with a sha256: prefix.
+const bareDigest=(value:string|undefined)=>value?.replace(/^sha256:/,'');
 export function requiredModelDisk(choice:CatalogChoice){return (choice.downloadBytes??0)*2+OLLAMA_RELEASE.bytes*3+RUNTIME_DISK_MARGIN;}
 async function privateDirectory(directory:string){await mkdir(directory,{recursive:true,mode:0o700});const stat=await lstat(directory);if(!stat.isDirectory()||stat.isSymbolicLink()||stat.uid!==process.getuid?.())throw new Error('Managed runtime requires an owned local folder.');}
 async function availablePort(){const server=createServer();await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});const address=server.address();if(!address||typeof address==='string')throw new Error('Local runtime address unavailable.');await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));return address.port;}
