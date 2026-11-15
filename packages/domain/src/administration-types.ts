@@ -17,7 +17,7 @@ export type GmailSettingsStatus =
   | { phase: 'active'; account: string; label: { id: string; label: string } };
 export interface AdministrationArgs {
   'gmail.status': Record<string, never>;
-  'gmail.connect': { account: string; acknowledged: boolean };
+  'gmail.connect': { account?: string; acknowledged: boolean };
   'gmail.select': { id: string };
   'gmail.disconnect': Record<string, never>;
   'mcp.status': Record<string, never>;

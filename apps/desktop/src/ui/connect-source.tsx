@@ -14,8 +14,6 @@ export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
   const [gmail, setGmail] = useState<GmailSettingsStatus>();
   const [setup, setSetup] = useState<Setup>();
   const [chosen, setChosen] = useState(false);
-  const [account, setAccount] = useState('');
-  const [acknowledged, setAcknowledged] = useState(false);
   const [handover, setHandover] = useState(false);
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
@@ -91,14 +89,12 @@ export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
       {error && <p role="alert">{error}</p>}
       <button className="primary-button" disabled={busy || readsElsewhere && !handover}>{readsElsewhere ? 'Move reading to this Mac' : 'Use this Mac to read Gmail'}</button>
     </form>;
-    return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.connect', { account: account.trim(), acknowledged })); }}>
+    return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.connect', { acknowledged: true })); }}>
       <h2>Sign in with Google</h2>
       <p>Google grants Fulcrum read access to your mailbox. You pick the one label it reads next.</p>
-      {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again with the Gmail account you entered.</p>}
-      <label>Gmail address<input type="email" required maxLength={254} value={account} disabled={busy} onChange={event => setAccount(event.target.value)} /></label>
-      <label className="check-label"><input type="checkbox" checked={acknowledged} disabled={busy} onChange={event => setAcknowledged(event.target.checked)} />I understand what Gmail access allows.</label>
+      {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again.</p>}
       {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy || !account.trim() || !acknowledged}>Continue with Google</button>
+      <button className="primary-button" disabled={busy}>Sign in with Google</button>
     </form>;
   };
 

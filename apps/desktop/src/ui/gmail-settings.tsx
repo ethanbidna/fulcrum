@@ -8,8 +8,6 @@ const ERROR = 'Gmail settings could not be updated. Try again.';
 export function GmailSettings({ administer, designated }: { administer: Administer; designated: boolean }) {
   const [status, setStatus] = useState<GmailSettingsStatus>();
   const [error, setError] = useState('');
-  const [account, setAccount] = useState('');
-  const [acknowledged, setAcknowledged] = useState(false);
   const [label, setLabel] = useState('');
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -44,15 +42,13 @@ export function GmailSettings({ administer, designated }: { administer: Administ
     {status?.phase === 'unavailable' && <p>Gmail setup is unavailable for this workspace. Use the native app with a configured Google Desktop OAuth client.</p>}
     {status?.phase === 'connecting' && <p role="status">Finish signing in with Google in your browser.</p>}
     {(status?.phase === 'disconnected' || status?.phase === 'failed') && <>
-      {status.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again with the Gmail account you entered.</p>}
+      {status.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again.</p>}
       {designated ? <form onSubmit={event => {
         event.preventDefault();
-        void perform(() => administer('gmail.connect', { account: account.trim(), acknowledged }));
+        void perform(() => administer('gmail.connect', { acknowledged: true }));
       }}>
         <p>Google grants read access to your mailbox. Fulcrum reads messages only from the label you choose after signing in.</p>
-        <label>Gmail address<input type="email" required maxLength={254} value={account} disabled={busy} onChange={event => setAccount(event.target.value)} /></label>
-        <label className="check-label"><input type="checkbox" checked={acknowledged} disabled={busy} onChange={event => setAcknowledged(event.target.checked)} />I understand what Gmail access allows.</label>
-        <button className="secondary-button" disabled={busy || !account.trim() || !acknowledged}>Connect Gmail</button>
+        <button className="secondary-button" disabled={busy}>Sign in with Google</button>
       </form> : <p>Designate this Mac for ingestion in Workspace settings to connect Gmail.</p>}
     </>}
     {status?.phase === 'select' && <form onSubmit={event => {

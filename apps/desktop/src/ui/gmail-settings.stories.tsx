@@ -20,7 +20,7 @@ type Story = StoryObj<typeof meta>;
 export const ConnectAndSelect: Story = {
   args: {
     administer: fn(async (name: string, args: Record<string, unknown>) => {
-      if (name === 'gmail.connect') { await expect(args).toEqual({ account, acknowledged: true }); return {}; }
+      if (name === 'gmail.connect') { await expect(args).toEqual({ acknowledged: true }); return {}; }
       if (name === 'gmail.select') { await expect(args).toEqual({ id: label.id }); return {}; }
       throw new Error('Use the story render');
     }) as unknown as Administer,
@@ -37,12 +37,8 @@ export const ConnectAndSelect: Story = {
     return <GmailSettings designated={designated} administer={simulated} />;
   },
   play: async ({ canvas, userEvent }) => {
-    const connect = await canvas.findByRole('button', { name: 'Connect Gmail' });
-    await expect(connect).toBeDisabled();
-    await userEvent.type(canvas.getByLabelText('Gmail address'), account);
-    const consent = canvas.getByRole('checkbox');
-    consent.focus();
-    await userEvent.keyboard(' ');
+    const connect = await canvas.findByRole('button', { name: 'Sign in with Google' });
+    await expect(canvas.queryByLabelText('Gmail address')).not.toBeInTheDocument();
     connect.focus();
     await userEvent.keyboard('{Enter}');
     const chooser = await canvas.findByLabelText('Gmail label');
@@ -53,7 +49,7 @@ export const ConnectAndSelect: Story = {
     await userEvent.keyboard('{Enter}');
     await canvas.findByText(/Sync enabled for Synthetic mail/);
     await userEvent.click(canvas.getByRole('button', { name: 'Disconnect Gmail' }));
-    await canvas.findByRole('button', { name: 'Connect Gmail' });
+    await canvas.findByRole('button', { name: 'Sign in with Google' });
   },
 };
 

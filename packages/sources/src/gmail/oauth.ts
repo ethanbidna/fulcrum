@@ -15,7 +15,7 @@ export interface GmailClient { client_id: string; client_secret: string }
 interface Tokens { access_token?: string; refresh_token?: string; scope?: string }
 interface AuthorizeOptions {
   client: GmailClient;
-  account: string;
+  account?: string;
   openBrowser(url: URL): void | Promise<unknown>;
   stop?: AbortSignal;
   fetcher?: typeof fetch;
@@ -87,6 +87,7 @@ function callbackPort(server: ReturnType<typeof createServer>) {
   return address.port;
 }
 
+// Without an account Google shows its own account chooser; the signed-in address is read back from the mailbox profile.
 export async function authorizeGmail({ client, account, openBrowser, stop, fetcher = fetch }: AuthorizeOptions) {
   stop?.throwIfAborted();
   const state = randomBytes(32).toString('base64url');
@@ -101,7 +102,7 @@ export async function authorizeGmail({ client, account, openBrowser, stop, fetch
     const url = new URL(AUTHORIZE);
     url.search = new URLSearchParams({
       client_id: client.client_id, redirect_uri: redirect, response_type: 'code', scope: GMAIL_READONLY,
-      access_type: 'offline', prompt: 'consent', login_hint: account, state,
+      access_type: 'offline', prompt: 'consent', ...(account ? { login_hint: account } : {}), state,
       code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256',
     }).toString();
     const [, code] = await Promise.all([Promise.resolve().then(() => openBrowser(url)), callback.code]);
@@ -119,12 +120,13 @@ export async function authorizeGmail({ client, account, openBrowser, stop, fetch
     headers: { Authorization: `Bearer ${tokens.access_token}` },
   }, stop);
   const profile = await read<{ emailAddress?: string }>('profile?fields=emailAddress');
-  if (typeof profile.emailAddress !== 'string' || profile.emailAddress.toLowerCase() !== account.toLowerCase()) {
+  if (typeof profile.emailAddress !== 'string' || !profile.emailAddress || account && profile.emailAddress.toLowerCase() !== account.toLowerCase()) {
     throw new Error('wrong_google_account');
   }
 
   const { labels = [] } = await read<{ labels?: Array<{ id: string; name: string; type: string }> }>('labels?fields=labels(id,name,type)');
   return {
+    account: profile.emailAddress.toLowerCase(),
     labels: labels.filter(label => label?.type === 'user' && typeof label.name === 'string' && typeof label.id === 'string')
       .map(({ id, name }) => ({ id, name })),
     refreshToken: tokens.refresh_token,

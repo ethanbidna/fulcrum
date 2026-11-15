@@ -7,7 +7,8 @@ import { nativeGmailConnection } from './gmail-connection.js';
 import type { GmailConnection } from './gmail-connection.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 
-type Selection = { account: string; clientId: string; label: SourceScope | null };
+// A null account means sign-in started but Google has not yet reported who signed in.
+type Selection = { account: string | null; clientId: string; label: SourceScope | null };
 const validAccount = (value: unknown): value is string =>
   typeof value === 'string' && value.length <= 254 && /^[^\s@]+@[^\s@]+$/.test(value);
 
@@ -34,35 +35,36 @@ export class GmailSettings {
     const saved = await this.preferences.read('gmail');
     if (saved === undefined || saved === null) return;
     const selection = saved as Selection;
-    if (!validAccount(selection.account) || typeof selection.clientId !== 'string' || (selection.label !== null &&
+    if (selection.account !== null && !validAccount(selection.account) || typeof selection.clientId !== 'string' || (selection.label !== null &&
         (typeof selection.label?.id !== 'string' || !selection.label.id || typeof selection.label.label !== 'string'))) {
       throw new Error('INVALID_GMAIL_SETTINGS');
     }
     this.selection = selection;
-    if (this.client && this.helper) this.connection = this.createConnection(selection.account);
+    if (this.client && this.helper) this.connection = this.createConnection(selection.account ?? undefined);
+    if (selection.account === null) { await this.discardInterruptedSignIn(); return; }
     await this.activate();
   }
 
   status(): GmailSettingsStatus {
     if (!this.helper) return { phase: 'unavailable' };
-    if (!this.client && this.selection) return { phase: 'select', account: this.selection.account, labels: [] };
+    if (!this.client && this.selection?.account) return { phase: 'select', account: this.selection.account, labels: [] };
     if (!this.client) return { phase: 'unavailable' };
     if (this.job) return { phase: 'connecting' };
-    if (this.active && this.selection?.label && this.client.client_id === this.selection.clientId) return { phase: 'active', account: this.selection.account, label: this.selection.label };
-    if (this.selection) return { phase: 'select', account: this.selection.account, labels: this.labels };
+    if (this.active && this.selection?.account && this.selection.label && this.client.client_id === this.selection.clientId) return { phase: 'active', account: this.selection.account, label: this.selection.label };
+    if (this.selection?.account) return { phase: 'select', account: this.selection.account, labels: this.labels };
     return { phase: this.failed ? 'failed' : 'disconnected' };
   }
 
   start(account: unknown, acknowledged: unknown) {
-    if (!validAccount(account) || acknowledged !== true || this.job || this.selection || !this.designated()) {
+    if (account !== undefined && !validAccount(account) || acknowledged !== true || this.job || this.selection || !this.designated()) {
       throw new Error('GMAIL_CONNECTION_NOT_ALLOWED');
     }
-    const normalized = account.toLowerCase();
-    const connection = this.createConnection(normalized);
+    const hint = account?.toLowerCase();
+    const connection = this.createConnection(hint);
     const job = new AbortController();
     this.job = job;
     this.failed = false;
-    this.connecting = this.connect(normalized, connection, job);
+    this.connecting = this.connect(connection, job);
   }
 
   async select(id: unknown) {
@@ -90,13 +92,15 @@ export class GmailSettings {
 
   async close() { this.job?.abort(); await this.connecting; }
 
-  private async connect(account: string, connection: GmailConnection, job: AbortController) {
+  private async connect(connection: GmailConnection, job: AbortController) {
     try {
       // Keep a local disconnect path even if shutdown interrupts credential storage.
-      await this.save({ account, clientId: this.client!.client_id, label: null });
+      await this.save({ account: null, clientId: this.client!.client_id, label: null });
       this.connection = connection;
-      this.labels = await connection.connect(job.signal);
+      const signedIn = await connection.connect(job.signal);
       job.signal.throwIfAborted();
+      this.labels = signedIn.labels;
+      await this.save({ account: signedIn.account, clientId: this.client!.client_id, label: null });
     } catch {
       try { await connection.disconnect(); await this.save(null); this.connection = undefined; }
       catch { this.failed = true; }
@@ -104,7 +108,7 @@ export class GmailSettings {
     } finally { this.job = undefined; }
   }
 
-  private createConnection(account: string) {
+  private createConnection(account: string | undefined) {
     if (!this.client || !this.helper) throw new Error('GMAIL_UNAVAILABLE');
     return this.connectionFor(this.client, account, this.helper, this.workspaceId);
   }
@@ -114,8 +118,15 @@ export class GmailSettings {
     this.selection = selection;
   }
 
+  private async discardInterruptedSignIn() {
+    if (this.connection) await this.connection.disconnect();
+    else if (this.helper) await new NativeProviderSecrets(this.helper, 'gmail', this.workspaceId).remove();
+    await this.save(null);
+    this.connection = undefined;
+  }
+
   private async activate() {
-    if (!this.connection || !this.selection?.label || this.client?.client_id !== this.selection.clientId) return;
+    if (!this.connection || !this.selection?.account || !this.selection.label || this.client?.client_id !== this.selection.clientId) return;
     const key = createHash('sha256').update(JSON.stringify([this.client.client_id, this.selection.account])).digest('hex');
     const adapter = this.connection.adapter(key, [this.selection.label]);
     const scopes = (await adapter.scopes()).map(scope => scope.id);

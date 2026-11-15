@@ -20,11 +20,8 @@ export const ChooseSource: Story = { play: async ({ canvas }) => {
 } };
 export const SignIn: Story = { play: async ({ canvas, userEvent }) => {
   await userEvent.click(await canvas.findByRole('button', { name: /Gmail/ }));
-  const go = await canvas.findByRole('button', { name: 'Continue with Google' });
-  await expect(go).toBeDisabled();
-  await userEvent.type(canvas.getByLabelText('Gmail address'), ACCOUNT);
-  await userEvent.click(canvas.getByRole('checkbox', { name: /I understand what Gmail access allows/ }));
-  await expect(go).toBeEnabled();
+  await expect(await canvas.findByRole('button', { name: 'Sign in with Google' })).toBeEnabled();
+  await expect(canvas.queryByLabelText('Gmail address')).not.toBeInTheDocument();
 } };
 export const UseThisMac: Story = { args: { administer: serve({ phase: 'disconnected' }, null) }, play: async ({ canvas, userEvent }) => {
   await userEvent.click(await canvas.findByRole('button', { name: /Gmail/ }));

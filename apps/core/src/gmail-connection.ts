@@ -14,14 +14,14 @@ export interface GmailCredentials {
 
 export interface GmailConnectionOptions {
   client: GmailClient;
-  account: string;
+  account?: string;
   credentials: GmailCredentials;
   openBrowser?(url: URL): void | Promise<unknown>;
   fetcher?: typeof fetch;
 }
 
-export function nativeGmailConnection(client: GmailClient, account: string, helper: string, workspaceId: string) {
-  return new GmailConnection({ client, account, credentials: new NativeProviderSecrets(helper, 'gmail', workspaceId) });
+export function nativeGmailConnection(client: GmailClient, account: string | undefined, helper: string, workspaceId: string) {
+  return new GmailConnection({ client, ...(account ? { account } : {}), credentials: new NativeProviderSecrets(helper, 'gmail', workspaceId) });
 }
 
 export class GmailConnection {
@@ -30,18 +30,18 @@ export class GmailConnection {
 
   constructor(private readonly options: GmailConnectionOptions) {}
 
-  connect(signal: AbortSignal): Promise<SourceScope[]> {
+  connect(signal: AbortSignal): Promise<{ account: string; labels: SourceScope[] }> {
     return this.run(async () => {
       const { client, account, credentials, fetcher, openBrowser } = this.options;
       const grant = await authorizeGmail({
-        client, account, stop: signal, ...(fetcher ? { fetcher } : {}),
+        client, ...(account ? { account } : {}), stop: signal, ...(fetcher ? { fetcher } : {}),
         openBrowser: openBrowser ?? (url => open('/usr/bin/open', [url.href])),
       });
       signal.throwIfAborted();
       await credentials.set(grant.refreshToken);
       this.scope?.abort();
       this.scope = new AbortController();
-      return grant.labels.map(({ id, name }) => ({ id, label: name }));
+      return { account: grant.account, labels: grant.labels.map(({ id, name }) => ({ id, label: name })) };
     });
   }
 
