@@ -20,11 +20,11 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const NoSourcesConnected: Story = { play: async ({ canvas }) => {
-  await canvas.findByText(/No sources are connected yet/);
+  await canvas.findByRole('heading', { name: 'Connect a source to get started' });
   await expect(canvas.getByRole('link', { name: 'Connect a source' })).toHaveAttribute('href', '#settings');
-  await expect(canvas.getByRole('button', { name: 'New initiative' })).not.toHaveClass('primary-button');
+  await expect(canvas.queryByRole('button', { name: 'New initiative' })).not.toBeInTheDocument();
 } };
-export const ReadingSources: Story = { args: { query: serve({ state: 'catching-up', label: 'Catching up — 12 items' }) }, play: async ({ canvas }) => { await canvas.findByText('Catching up — 12 items'); } };
+export const ReadingSources: Story = { args: { query: serve({ state: 'catching-up', label: 'Catching up — 12 items' }) }, play: async ({ canvas }) => { await canvas.findByRole('heading', { name: 'Reading your sources…' }); await canvas.findByText('Catching up — 12 items'); } };
 export const ProposalsAndQuestions: Story = {
   args: { board: { ...empty, rail: { ...empty.rail, questionCount: 2 } }, query: serve({ state: 'current', label: 'Up to date' }, [{ id: PROPOSAL_ID, title: 'Synthetic proposed initiative' }]) },
   play: async ({ canvas, userEvent, args }) => {

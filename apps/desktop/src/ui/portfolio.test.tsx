@@ -81,17 +81,32 @@ test('recent changes name the question or initiative context', () => {
   expect(screen.getByText('Vendor evaluation · Relationship added')).toBeTruthy();
 });
 
-test('with no sources the empty portfolio points to connecting one instead of asking for an initiative', async () => {
+test('with no sources the empty portfolio is a prompt to connect one, without manual controls', async () => {
   render(<Portfolio board={empty()} execute={vi.fn()} query={quiet()} />);
-  expect(await screen.findByText(/No sources are connected yet\./)).toBeTruthy();
+  expect(await screen.findByRole('heading', { name: 'Connect a source to get started' })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Connect a source' }).getAttribute('href')).toBe('#settings');
-  expect(screen.queryByText(/Create an initiative to start/)).toBeNull();
-  expect(screen.getByRole('button', { name: 'New initiative' }).className).not.toContain('primary-button');
+  expect(screen.queryByLabelText('Group by')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'New initiative' })).toBeNull();
+  expect(screen.queryByRole('complementary', { name: 'Portfolio context' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'or add an initiative yourself' }));
+  expect(await screen.findByRole('form', { name: 'New initiative' })).toBeTruthy();
 });
-test('while sources are being read it shows progress, not an empty prompt', async () => {
-  render(<Portfolio board={empty()} execute={vi.fn()} query={quiet({ state: 'catching-up', label: 'Catching up — 12 items', pending: 12 })} />);
-  expect(await screen.findByText('Catching up — 12 items')).toBeTruthy();
+test('while sources are being read it shows animated progress, not an empty prompt', async () => {
+  const { container } = render(<Portfolio board={empty()} execute={vi.fn()} query={quiet({ state: 'catching-up', label: 'Catching up — 12 items', pending: 12 })} />);
+  expect(await screen.findByRole('heading', { name: 'Reading your sources…' })).toBeTruthy();
+  expect(screen.getByText('Catching up — 12 items')).toBeTruthy();
+  expect(container.querySelector('.activity-mark')?.getAttribute('data-working')).toBe('true');
   expect(screen.queryByRole('link', { name: 'Connect a source' })).toBeNull();
+});
+test('when nothing needs the user it says so', async () => {
+  render(<Portfolio board={empty()} execute={vi.fn()} query={quiet({ state: 'current', label: 'Up to date as of today' })} />);
+  expect(await screen.findByRole('heading', { name: 'Watching your sources' })).toBeTruthy();
+  expect(screen.getByText(/Nothing needs you right now/)).toBeTruthy();
+});
+test('a populated portfolio keeps its controls and shows a one-line status', async () => {
+  render(<Portfolio board={board()} execute={vi.fn()} query={quiet({ state: 'current', label: 'Up to date' })} />);
+  expect(await screen.findByText('Up to date')).toBeTruthy();
+  expect(screen.getByLabelText('Group by')).toBeTruthy();
 });
 test('initiatives Fulcrum proposed are reviewed on the portfolio and nothing activates without a click', async () => {
   const execute = vi.fn(async () => ({ ok: true }));
