@@ -27,7 +27,7 @@ Each step has: one-sentence purpose, the default action as the primary button, "
 2. **Name this Mac** (e.g. "Desk Mac"). Ask: "Should this Mac read your sources in the background?" — yes makes it the ingestion device; an existing workspace already having one shows which Mac it is and offers "Keep" / "Move to this Mac".
 3. **Choose AI** (optional on each Mac). Detect hardware and suggest a provisional local profile. Let the user choose a local model, explicitly enable a hosted provider with their own API key, or continue without AI. Complete setup using the flow below; background ingestion still belongs only to the designated ingestion Mac.
 4. **Connect sources** (optional). Show supported sources with honest status labels ("Beta", "Not yet available"). Per source: sign in via the system browser (OAuth), then pick exactly which channels/labels/folders to include. Default backfill 14 days.
-5. **First initiative.** Either "Create one now" (title + optional category + MoSCoW) or, if a backfill ran, "Review proposed initiatives" (approve/reject list). Nothing becomes active without approval.
+5. **Review proposals.** Only if a backfill produced proposed initiatives: "Review proposed initiatives" (approve/reject list). With none, this step is skipped; the wizard never asks the user to author an initiative, because Fulcrum generates them on the user's behalf. Users can still add their own from the portfolio at any time. Nothing becomes active without approval.
 6. **Done.** Land on the portfolio. Freshness label explains what is happening ("Reading the last 14 days — you can keep working").
 
 ## AI selection and setup (P2 contract)
