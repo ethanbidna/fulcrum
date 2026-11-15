@@ -44,6 +44,7 @@ export class GmailSettings {
     this.selection = selection;
     if (this.client && this.helper) this.connection = this.createConnection(selection.account ?? undefined);
     if (selection.account === null) { await this.discardInterruptedSignIn(); return; }
+    if (!selection.label) this.labels = [WHOLE_MAILBOX_CHOICE];
     await this.activate();
   }
 

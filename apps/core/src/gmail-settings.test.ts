@@ -121,3 +121,18 @@ test('the whole mailbox can be chosen instead of one label', async () => {
     assert.deepEqual((await adapter?.scopes())?.map(scope => scope.label), [WHOLE.label]);
   } finally { await settings.close(); await rm(directory, { recursive: true, force: true }); }
 });
+
+test('after a restart before choosing, the whole mailbox is still offered', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'fulcrum-gmail-restart-'));
+  const preferences = new LocalPreferences(directory);
+  const account = 'fixture@example.invalid';
+  const client = { client_id: 'fixture-client', client_secret: 'fixture-secret' };
+  const create = () => new GmailConnection({ client, account, credentials: { get: async () => { throw new Error('Unexpected refresh'); }, set: async () => {}, remove: async () => {} } });
+  const open = () => new GmailSettings(preferences, client, 'fixture', 'fixture-workspace', () => true, async () => {}, create);
+  try {
+    await preferences.write('gmail', { account, clientId: client.client_id, label: null });
+    const settings = open();
+    await settings.restore();
+    assert.deepEqual(settings.status(), { phase: 'select', account, labels: [WHOLE] });
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
