@@ -23,6 +23,7 @@ import type { HistoryEntry, HistoryFilter } from './history-projections.js';
 import { projectPortfolio, projectRail, projectBoard } from './projections.js';
 import type { PortfolioCard, PortfolioRail, PortfolioBoard, PortfolioFilter } from './projections.js';
 
+export interface FreshnessStatus { state: 'viewer'|'disabled'|'paused'|'reconnect'|'failed'|'catching-up'|'awaiting-extraction'|'current'|'unknown'; label: string; checkedAt: string|null; pending: number; failed: number }
 export interface QueryArgs {
   'priorities.list': Record<string, never>;
   'objectives.list': Record<string, never>;
@@ -32,6 +33,7 @@ export interface QueryArgs {
   'questions.list': { initiativeId?: string; state?: Question['state'] };
   'search': { text: string; scope?: SearchScope };
   'status.index': Record<string, never>;
+  'status.freshness': Record<string, never>;
   'portfolio.list': PortfolioFilter;
   'portfolio.board': Record<string, never>;
   'portfolio.rail': { since?: string };
@@ -53,6 +55,7 @@ export interface QueryResults {
   'questions.list': Question[];
   'search': SearchHit[];
   'status.index': IndexProgress;
+  'status.freshness': FreshnessStatus;
   'portfolio.list': PortfolioCard[];
   'portfolio.board': PortfolioBoard;
   'portfolio.rail': PortfolioRail;
@@ -71,7 +74,7 @@ const QUERY_FIELDS: Record<QueryName, string[]> = {
   'initiative.timeline': ['initiativeId'],
   'evidence.list': ['initiativeId', 'target'],
   'questions.list': ['initiativeId', 'state'], 'questions.review': ['initiativeId', 'target', 'state'],
-  'search': ['text', 'scope'], 'status.index': [],
+  'search': ['text', 'scope'], 'status.index': [], 'status.freshness': [],
   'initiative.list': ['initiativeId'], 'initiative.history': ['initiativeId'],
   'portfolio.board': [], 'portfolio.list': ['moscow','categoryId','lifecycle'], 'portfolio.rail': ['since'], 'graph.get': ['initiativeId'], 'graph.focus': ['nodeId'],
   'initiative.get': ['id'], 'node.get': ['id'], 'history.list': ['target', 'actor', 'since'], 'inspector.get': ['target'],
