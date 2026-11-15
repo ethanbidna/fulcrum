@@ -9,3 +9,10 @@ test('managed model pull requires complete progress and the pinned installed man
  const choice=MODEL_CATALOG[0];let digest=choice.digest;const request=vi.fn(async url=>String(url).endsWith('/api/tags')?new Response(JSON.stringify({models:[{name:choice.model,digest}]})):new Response('{"status":"downloading","completed":1,"total":2}\n{"status":"success"}\n'));
  const managed=new ManagedOllama('/synthetic-unused',{request,run:vi.fn()});managed.start=async()=> 'http://127.0.0.1:12345';const progress=vi.fn();await managed.pull(choice,new AbortController().signal,progress);expect(progress).toHaveBeenCalled();digest='sha256:incorrect';await expect(managed.pull(choice,new AbortController().signal,progress)).rejects.toThrow('digest differs');
 });
+test('managed model pull accepts the bare hex digest Ollama reports and still rejects a different one',async()=>{
+ const choice=MODEL_CATALOG[0];const bare=choice.digest.replace(/^sha256:/,'');let digest=bare;
+ const request=vi.fn(async url=>String(url).endsWith('/api/tags')?new Response(JSON.stringify({models:[{name:choice.model,digest}]})):new Response('{"status":"success"}\n'));
+ const managed=new ManagedOllama('/synthetic-unused',{request,run:vi.fn()});managed.start=async()=> 'http://127.0.0.1:12345';
+ await managed.pull(choice,new AbortController().signal,vi.fn());
+ digest='0'.repeat(64);await expect(managed.pull(choice,new AbortController().signal,vi.fn())).rejects.toThrow('digest differs');
+});
