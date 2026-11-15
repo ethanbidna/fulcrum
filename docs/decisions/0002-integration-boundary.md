@@ -45,3 +45,7 @@ This ADR remains Superseded by ADR-0011. Its native-adapter recommendation
 and execution alternatives below are historical, not permission to bypass
 Activepieces. S4 live results and execution-mode selection remain pending.
 See [ADR-0026](0026-engineering-checkpoint.md) and [the evidence matrix](../CHECKPOINT.md).
+
+## Update (2026-11-15)
+
+S4's addendum ([S4.md](../spikes/S4.md#addendum-2026-11-15-can-activepieces-be-the-engine-and-how)) confirms option (a), pieces as libraries, is the viable route. This ADR stays superseded; see ADR-0011 and ADR-0027.

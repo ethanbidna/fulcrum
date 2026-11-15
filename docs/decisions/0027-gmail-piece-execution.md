@@ -46,3 +46,12 @@ This decision selects the implementation route. Step 6 still requires
 owner review of its evidence and cases that did not run. Release packaging,
 distribution approval, and live behavior of the production connector remain
 open.
+
+## OAuth distribution
+
+No Google verification or CASA. The OAuth client is either Fulcrum-owned
+(unverified, 100-user lifetime cap, warning screen) or user-created in the
+user's own Google Cloud project. I2 designs the user-created flow as the
+default path and treats the Fulcrum-owned client as a convenience for the
+first 100 users. Details: [S4 addendum](../spikes/S4.md#getting-past-the-100-user-cap-without-paying).
+

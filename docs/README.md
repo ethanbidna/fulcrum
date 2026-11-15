@@ -12,7 +12,7 @@ Start with the [product spec](PRODUCT_SPEC.md) (authoritative), then [architectu
 | ADR | Decision | Status |
 |---|---|---|
 | [0001](decisions/0001-desktop-shell.md) | Tauri shell; UI developed browser-first | Accepted; packaging provisional |
-| [0002](decisions/0002-integration-boundary.md) | SourceAdapter interface; Activepieces is a candidate | Provisional |
+| [0002](decisions/0002-integration-boundary.md) | SourceAdapter interface; Activepieces is a candidate | Superseded by 0011 |
 | [0003](decisions/0003-local-model-runtime.md) | Meta Llama via Ollama, hardware-tiered | Provisional |
 | [0004](decisions/0004-context-layer.md) | Canonical state authoritative; Graphiti optional index | Accepted; Graphiti provisional |
 | [0005](decisions/0005-portable-workspace-event-log.md) | Per-device event logs + checkpoints; SQLite local cache | Accepted; sync provisional |
@@ -21,3 +21,5 @@ Start with the [product spec](PRODUCT_SPEC.md) (authoritative), then [architectu
 | [0008](decisions/0008-schema-source-of-truth.md) | JSON Schema is the contract | Accepted |
 | [0009](decisions/0009-core-process-and-language.md) | Single TypeScript core process per Mac | Accepted; packaging provisional |
 | [0010](decisions/0010-license.md) | MIT | Accepted |
+| [0011](decisions/0011-activepieces-integration-boundary.md) | Source integrations go through Activepieces | Accepted |
+| [0027](decisions/0027-gmail-piece-execution.md) | Gmail runs as a read-only piece in the local core | Accepted for I2 on merge |
