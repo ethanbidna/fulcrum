@@ -11,6 +11,8 @@ import { useInitiative } from './use-initiative.js';
 import { useCore } from './use-core.js';
 import type { CoreState } from './use-core.js';
 import { CommandBar } from './command-bar.js';
+import { ConnectSource } from './connect-source.js';
+const CONNECT_HASH = '#connect';
 import { ListView, HistoryView } from './detail-views.js';
 import { QuestionsCenter } from './questions.js';
 import { Portfolio } from './portfolio.js';
@@ -30,6 +32,7 @@ function Connection({ state, retry }: { state: CoreState; retry: () => void }) {
 export function App({ platform, onSetup }: { platform: Platform; onSetup?:()=>void }) {
   const [destination, setDestination] = useState(() => destinationFromHash(window.location.hash));
   const [initiativeId, setInitiativeId] = useState(() => initiativeFromHash(window.location.hash));
+  const [connecting, setConnecting] = useState(() => window.location.hash === CONNECT_HASH);
   const [focusedNodeId, setFocusedNodeId] = useState(() => focusedNodeFromHash(window.location.hash));
   const [detailView,setDetailView] = useState(()=>initiativeViewFromHash(window.location.hash));
   const [questionInitiativeId, setQuestionInitiativeId] = useState(() => questionInitiativeFromHash(window.location.hash));
@@ -39,7 +42,7 @@ export function App({ platform, onSetup }: { platform: Platform; onSetup?:()=>vo
   const heading = useRef<HTMLHeadingElement>(null);
   const { state, retry, execute, query, administer, undo, canUndo, planCommand, cancelCommandPlan, applyCommandPlan } = useCore(platform);
   useEffect(() => {
-    const navigate = () => { setDestination(destinationFromHash(window.location.hash)); setInitiativeId(initiativeFromHash(window.location.hash)); setFocusedNodeId(focusedNodeFromHash(window.location.hash)); setDetailView(initiativeViewFromHash(window.location.hash)); setQuestionInitiativeId(questionInitiativeFromHash(window.location.hash)); setInitialInspection(inspectionFromHash(window.location.hash)); };
+    const navigate = () => { setConnecting(window.location.hash === CONNECT_HASH); setDestination(destinationFromHash(window.location.hash)); setInitiativeId(initiativeFromHash(window.location.hash)); setFocusedNodeId(focusedNodeFromHash(window.location.hash)); setDetailView(initiativeViewFromHash(window.location.hash)); setQuestionInitiativeId(questionInitiativeFromHash(window.location.hash)); setInitialInspection(inspectionFromHash(window.location.hash)); };
     window.addEventListener('hashchange', navigate);
     return () => window.removeEventListener('hashchange', navigate);
   }, []);
@@ -51,6 +54,7 @@ export function App({ platform, onSetup }: { platform: Platform; onSetup?:()=>vo
   const requestTarget: InspectionTarget | undefined = commandTarget
     ?? (focusedNodeId ? {kind:'node',id:focusedNodeId}
       : activeInitiativeId ? {kind:'initiative',id:activeInitiativeId} : undefined);
+  if (connecting && state.phase === 'connected') return <main className="connect-page"><a className="back-link" href="#initiatives">← Back</a><ConnectSource administer={administer} /></main>;
   return <div className="app-shell">
     <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); heading.current?.focus(); }}>Skip to content</a>
     <aside className="sidebar" aria-label="Workspace">

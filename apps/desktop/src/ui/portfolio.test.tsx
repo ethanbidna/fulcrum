@@ -84,7 +84,7 @@ test('recent changes name the question or initiative context', () => {
 test('with no sources the empty portfolio is a prompt to connect one, without manual controls', async () => {
   render(<Portfolio board={empty()} execute={vi.fn()} query={quiet()} />);
   expect(await screen.findByRole('heading', { name: 'Connect a source to get started' })).toBeTruthy();
-  expect(screen.getByRole('link', { name: 'Connect a source' }).getAttribute('href')).toBe('#settings');
+  expect(screen.getByRole('link', { name: 'Connect a source' }).getAttribute('href')).toBe('#connect');
   expect(screen.queryByLabelText('Group by')).toBeNull();
   expect(screen.queryByRole('button', { name: 'New initiative' })).toBeNull();
   expect(screen.queryByRole('complementary', { name: 'Portfolio context' })).toBeNull();

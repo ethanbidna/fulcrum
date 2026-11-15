@@ -19,7 +19,7 @@ function summarize(freshness: FreshnessStatus | undefined, waiting: boolean): Su
   return { title: 'Fulcrum needs attention', detail: freshness.label, working: false, needsSource: false };
 }
 
-function Mark({ working }: { working: boolean }) {
+export function Mark({ working }: { working: boolean }) {
   return <svg className="activity-mark" data-working={working} viewBox="0 0 72 72" width="72" height="72" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M36 42 26 62h20z" />
     <g className="activity-beam"><path d="M10 42h52" /><circle cx="10" cy="42" r="5" fill="currentColor" /><circle cx="62" cy="42" r="5" fill="currentColor" /></g>
@@ -54,13 +54,13 @@ export function FulcrumActivity({ board, query, execute, hero, onAddInitiative }
     {proposals.length > 0 && <><h2>Proposed by Fulcrum</h2><p>Each stays inactive until you approve it.</p><ProposalList proposals={proposals} disabled={busy} decide={command => { void decide(command); }} /></>}
   </>;
   if (!hero) return <section className="fulcrum-activity" aria-label="What Fulcrum is doing">
-    {freshness && <p role="status" className="activity-strip">{summary.needsSource ? <>No sources are connected yet. <a href="#settings">Connect a source</a></> : summary.detail || summary.title}</p>}
+    {freshness && <p role="status" className="activity-strip">{summary.needsSource ? <>No sources are connected yet. <a href="#connect">Connect a source</a></> : summary.detail || summary.title}</p>}
     {waiting}
   </section>;
   return <section className="fulcrum-activity activity-hero" aria-label="What Fulcrum is doing">
     <Mark working={summary.working} />
     <div role="status" className="activity-summary"><h2>{summary.title}</h2>{summary.detail && <p>{summary.detail}</p>}</div>
-    {summary.needsSource && <><a className="primary-button" href="#settings">Connect a source</a><button className="link-button" onClick={onAddInitiative}>or add an initiative yourself</button></>}
+    {summary.needsSource && <><a className="primary-button" href="#connect">Connect a source</a><button className="link-button" onClick={onAddInitiative}>or add an initiative yourself</button></>}
     {waiting}
   </section>;
 }

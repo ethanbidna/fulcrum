@@ -415,3 +415,19 @@ select { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) { .activity-mark[data-working="true"] .activity-beam { animation: none; } }
 .activity-hero .proposal-list { text-align: left; }
 .activity-summary { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+
+.connect-page { max-width: 34rem; margin: 0 auto; padding: var(--space-8) var(--space-4); }
+.back-link { display: inline-block; margin-bottom: var(--space-8); color: var(--text-secondary); text-decoration: none; }
+.connect-source { display: flex; flex-direction: column; gap: var(--space-4); }
+.connect-source h1 { margin: 0; }
+.connect-source h2 { margin: 0; }
+.connect-source p { margin: 0; color: var(--text-secondary); }
+.connect-source form { display: flex; flex-direction: column; gap: var(--space-4); align-items: flex-start; }
+.connect-source .primary-button { display: inline-block; text-decoration: none; padding: var(--space-3) var(--space-6); }
+.source-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.source-choice, .source-soon { display: flex; flex-direction: column; gap: var(--space-1); width: 100%; text-align: left; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--surface); }
+.source-choice { cursor: pointer; font: inherit; color: inherit; }
+.source-choice:hover { background: var(--surface-hover); }
+.source-choice span, .source-soon span { color: var(--text-secondary); }
+.source-soon { border-style: dashed; background: transparent; }
+.source-soon strong { color: var(--text-secondary); }

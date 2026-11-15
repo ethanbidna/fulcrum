@@ -21,7 +21,7 @@ type Story = StoryObj<typeof meta>;
 
 export const NoSourcesConnected: Story = { play: async ({ canvas }) => {
   await canvas.findByRole('heading', { name: 'Connect a source to get started' });
-  await expect(canvas.getByRole('link', { name: 'Connect a source' })).toHaveAttribute('href', '#settings');
+  await expect(canvas.getByRole('link', { name: 'Connect a source' })).toHaveAttribute('href', '#connect');
   await expect(canvas.queryByRole('button', { name: 'New initiative' })).not.toBeInTheDocument();
 } };
 export const ReadingSources: Story = { args: { query: serve({ state: 'catching-up', label: 'Catching up — 12 items' }) }, play: async ({ canvas }) => { await canvas.findByRole('heading', { name: 'Reading your sources…' }); await canvas.findByText('Catching up — 12 items'); } };

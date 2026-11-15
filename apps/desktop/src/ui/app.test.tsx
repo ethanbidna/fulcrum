@@ -114,6 +114,16 @@ test('command text survives a lost core connection', async () => {
   expect((screen.getByRole('textbox',{name:'What would you like to change?'}) as HTMLInputElement).value).toBe('Keep this synthetic request');
 });
 
+test('Connect a source opens a focused wizard without the app chrome', async () => {
+  window.location.hash = '#connect';
+  const f = session();
+  const administer = vi.fn(async (name: string) => name === 'gmail.status' ? { phase: 'disconnected' } : { completed: true, deviceId: 'd', deviceLabel: 'Mac', ingestionDeviceId: 'd', people: [], userEntityId: 'u' });
+  Object.assign(f.transport, { administer });
+  render(<App platform={f.platform} />);
+  expect(await screen.findByRole('heading', { name: 'Connect a source' })).toBeTruthy();
+  expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull();
+  expect(screen.getByRole('link', { name: /Back/ }).getAttribute('href')).toBe('#initiatives');
+});
 test('the command bar appears only once there is work to change', async () => {
   const empty = session(); const first = render(<App platform={empty.platform} />);
   await screen.findByText('Connected to local core');
