@@ -42,6 +42,7 @@ export class Domain {
   private get state() { return this.replay.document.state as WorkspaceState; }
   async query<Q extends QueryName>(name: Q, args: QueryArgs[Q]): Promise<QueryResults[Q]> {
     validateQuery(name, args);
+    if (name === 'status.freshness') throw new DomainFault('INDEX_UNAVAILABLE', 'Source status is served by the core process');
     if (name === 'search' || name === 'status.index') {
       const index = this.ports.readIndex;
       if (!index) throw new DomainFault('INDEX_UNAVAILABLE', 'Search index is unavailable');
