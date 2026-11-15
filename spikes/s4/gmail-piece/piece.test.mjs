@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { gmailReadOnly } from "./piece.ts";
+import { gmailReadOnly, WHOLE_MAILBOX } from "./piece.ts";
 
 const mailbox = "https://gmail.googleapis.com/gmail/v1/users/me/";
 const auth = { type: "OAUTH2", access_token: "synthetic" };
@@ -71,4 +71,33 @@ test("expired history requires recovery and invalid scope makes no request", asy
     message: "gmail_label_required",
   });
   assert.equal(fetch.mock.callCount(), 1);
+});
+
+test("whole-mailbox mode lists without a label filter", async (context) => {
+  const whole = { labelId: WHOLE_MAILBOX, pageSize: 1 };
+  intercept(context, [
+    [{ route: "messages", query: { maxResults: "1", q: "after:100 before:200" } }, { messages: [{ id: "m1" }] }],
+    [{ route: "history", query: { maxResults: "1", startHistoryId: "5" } }, { history: [], historyId: "6" }],
+  ]);
+
+  assert.deepEqual(await run("list_backfill_page", { ...whole, after: 100, before: 200 }), {
+    messages: [{ id: "m1" }], nextPageToken: null,
+  });
+  assert.deepEqual(await run("list_history_page", { ...whole, startHistoryId: "5" }), {
+    changes: [], nextPageToken: null, checkpoint: "6",
+  });
+});
+
+test("whole-mailbox mode reads any message except Spam and Trash", async (context) => {
+  const message = { id: "m1", labelIds: ["INBOX"], internalDate: "1" };
+  intercept(context, [
+    [{ route: "messages/m1", query: { format: "minimal" } }, message],
+    [{ route: "messages/m1", query: { format: "full" } }, message],
+    [{ route: "messages/m2", query: { format: "minimal" } }, { id: "m2", labelIds: ["SPAM"] }],
+    [{ route: "messages/m3", query: { format: "minimal" } }, { id: "m3", labelIds: ["TRASH", "INBOX"] }],
+  ]);
+
+  assert.deepEqual(await run("get_labeled_message", { labelId: WHOLE_MAILBOX, messageId: "m1" }), message);
+  assert.equal(await run("get_labeled_message", { labelId: WHOLE_MAILBOX, messageId: "m2" }), null);
+  assert.equal(await run("get_labeled_message", { labelId: WHOLE_MAILBOX, messageId: "m3" }), null);
 });

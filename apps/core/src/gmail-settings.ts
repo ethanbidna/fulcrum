@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { GmailSettingsStatus } from '@fulcrum/domain';
+import { WHOLE_MAILBOX } from '@fulcrum/sources';
 import type { GmailClient, SourceScope } from '@fulcrum/sources';
 import { LocalPreferences } from '@fulcrum/store';
 import { NativeProviderSecrets } from './provider-secrets.js';
@@ -9,6 +10,7 @@ import type { WorkspaceIngestion } from './ingestion.js';
 
 // A null account means sign-in started but Google has not yet reported who signed in.
 type Selection = { account: string | null; clientId: string; label: SourceScope | null };
+const WHOLE_MAILBOX_CHOICE: SourceScope = { id: WHOLE_MAILBOX, label: 'Whole mailbox (all mail except Spam and Trash)' };
 const validAccount = (value: unknown): value is string =>
   typeof value === 'string' && value.length <= 254 && /^[^\s@]+@[^\s@]+$/.test(value);
 
@@ -99,7 +101,7 @@ export class GmailSettings {
       this.connection = connection;
       const signedIn = await connection.connect(job.signal);
       job.signal.throwIfAborted();
-      this.labels = signedIn.labels;
+      this.labels = [WHOLE_MAILBOX_CHOICE, ...signedIn.labels];
       await this.save({ account: signedIn.account, clientId: this.client!.client_id, label: null });
     } catch {
       try { await connection.disconnect(); await this.save(null); this.connection = undefined; }

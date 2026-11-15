@@ -67,6 +67,16 @@ function pageQuery(pageSize: number, pageToken?: string): URLSearchParams {
   return query;
 }
 
+// Scope id meaning every message that is not in Spam or Trash.
+export const WHOLE_MAILBOX = "fulcrum:whole-mailbox";
+const EXCLUDED_LABELS = ["SPAM", "TRASH"];
+
+function inScope(selected: string, labelIds: unknown): boolean {
+  if (!Array.isArray(labelIds)) return false;
+  if (selected === WHOLE_MAILBOX) return !EXCLUDED_LABELS.some(excluded => labelIds.includes(excluded));
+  return labelIds.includes(selected);
+}
+
 function labelId(value: string): string {
   if (!value.trim()) throw new Error("gmail_label_required");
   return value;
@@ -133,7 +143,7 @@ export const listBackfillPage = createAction({
     }
 
     const query = pageQuery(pageSize, pageToken);
-    query.set("labelIds", labelId(propsValue.labelId));
+    if (labelId(propsValue.labelId) !== WHOLE_MAILBOX) query.set("labelIds", propsValue.labelId);
     query.set("q", `after:${after} before:${before}`);
 
     const page = await read<{ messages?: MessageRef[]; nextPageToken?: string }>(
@@ -155,7 +165,7 @@ export const listHistoryPage = createAction({
   async run(context): Promise<HistoryPage> {
     const { auth, propsValue } = context;
     const query = pageQuery(propsValue.pageSize, propsValue.pageToken);
-    query.set("labelId", labelId(propsValue.labelId));
+    if (labelId(propsValue.labelId) !== WHOLE_MAILBOX) query.set("labelId", propsValue.labelId);
     query.set("startHistoryId", historyId(propsValue.startHistoryId));
 
     const page = await read<{ history?: HistoryChange[]; nextPageToken?: string; historyId?: string }>(
@@ -189,12 +199,12 @@ export const getLabeledMessage = createAction({
       const metadata = await read<Pick<GmailMessage, "id" | "labelIds">>(
         route, token, new URLSearchParams({ format: "minimal" }), signal,
       );
-      if (metadata.id !== messageId || (!Array.isArray(metadata.labelIds) || !metadata.labelIds.includes(selectedLabel))) return null;
+      if (metadata.id !== messageId || !inScope(selectedLabel, metadata.labelIds)) return null;
 
       const message = await read<GmailMessage>(
         route, token, new URLSearchParams({ format: "full" }), signal,
       );
-      return message.id === messageId && Array.isArray(message.labelIds) && message.labelIds.includes(selectedLabel) ? message : null;
+      return message.id === messageId && inScope(selectedLabel, message.labelIds) ? message : null;
     } catch (error) {
       if (error instanceof Error && error.message === "gmail_http_404") return null;
       throw error;

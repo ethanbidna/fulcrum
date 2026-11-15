@@ -55,16 +55,19 @@ export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
       <p>It will propose initiatives and ask you only what it needs. Nothing becomes active until you approve it.</p>
       <a className="primary-button" href="#initiatives">Go to Initiatives</a>
     </>;
-    if (gmail.phase === 'select') return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.select', { id: label })); }}>
-      <h2>Which label should Fulcrum read?</h2>
-      <p>Signed in as {gmail.account}. Fulcrum reads only the one label you choose.</p>
+    if (gmail.phase === 'select') {
+      const chosenLabel = label || gmail.labels[0]?.id || '';
+      return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.select', { id: chosenLabel })); }}>
+      <h2>What should Fulcrum read?</h2>
+      <p>Signed in as {gmail.account}. Read-only: Fulcrum never sends, changes or deletes mail. Reading starts with the last 14 days.</p>
       {gmail.labels.length ? <fieldset disabled={busy}><legend className="visually-hidden">Gmail label</legend>
-        {gmail.labels.map(option => <label key={option.id} className="check-label"><input type="radio" name="label" value={option.id} checked={label === option.id} onChange={() => setLabel(option.id)} />{option.label}</label>)}
+        {gmail.labels.map(option => <label key={option.id} className="check-label"><input type="radio" name="label" value={option.id} checked={chosenLabel === option.id} onChange={() => setLabel(option.id)} />{option.label}</label>)}
       </fieldset> : <p>No labels are available. Create a label in Gmail, then start over.</p>}
       {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy || !label}>Start reading</button>
+      <button className="primary-button" disabled={busy || !chosenLabel}>Start reading</button>
       <button type="button" className="link-button" disabled={busy} onClick={() => { setLabel(''); void perform(() => administer('gmail.disconnect', {})); }}>Start over</button>
     </form>;
+    }
     if (gmail.phase === 'connecting') return <>
       <Mark working />
       <h2>Finish signing in</h2>

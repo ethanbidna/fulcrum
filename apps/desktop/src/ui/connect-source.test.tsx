@@ -67,12 +67,21 @@ test('while Google sign-in is open it can be cancelled', async () => {
   await waitFor(() => expect(calls(f, 'gmail.disconnect').length).toBe(1));
 });
 
-test('after sign-in the user picks exactly one label and then reading starts', async () => {
-  const f = fake({ gmail: { phase: 'select', account: ACCOUNT, labels: [LABEL, { id: 'Label_other', label: 'Other' }] } }); render(<ConnectSource {...f.props} />);
+const WHOLE = { id: 'fulcrum:whole-mailbox', label: 'Whole mailbox (all mail except Spam and Trash)' };
+
+test('after sign-in the whole mailbox is preselected and reading starts', async () => {
+  const f = fake({ gmail: { phase: 'select', account: ACCOUNT, labels: [WHOLE, LABEL] } }); render(<ConnectSource {...f.props} />);
   const start = await screen.findByRole('button', { name: 'Start reading' });
-  expect((start as HTMLButtonElement).disabled).toBe(true);
-  fireEvent.click(screen.getByRole('radio', { name: 'Synthetic mail' }));
+  expect((screen.getByRole('radio', { name: /Whole mailbox/ }) as HTMLInputElement).checked).toBe(true);
+  expect((start as HTMLButtonElement).disabled).toBe(false);
   fireEvent.click(start);
+  await waitFor(() => expect(calls(f, 'gmail.select')[0]?.[1]).toEqual({ id: WHOLE.id }));
+});
+
+test('the user can still pick one label instead', async () => {
+  const f = fake({ gmail: { phase: 'select', account: ACCOUNT, labels: [WHOLE, LABEL] } }); render(<ConnectSource {...f.props} />);
+  fireEvent.click(await screen.findByRole('radio', { name: 'Synthetic mail' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start reading' }));
   await waitFor(() => expect(calls(f, 'gmail.select')[0]?.[1]).toEqual({ id: LABEL.id }));
   expect(await screen.findByText(/Fulcrum is reading Synthetic mail/)).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Go to Initiatives' }).getAttribute('href')).toBe('#initiatives');

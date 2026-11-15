@@ -28,11 +28,11 @@ export const UseThisMac: Story = { args: { administer: serve({ phase: 'disconnec
   await expect(await canvas.findByRole('button', { name: 'Sign in with Google' })).toBeEnabled();
 } };
 export const WaitingForBrowser: Story = { args: { administer: serve({ phase: 'connecting' }) }, play: async ({ canvas }) => { await canvas.findByRole('button', { name: 'Cancel sign-in' }); } };
-export const ChooseLabel: Story = { args: { administer: serve({ phase: 'select', account: ACCOUNT, labels: [LABEL, { id: 'Label_other', label: 'Other label' }] }) }, play: async ({ canvas, userEvent }) => {
-  const start = await canvas.findByRole('button', { name: 'Start reading' });
-  await expect(start).toBeDisabled();
+export const ChooseWhatToRead: Story = { args: { administer: serve({ phase: 'select', account: ACCOUNT, labels: [{ id: 'fulcrum:whole-mailbox', label: 'Whole mailbox (all mail except Spam and Trash)' }, LABEL, { id: 'Label_other', label: 'Other label' }] }) }, play: async ({ canvas, userEvent }) => {
+  await expect(await canvas.findByRole('radio', { name: /Whole mailbox/ })).toBeChecked();
+  await expect(canvas.getByRole('button', { name: 'Start reading' })).toBeEnabled();
   await userEvent.click(canvas.getByRole('radio', { name: 'Synthetic mail' }));
-  await expect(start).toBeEnabled();
+  await expect(canvas.getByRole('radio', { name: 'Synthetic mail' })).toBeChecked();
 } };
 export const Reading: Story = { args: { administer: serve({ phase: 'active', account: ACCOUNT, label: LABEL }) }, play: async ({ canvas }) => { await canvas.findByText(/Fulcrum is reading Synthetic mail/); } };
 export const SignInFailed: Story = { args: { administer: serve({ phase: 'failed' }) }, play: async ({ canvas }) => {

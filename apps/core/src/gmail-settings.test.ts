@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { WHOLE_MAILBOX } from '@fulcrum/sources';
 import { LocalPreferences } from '@fulcrum/store';
 import { test, vi } from 'vitest';
 import { GmailConnection } from './gmail-connection.js';
 import { GmailSettings } from './gmail-settings.js';
 import type { WorkspaceIngestion } from './ingestion.js';
+
+const WHOLE = { id: WHOLE_MAILBOX, label: 'Whole mailbox (all mail except Spam and Trash)' };
 
 test('Gmail activates only the explicitly chosen label and restores it on restart', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'fulcrum-gmail-settings-'));
@@ -69,7 +72,7 @@ test('connecting needs no address and records the account Google reports', async
   try {
     settings.start(undefined, true);
     await vi.waitFor(() => assert.equal(settings.status().phase, 'select'));
-    assert.deepEqual(settings.status(), { phase: 'select', account: reported, labels: [{ id: 'L', label: 'Synthetic mail' }] });
+    assert.deepEqual(settings.status(), { phase: 'select', account: reported, labels: [WHOLE, { id: 'L', label: 'Synthetic mail' }] });
     assert.throws(() => new GmailSettings(preferences, client, 'fixture', 'w', () => true, async () => {}, create).start(undefined, false), /GMAIL_CONNECTION_NOT_ALLOWED/);
     assert.throws(() => new GmailSettings(preferences, client, 'fixture', 'w', () => true, async () => {}, create).start('not an address', true), /GMAIL_CONNECTION_NOT_ALLOWED/);
   } finally {
@@ -95,4 +98,26 @@ test('a sign-in interrupted before Google answered is cleaned up on restart', as
     await settings.close();
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('the whole mailbox can be chosen instead of one label', async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'fulcrum-gmail-whole-'));
+  const preferences = new LocalPreferences(directory);
+  const account = 'fixture@example.invalid';
+  const client = { client_id: 'fixture-client', client_secret: 'fixture-secret' };
+  const apply = vi.fn<(configuration?: WorkspaceIngestion) => Promise<void>>(async () => {});
+  const create = () => {
+    const connection = new GmailConnection({ client, account, credentials: { get: async () => { throw new Error('Unexpected refresh'); }, set: async () => {}, remove: async () => {} } });
+    vi.spyOn(connection, 'connect').mockResolvedValue({ account, labels: [{ id: 'L', label: 'Synthetic mail' }] });
+    return connection;
+  };
+  const settings = new GmailSettings(preferences, client, 'fixture', 'fixture-workspace', () => true, apply, create);
+  try {
+    settings.start(undefined, true);
+    await vi.waitFor(() => assert.equal(settings.status().phase, 'select'));
+    await settings.select(WHOLE_MAILBOX);
+    assert.deepEqual(settings.status(), { phase: 'active', account, label: WHOLE });
+    const [adapter] = apply.mock.calls[0]?.[0]?.adapters ?? [];
+    assert.deepEqual((await adapter?.scopes())?.map(scope => scope.label), [WHOLE.label]);
+  } finally { await settings.close(); await rm(directory, { recursive: true, force: true }); }
 });
