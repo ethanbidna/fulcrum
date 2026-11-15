@@ -47,7 +47,9 @@ export function App({ platform, onSetup }: { platform: Platform; onSetup?:()=>vo
     return () => window.removeEventListener('hashchange', navigate);
   }, []);
   const { initiative, loading: initiativeLoading } = useInitiative(initiativeId, state.phase === 'connected' ? state.board : undefined, query);
-  useEffect(() => { document.title = `${initiative?.title ?? destinations.find(item => item.id === destination)!.label} · Fulcrum`; heading.current?.focus(); }, [destination, initiative?.title, questionInitiativeId, initialInspection?.id]);
+  // Focusing the heading is for navigation; on first load it only draws an outline around the title.
+  const settledOnce = useRef(false);
+  useEffect(() => { document.title = `${initiative?.title ?? destinations.find(item => item.id === destination)!.label} · Fulcrum`; if (settledOnce.current) heading.current?.focus(); settledOnce.current = true; }, [destination, initiative?.title, questionInitiativeId, initialInspection?.id]);
   const timeline = useTimeline(initiativeId, state.phase === 'connected' ? state.board : undefined, query);
   const page = destinations.find(item => item.id === destination)!;
   const activeInitiativeId = initiativeId ?? questionInitiativeId;

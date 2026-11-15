@@ -26,6 +26,10 @@ test('four destinations, live quiet question count and canonical reads only', as
   expect(f.transport.query).toHaveBeenCalledWith('portfolio.board', {});
   expect(f.transport.execute).not.toHaveBeenCalled();
 });
+test('the heading is not focused on first load, so no outline is drawn around it', async () => {
+  const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
+  expect(document.activeElement).not.toBe(screen.getByRole('heading', { level: 1 }));
+});
 test('navigation follows history, marks current location and focuses the heading', async () => {
   const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
   act(() => { window.location.hash = '#priorities'; window.dispatchEvent(new HashChangeEvent('hashchange')); });
