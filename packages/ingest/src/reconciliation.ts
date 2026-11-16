@@ -11,9 +11,11 @@ const STATES: Record<string, readonly string[]> = { task: ['open', 'done', 'canc
 const MOSCOW: Record<string, string> = { must_do: 'must_do', should_do: 'should_do', could_do: 'could_do', wont_do: 'wont_do', 'must do': 'must_do', 'should do': 'should_do', 'could do': 'could_do', "won't do": 'wont_do' };
 export function reconcile(input: ReconciliationInput): ReconciliationPlan {
   const builder = new PlanBuilder(input);
-  if (!builder.source || !input.runId || !Array.isArray(input.candidates) || input.candidates.length > MAX_CANDIDATES || !builder.snapshot.state.initiatives.some(initiative => initiative.id === input.initiativeId)) return builder.plan;
+  if (!builder.source || !input.runId || !Array.isArray(input.candidates) || input.candidates.length > MAX_CANDIDATES) return builder.plan;
+  // Without a matching initiative nothing can attach, but a new one may still be proposed.
+  const homeless = !builder.snapshot.state.initiatives.some(initiative => initiative.id === input.initiativeId);
   for (const candidate of input.candidates) {
-    if (!validSpan(candidate, input.sourceText)) continue;
+    if (!validSpan(candidate, input.sourceText) || (homeless && candidate.kind !== 'new_initiative')) continue;
     planCandidate(builder, candidate);
   }
   return structuredClone(builder.plan);

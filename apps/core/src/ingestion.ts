@@ -8,6 +8,8 @@ export interface WorkspaceIngestion {
   adapters: SourceAdapter[];
   scopes: Record<string, string[]>;
   process?: IngestionOptions['process'];
+  /** Addresses that identify the user as an author of source items. */
+  selfAddresses?: string[];
 }
 export async function openIngestion(options: {
   configuration: WorkspaceIngestion; localDirectory: string; workspaceDirectory: string; deviceId: string; userEntityId: string;

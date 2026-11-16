@@ -3,12 +3,14 @@ import { GmailSettings } from './gmail-settings.js';
 import type { GmailClient } from '@fulcrum/sources';
 import { AiSetup } from './ai-setup.js';
 import { openAdministration } from './administration.js';
-import { BackgroundPolicy } from '@fulcrum/ingest';
-import type { BackgroundSettings } from '@fulcrum/ingest';
+import { BackgroundPolicy, proofFor } from '@fulcrum/ingest';
+import type { BackgroundSettings, ReconciliationPlan } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
+import { createSourceProcessor } from './source-processor.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
 
+import { StructuredModelRuntime } from '@fulcrum/llm';
 import type { JsonModelRuntime } from '@fulcrum/llm';
 import { LocalPreferences, LocalMcpActivity } from '@fulcrum/store';
 import { createMcpAccess, validateMcpAccess, MCP_DEFAULTS } from './mcp-access.js';
@@ -58,6 +60,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   let writable = !opened.readOnly;
   let knownEventIds = new Set<string>();
   let tail: Promise<unknown> = Promise.resolve();
+  let reconciliationPlan: ReconciliationPlan | undefined;
   const enqueue = <T>(operation: () => Promise<T>): Promise<T> => {
     if (closing) return Promise.reject(new Error('CORE_CLOSING'));
     const result = tail.then(operation); tail = result.catch(() => undefined); return result;
@@ -82,6 +85,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       const validators = await loadStoreValidators(options.schemaDirectory);
       domain = new Domain(emptyState(read.manifest.workspaceId), read.events, {
         newId: randomUUID, questionId, now: () => new Date().toISOString(), deviceId: opened.deviceId, userEntityId: options.userEntityId,
+        reconciliationProof: command => (reconciliationPlan && proofFor(reconciliationPlan, command)) ?? {},
         readIndex: {
           search: async (text, scope) => {
             if (!index) throw new Error('INDEX_UNAVAILABLE');
@@ -148,7 +152,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     fingerprint = JSON.stringify([...knownEventIds]);
   };
   let closePromise: Promise<void> | undefined;
-  const executeCurrent = async (command: unknown, actor: 'user' | 'mcp') => {
+  const executeCurrent = async (command: unknown, actor: 'user' | 'mcp' | 'ai' | 'connector') => {
       const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor });
       if (result.ok) {
         const changes = [result, ...await maintainQuestions()];
@@ -166,7 +170,27 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
   const workspaceId = domain!.getSnapshot().workspaceId;
   const gmailDirectory = path.join(options.localDirectory, `gmail-${workspaceId}`);
-  const configureIngestion = async (configuration: WorkspaceIngestion | undefined = options.ingestion) => {
+  const withProcessing = (configuration: WorkspaceIngestion): WorkspaceIngestion => {
+    if (configuration.process || !configuration.adapters.length) return configuration;
+    const process = createSourceProcessor({
+      snapshot: () => domain.getSnapshot(), runtime: new StructuredModelRuntime(aiSetup.runtime), userEntityId: options.userEntityId,
+      selfAddresses: () => configuration.selfAddresses ?? [], now: () => new Date().toISOString(),
+      submit: (commands, plan) => enqueue(async () => {
+        await requireAvailable();
+        reconciliationPlan = plan;
+        try {
+          for (const command of commands) {
+            const result = await executeCurrent(command, command.actor as 'ai' | 'connector') as CommandResult;
+            if (!result.ok) throw new Error(`SOURCE_COMMAND_REJECTED:${result.error.code}`);
+          }
+        } finally { reconciliationPlan = undefined; }
+      }),
+    });
+    return { ...configuration, process };
+  };
+  const configureIngestion = async (requested?: WorkspaceIngestion) => {
+    // A configuration the host supplies directly never starts inference; one from Gmail settings does.
+    let configuration = requested ? withProcessing(requested) : options.ingestion;
     const previous = ingestion;
     if (!configuration && previous) configuration = { adapters: [], scopes: {} };
     ingestion = undefined;

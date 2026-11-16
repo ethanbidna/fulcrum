@@ -225,3 +225,11 @@ test('source-supplied command and setting fields never become invocations', () =
   const plan = f.plan([{ kind: 'settings.setIngestionDevice', command: 'initiative.approve', args: { ingestionDeviceId: id('0d', 999) } }]);
   expect([...plan.commands, ...plan.questions, ...plan.suggestions]).toEqual([]);
 });
+
+test('a new initiative can be proposed before any initiative exists', async () => {
+  const f = setup();
+  const plan = f.plan([{ kind: 'new_initiative', title: 'First synthetic effort', rationale: 'r' }, { kind: 'user_commitment', text: 'Ignored without an initiative' }], { initiativeId: id('01', 999) });
+  expect(plan.commands.map(command => command.name)).toContain('initiative.propose');
+  expect(plan.commands.map(command => command.name)).not.toContain('node.create');
+  expect(plan.questions).toHaveLength(1);
+});

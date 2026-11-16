@@ -133,7 +133,7 @@ export class GmailSettings {
     const key = createHash('sha256').update(JSON.stringify([this.client.client_id, this.selection.account])).digest('hex');
     const adapter = this.connection.adapter(key, [this.selection.label]);
     const scopes = (await adapter.scopes()).map(scope => scope.id);
-    await this.apply({ adapters: [adapter], scopes: { [adapter.id]: scopes } });
+    await this.apply({ adapters: [adapter], scopes: { [adapter.id]: scopes }, selfAddresses: [this.selection.account] });
     this.active = true;
   }
 }
