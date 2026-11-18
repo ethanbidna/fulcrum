@@ -6,7 +6,7 @@ import { openAdministration } from './administration.js';
 import { BackgroundPolicy, proofFor } from '@fulcrum/ingest';
 import type { BackgroundSettings, ReconciliationPlan } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
-import { createSourceProcessor } from './source-processor.js';
+import { completedSources, createSourceProcessor } from './source-processor.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
 
@@ -168,6 +168,8 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   // Hosted models use no local memory; a placeholder keeps the memory check from blocking them.
   const HOSTED_MODEL_BYTES = 1;
   const followModel = (profile: Awaited<ReturnType<AiSetup['profile']>>) => {
+    // A caller-supplied processor owns its resource profile.
+    if (options.ingestion?.process) return;
     const modelBytes = profile.kind === 'local' ? profile.compatibility?.modelResidentBytes : profile.kind === 'hosted' ? HOSTED_MODEL_BYTES : undefined;
     // Without a measured size the previous or configured limit stays.
     if (modelBytes === undefined || modelBytes === null) return;
@@ -185,18 +187,20 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     const process = createSourceProcessor({
       snapshot: () => domain.getSnapshot(), runtime: new StructuredModelRuntime(aiSetup.runtime), userEntityId: options.userEntityId,
       selfAddresses: () => configuration.selfAddresses ?? [], now: () => new Date().toISOString(),
-      submit: (commands, plan) => enqueue(async () => {
+      submit: (commands, { signal, plan }) => enqueue(async () => {
         await requireAvailable();
+        signal.throwIfAborted();
         reconciliationPlan = plan;
         try {
           for (const command of commands) {
+            signal.throwIfAborted();
             const result = await executeCurrent(command, command.actor as 'ai' | 'connector') as CommandResult;
             if (!result.ok) throw new Error(`SOURCE_COMMAND_REJECTED:${result.error.code}`);
           }
         } finally { reconciliationPlan = undefined; }
       }),
     });
-    return { ...configuration, process };
+    return { ...configuration, process, recordedSources: () => completedSources(domain.getSnapshot(), domain.history()) };
   };
   const configureIngestion = async (requested?: WorkspaceIngestion) => {
     // A configuration the host supplies directly never starts inference; one from Gmail settings does.
