@@ -165,6 +165,14 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
   const aiProfile = options.encryption ? path.join(options.localDirectory, `ai-${opened.manifest.workspaceId}`) : options.localDirectory;
   const aiSetup = options.aiSetup ?? new AiSetup(aiProfile, options.credentialHelper);
+  // Hosted models use no local memory; a placeholder keeps the memory check from blocking them.
+  const HOSTED_MODEL_BYTES = 1;
+  const followModel = (profile: Awaited<ReturnType<AiSetup['profile']>>) => {
+    const modelBytes = profile.kind === 'local' ? profile.compatibility?.modelResidentBytes ?? null : profile.kind === 'hosted' ? HOSTED_MODEL_BYTES : null;
+    try { background.configure({ modelBytes }); } catch { /* an unusable profile leaves the previous limit */ }
+  };
+  aiSetup.onProfileChange = followModel;
+  void aiSetup.profile().then(followModel, () => undefined);
   const planner = new CommandPlanner(() => domain, options.commandRuntime ?? aiSetup.runtime, Date.now, options.commandRuntime?async snapshot=>snapshot:(snapshot,request)=>aiSetup.context(snapshot,request));
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;

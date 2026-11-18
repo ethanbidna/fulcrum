@@ -30,3 +30,11 @@ test('a Mac whose total memory cannot hold the model plus the system reserve is 
   expect((await ready(f.setup,id)).phase).toBe('failed');
   expect(f.ports.managed.pull).not.toHaveBeenCalled();
 },{hardware:async()=>tiny}));
+test('an activated or cleared profile is announced so background limits can follow it',async()=>fixture(async f=>{
+  const seen=[];f.setup.onProfileChange=profile=>seen.push(profile);
+  const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});
+  expect((await ready(f.setup,id)).phase).toBe('ready');
+  expect(seen.at(-1)).toMatchObject({kind:'local',compatibility:{modelResidentBytes:12345}});
+  await f.setup.none();
+  expect(seen.at(-1)).toEqual({kind:'none'});
+}));

@@ -11,6 +11,8 @@ const SYNTHETIC_TEST={system:'Return the requested JSON. This is a synthetic con
 type Snapshot=ReturnType<Domain['getSnapshot']>;
 interface SetupPorts{managed:ManagedOllama;secrets:ProviderSecrets;hardware:typeof detectModelHardware;hosted?: (key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>)=>JsonModelRuntime}
 export class AiSetup{
+ /** Called after a profile is saved, so limits that depend on the model can follow it. */
+ onProfileChange:((profile:AiProfile)=>void)|undefined;
  private readonly credentialsAvailable:boolean;private readonly preferences:LocalPreferences;private readonly ports:SetupPorts;private job:{id:string;state:AiJob;controller:AbortController}|undefined;private budgetTail:Promise<unknown>=Promise.resolve();private profileTail:Promise<unknown>=Promise.resolve();
  constructor(private readonly directory:string,helper?:string,ports?:SetupPorts){this.credentialsAvailable=ports!==undefined||process.platform==='darwin'&&!!helper;this.preferences=new LocalPreferences(directory);this.ports=ports??{managed:new ManagedOllama(path.join(directory,'managed-ai')),secrets:new NativeProviderSecrets(helper),hardware:detectModelHardware};}
  async profile():Promise<AiProfile>{
@@ -52,7 +54,7 @@ export class AiSetup{
   const profile:AiProfile={kind:choice.kind,choiceId:choice.id,revision:CATALOG_REVISION,compatibility,...(choice.kind==='local'?{digest:choice.digest!}:{initiativeIds:args.initiativeIds!,dailyTokenBudget:args.dailyTokenBudget!})};
   await this.saveProfile(profile,job);job.controller.signal.throwIfAborted();job.state={phase:'ready',profile};
  }
- private saveProfile(profile:AiProfile,job?:NonNullable<AiSetup['job']>):Promise<void>{const operation=this.profileTail.then(async()=>{job?.controller.signal.throwIfAborted();await this.preferences.write('ai',profile);});this.profileTail=operation.catch(()=>undefined);return operation;}
+ private saveProfile(profile:AiProfile,job?:NonNullable<AiSetup['job']>):Promise<void>{const operation=this.profileTail.then(async()=>{job?.controller.signal.throwIfAborted();await this.preferences.write('ai',profile);this.onProfileChange?.(profile);});this.profileTail=operation.catch(()=>undefined);return operation;}
  statusJob(id:string):AiJob{if(this.job?.id!==id)throw new Error('Setup is no longer available. Retry.');return structuredClone(this.job.state);}
  cancel(id:string){if(this.job?.id===id&&this.job.state.phase==='running'){this.job.controller.abort();this.ports.managed.stop();}}
  private hosted(key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>){return this.ports.hosted?.(key,reserve)??new AnthropicJsonRuntime('claude-haiku-4-5-20251001',key,reserve);}
