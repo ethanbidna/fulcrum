@@ -100,6 +100,12 @@ fn main() {
     if let Some(code) = workspace_keys::helper_mode() { std::process::exit(code); }
     if let Some(code) = setup::keychain_mode() { std::process::exit(code); }
     let app = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _arguments, _directory| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .setup(|app| {
             updates::install(app)?;
             let home = app.path().home_dir()?;
