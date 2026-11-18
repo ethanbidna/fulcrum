@@ -50,7 +50,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 
 ## Connector and release work
 
-- [ ] Step 25 — Review the native single-instance guard that prevents conflicting wake observations, then review the Gmail connector and connection wizard; finish packaged live acceptance and open-original validation. [PR #104](https://github.com/ethanbidna/fulcrum/pull/104) adds synthetic cancellation and SQLite restart coverage; see the [interrupted-processing contract](../docs/reviews/I2-prerequisites.md#interrupted-processing).
+- [ ] Step 25 — Review [the native single-instance guard (#105)](https://github.com/ethanbidna/fulcrum/pull/105) that prevents conflicting wake observations, then review the Gmail connector and connection wizard; finish packaged live acceptance and open-original validation. [PR #104](https://github.com/ethanbidna/fulcrum/pull/104) adds synthetic cancellation and SQLite restart coverage; see the [interrupted-processing contract](../docs/reviews/I2-prerequisites.md#interrupted-processing).
 - [ ] Step 37 (deferred for personal use) — Configure the GitHub release environment, Developer ID/notary credentials, updater keys and provisioning profile. Build and test the signed universal release and signed update.
 - [ ] Step 34 — Complete clean-user onboarding and managed download/cancel/retry checks with the signed build.
 - [ ] Step 33 — Test packaged Claude Desktop installation, sharing scopes, writes and headless startup.
