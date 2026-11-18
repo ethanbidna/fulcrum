@@ -168,8 +168,10 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   // Hosted models use no local memory; a placeholder keeps the memory check from blocking them.
   const HOSTED_MODEL_BYTES = 1;
   const followModel = (profile: Awaited<ReturnType<AiSetup['profile']>>) => {
-    const modelBytes = profile.kind === 'local' ? profile.compatibility?.modelResidentBytes ?? null : profile.kind === 'hosted' ? HOSTED_MODEL_BYTES : null;
-    try { background.configure({ modelBytes }); } catch { /* an unusable profile leaves the previous limit */ }
+    const modelBytes = profile.kind === 'local' ? profile.compatibility?.modelResidentBytes : profile.kind === 'hosted' ? HOSTED_MODEL_BYTES : undefined;
+    // Without a measured size the previous or configured limit stays.
+    if (modelBytes === undefined || modelBytes === null) return;
+    try { background.configure({ modelBytes }); } catch { /* an unusable size leaves the previous limit */ }
   };
   aiSetup.onProfileChange = followModel;
   void aiSetup.profile().then(followModel, () => undefined);
