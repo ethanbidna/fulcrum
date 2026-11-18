@@ -4,7 +4,7 @@ import { extractSource, reconcile } from '@fulcrum/ingest';
 import type { ReconciliationPlan } from '@fulcrum/ingest';
 import type { ModelRuntime } from '@fulcrum/llm';
 import type { EntityResolution } from '@fulcrum/context';
-import type { Entity, WorkspaceStateDoc } from '@fulcrum/schema';
+import type { ChangeEvent, Entity, Source, WorkspaceStateDoc } from '@fulcrum/schema';
 import type { SourceItem } from '@fulcrum/sources';
 
 const ID_HASH_HEX_DIGITS = 9;
@@ -18,7 +18,7 @@ export interface SourceProcessorPorts {
   /** Addresses that identify the user as an author. */
   selfAddresses(): string[];
   /** Runs commands in order; the plan is available to the domain's proof check while they run. */
-  submit(commands: CommandEnvelope[], plan?: ReconciliationPlan): Promise<void>;
+  submit(commands: CommandEnvelope[], options: { signal: AbortSignal; plan?: ReconciliationPlan }): Promise<void>;
   now(): string;
 }
 
@@ -63,7 +63,7 @@ function recordSource(snapshot: WorkspaceStateDoc, ports: SourceProcessorPorts, 
     id: existing?.id ?? stableId(`source:${item.connector}:${item.remoteId}`),
     connector: item.connector, remoteId: item.remoteId, happenedAt: item.happenedAt, ingestedAt: ports.now(),
     // Mail bodies stay out of the synced workspace: only a pointer and a hash are kept.
-    cachePolicy: 'none' as const, contentHash: `sha256:${createHash('sha256').update(item.text).digest('hex')}`,
+    cachePolicy: 'none' as const, contentHash: contentHash(item.text),
     ...(item.threadRemoteId ? { threadRemoteId: item.threadRemoteId } : {}),
     ...(item.permalink ? { permalink: item.permalink } : {}),
     ...(sender ? { senderEntityId: sender } : {}),
@@ -71,15 +71,34 @@ function recordSource(snapshot: WorkspaceStateDoc, ports: SourceProcessorPorts, 
   return { name: 'source.record', actor: 'connector', args: { record }, idempotencyKey: `source:${key}` } as CommandEnvelope;
 }
 
+function contentHash(text: string): string {
+  const canonical = text.normalize('NFC').replaceAll('\r\n', '\n').trim();
+  return `sha256:${createHash('sha256').update(canonical).digest('hex')}`;
+}
+
+function completionKey(source: Pick<Source, 'connector' | 'remoteId' | 'contentHash'>): string {
+  return `source:completed:${JSON.stringify([source.connector, source.remoteId, source.contentHash])}`;
+}
+
+export function completedSources(snapshot: WorkspaceStateDoc, history: ChangeEvent[]) {
+  const completed = new Set(history
+    .filter(event => event.actor === 'connector' && event.command.name === 'source.record')
+    .map(event => event.idempotencyKey));
+  return snapshot.state.sources.filter(source => completed.has(completionKey(source)));
+}
+
 export function createSourceProcessor(ports: SourceProcessorPorts) {
   return async function process(item: SourceItem, context: Context): Promise<void> {
+    context.signal.throwIfAborted();
     const before = ports.snapshot();
     const user = before.state.entities.find(entity => entity.id === ports.userEntityId);
     const extraction = await extractSource(ports.runtime, item, { userIdentity: user?.label ?? 'the user', signal: context.signal });
+    context.signal.throwIfAborted();
     if (!extraction.ok) throw new Error(`EXTRACTION_${extraction.code.toUpperCase()}`);
     if (!extraction.candidates.length) return;
 
-    await ports.submit([recordSource(before, ports, item, context.idempotencyKey)]);
+    await ports.submit([recordSource(before, ports, item, context.idempotencyKey)], { signal: context.signal });
+    context.signal.throwIfAborted();
     const snapshot = ports.snapshot();
     const source = snapshot.state.sources.find(record => record.connector === item.connector && record.remoteId === item.remoteId);
     if (!source) throw new Error('SOURCE_NOT_RECORDED');
@@ -91,6 +110,12 @@ export function createSourceProcessor(ports: SourceProcessorPorts) {
       initiativeId: matchingInitiative(snapshot, item.text), userEntityId: ports.userEntityId,
       runId: context.idempotencyKey, observedAt: ports.now(), idForKey: stableId,
     });
-    await ports.submit([...plan.commands, ...plan.suggestions, ...plan.questions], plan);
+    await ports.submit([...plan.commands, ...plan.suggestions, ...plan.questions], { signal: context.signal, plan });
+    context.signal.throwIfAborted();
+    // A source record alone does not mean its reconciliation finished.
+    await ports.submit([{
+      name: 'source.record', actor: 'connector', idempotencyKey: completionKey(source),
+      args: { record: source },
+    }], { signal: context.signal });
   };
 }

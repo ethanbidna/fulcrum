@@ -90,11 +90,14 @@ test('core controls interrupt extraction while queries and paused-ingestion life
   const { SyntheticSourceAdapter } = await import('../../packages/sources/src/index.ts');
   const directory = await mkdtemp('/tmp/fp3-core-'); let host; let entered; let signal;
   const started = new Promise(resolve => { entered = resolve; });
+  const interactiveModelBytes = 1024;
+  const aiSetup = { profile: async () => ({ kind: 'local', compatibility: { modelResidentBytes: interactiveModelBytes } }), runtime: {}, close() {} };
   try {
     host = await openWorkspaceHost({ localDirectory: path.join(directory, 'local'), workspaceDirectory: path.join(directory, 'workspace'),
       userEntityId: '08000000-0000-7000-8000-000000000001', deviceLabel: 'Synthetic P3 Mac', create: true,
-      background: { wakeGraceMs: 0, modelBytes: 1 }, ingestion: { adapters: [new SyntheticSourceAdapter({ now: new Date().toISOString(), days: 2 })], scopes: { synthetic: ['fixture'] },
+      aiSetup, background: { wakeGraceMs: 0, modelBytes: 1 }, ingestion: { adapters: [new SyntheticSourceAdapter({ now: new Date().toISOString(), days: 2 })], scopes: { synthetic: ['fixture'] },
         process: async (_item, context) => { signal = context.signal; entered(); await new Promise(() => {}); } } });
+    expect((await host.query('status.background', {})).settings.modelBytes).toBe(1);
     const deviceId = (await host.query('history.list', {}))[0].deviceId;
     expect(await host.execute({ name: 'settings.setIngestionDevice', args: { ingestionDeviceId: deviceId } })).toMatchObject({ ok: true });
     expect((await host.query('status.background', {})).sourcePause).toContain('signals');

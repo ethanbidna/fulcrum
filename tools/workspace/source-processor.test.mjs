@@ -1,6 +1,11 @@
 import { expect, test } from 'vitest';
+import { mkdtemp, mkdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { SqliteIngestionQueue } from '../../packages/sources/src/index.ts';
+import { IngestionScheduler } from '../../packages/ingest/src/index.ts';
 import { createHash } from 'node:crypto';
-import { createSourceProcessor } from '../../apps/core/src/source-processor.ts';
+import { completedSources, createSourceProcessor } from '../../apps/core/src/source-processor.ts';
 import { proofFor } from '../../packages/ingest/src/reconciliation.ts';
 import { Domain } from '../../packages/domain/src/index.ts';
 import { loadValidators, readJson } from '../reference/schemas.mjs';
@@ -22,15 +27,17 @@ function setup({ candidates = [], runtimeResult } = {}) {
   const domain = new Domain(snapshot, [], ports);
   const calls = [];
   const runtime = { extract: async input => { calls.push(input); return runtimeResult ?? { ok: true, attempts: 1, candidates: candidates.map(candidate => ({ span: { start: 0, end: Math.min(10, input.text.length) }, ...candidate })) }; } };
-  const submit = async (commands, plan) => {
+  const submit = async (commands, { signal, plan }) => {
+    signal.throwIfAborted();
     activePlan = plan;
     for (const command of commands) { const result = await domain.execute(command); expect(result, JSON.stringify(result)).toMatchObject({ ok: true }); }
     activePlan = undefined;
   };
-  const process = createSourceProcessor({ snapshot: () => domain.getSnapshot(), runtime, userEntityId: user.id, selfAddresses: () => [SELF], submit, now: () => at });
+  const processorPorts = { snapshot: () => domain.getSnapshot(), runtime, userEntityId: user.id, selfAddresses: () => [SELF], submit, now: () => at };
+  const process = createSourceProcessor(processorPorts);
   const item = (text, extra = {}) => ({ connector: 'gmail', scopeId: 'scope', remoteId: `m-${createHash('sha256').update(text).digest('hex').slice(0, 8)}`, authorId: SELF, happenedAt: '2026-11-09T17:00:00Z', text, ...extra });
   const context = key => ({ signal: new AbortController().signal, idempotencyKey: key });
-  return { domain, user, process, item, context, calls, runtime };
+  return { domain, user, process, item, context, calls, runtime, processorPorts };
 }
 const state = f => f.domain.getSnapshot().state;
 
@@ -94,4 +101,96 @@ test('instructions inside a message are only data passed to the model', async ()
   await f.process(f.item(hostile, { remoteId: 'again' }), f.context('run-4'));
   expect(f.calls[0]).toMatchObject({ text: hostile, speaker: SELF });
   expect(JSON.stringify(state(f).initiatives.map(initiative => initiative.lifecycle))).toBe(lifecycles);
+});
+
+test('an interrupted plan leaves the source eligible for retry until reconciliation completes', async () => {
+  const f = setup({ candidates: [{ kind: 'new_initiative', title: 'Synthetic retry', rationale: 'New effort' }] });
+  const message = f.item('We should start the synthetic retry effort.');
+  const context = f.context('retry');
+  const submit = f.processorPorts.submit;
+  let interrupted = false;
+  f.processorPorts.submit = async (commands, ...args) => {
+    if (!interrupted && commands.some(command => command.actor === 'ai')) {
+      interrupted = true;
+      throw new Error('Synthetic interruption');
+    }
+    return submit(commands, ...args);
+  };
+  await expect(f.process(message, context)).rejects.toThrow('Synthetic interruption');
+  const source = state(f).sources.find(record => record.connector === 'gmail');
+  expect(source).toBeDefined();
+  expect(completedSources(f.domain.getSnapshot(), f.domain.history())).not.toContainEqual(source);
+  await f.process(message, context);
+  expect(state(f).initiatives.filter(record => record.title === 'Synthetic retry')).toHaveLength(1);
+  expect(completedSources(f.domain.getSnapshot(), f.domain.history())).toContainEqual(source);
+});
+
+test('cancellation during extraction prevents all source and proposal writes', async () => {
+  const f = setup();
+  const controller = new AbortController();
+  const before = structuredClone(state(f));
+  f.runtime.extract = async () => {
+    controller.abort(new Error('Synthetic cancellation'));
+    return { ok: true, attempts: 1, candidates: [{ kind: 'new_initiative', title: 'Cancelled effort', rationale: 'r', span: { start: 0, end: 10 } }] };
+  };
+  const context = { signal: controller.signal, idempotencyKey: 'cancelled' };
+  await expect(f.process(f.item('We should start a cancelled effort.'), context)).rejects.toThrow('Synthetic cancellation');
+  expect(state(f)).toEqual(before);
+});
+
+test('completion uses the queue canonical hash for whitespace and Unicode', async () => {
+  const f = setup({ candidates: [{ kind: 'new_initiative', title: 'Synthetic normalization', rationale: 'r' }] });
+  const text = '  We should start a cafe\u0301 project.\r\n  ';
+  await f.process(f.item(text), f.context('normalized'));
+  const expected = createHash('sha256').update(text.normalize('NFC').replaceAll('\r\n', '\n').trim()).digest('hex');
+  expect(state(f).sources.find(record => record.connector === 'gmail').contentHash).toBe(`sha256:${expected}`);
+});
+
+
+test('a restarted queue retries reconciliation after its source was already recorded', async () => {
+  const f = setup({ candidates: [{ kind: 'new_initiative', title: 'Synthetic restart', rationale: 'r' }] });
+  const message = f.item('We should start the synthetic restart effort.');
+  const directory = await mkdtemp(path.join(tmpdir(), 'fulcrum-source-retry-'));
+  const localDirectory = path.join(directory, 'local');
+  const workspaceDirectory = path.join(directory, 'workspace');
+  await mkdir(localDirectory); await mkdir(workspaceDirectory);
+  const options = { localDirectory, workspaceDirectory, workspaceId: f.domain.getSnapshot().workspaceId };
+  let queue; let scheduler; let entered;
+  const started = new Promise(resolve => { entered = resolve; });
+  const submit = f.processorPorts.submit;
+  let firstPlan = true;
+  f.processorPorts.submit = async (commands, ...args) => {
+    if (firstPlan && commands.some(command => command.actor === 'ai')) {
+      firstPlan = false; entered();
+      await new Promise(resolve => args[0].signal.addEventListener('abort', resolve, { once: true }));
+      args[0].signal.throwIfAborted();
+    }
+    return submit(commands, ...args);
+  };
+  const adapter = {
+    id: 'gmail', scopes: async () => [{ id: 'scope', label: 'Synthetic scope' }],
+    pull: async () => ({ items: [message], next: null, checkpoint: 'checked' }),
+    read: async () => message, permalink: () => null,
+  };
+  const createScheduler = () => new IngestionScheduler({
+    queue, adapters: [adapter], deviceId: 'synthetic-device', ingestionDeviceId: () => 'synthetic-device',
+    now: () => at, relevance: () => ({ userId: SELF, terms: [], linkedThreadIds: [], excludedAuthorIds: [] }),
+    recordedSources: () => completedSources(f.domain.getSnapshot(), f.domain.history()), process: f.process,
+  });
+  try {
+    queue = await SqliteIngestionQueue.open(options); scheduler = createScheduler();
+    await scheduler.configure('gmail', ['scope']);
+    const running = scheduler.tick(); await started;
+    scheduler.interrupt(); await running;
+    expect(state(f).sources.some(source => source.connector === 'gmail')).toBe(true);
+    expect(queue.counts()).toMatchObject({ pending: 1, failed: 0 });
+    await scheduler.close(); queue.close();
+    queue = await SqliteIngestionQueue.open(options); scheduler = createScheduler();
+    await scheduler.tick();
+    expect(queue.counts()).toMatchObject({ pending: 0, failed: 0 });
+    expect(state(f).initiatives.filter(record => record.title === 'Synthetic restart')).toHaveLength(1);
+    expect(completedSources(f.domain.getSnapshot(), f.domain.history())).toHaveLength(1);
+  } finally {
+    await scheduler?.close(); queue?.close(); await rm(directory, { recursive: true, force: true });
+  }
 });

@@ -37,3 +37,36 @@ app and core and confirm sync resumes without another consent prompt. Choose
 
 The adapter leaves exact Gmail links empty. An open-original fallback has
 yet to be validated. Record counts and observations only.
+
+
+## Interrupted processing
+
+The core records the source pointer and canonical content hash before applying
+reconciliation commands. It appends a separate `source.record` event with
+a completion idempotency key derived from connector, remote ID and canonical
+content hash only after the plan finishes.
+The Gmail scheduler deduplicates against these completion events, rather than
+source existence. An interrupted plan remains eligible after a queue restart
+or ingestion-device handover. Existing source and reconciliation idempotency
+keys prevent repeated accepted commands. Each command remains a separate atomic
+event; the entire plan is not a transaction.
+
+Cancellation is checked after extraction and inside the serialized write queue
+before each command. Synthetic tests cover a late model response after cancel,
+interruption after source recording, SQLite queue restart, and canonical hashes
+for Unicode, line endings and surrounding whitespace. These tests do not
+validate live Gmail, model quality, native packaging or real two-Mac sync.
+
+A caller-supplied ingestion processor retains its explicit background resource
+profile when interactive AI is disabled or changed. The automatic Gmail
+processor follows the selected AI profile. The core admission test verifies
+that its custom processor can start, pause and retain pending queue items.
+
+
+November 18, 2026 verification ([PR #104](https://github.com/ethanbidna/fulcrum/pull/104)):
+600 workspace tests passed with a 30-second per-test timeout. The reference run
+passed 116 tests, with one existing skip and one existing TODO. Schema checks,
+lint, TypeScript, core build and the compiled core's schema/FTS5/encryption
+self-test passed. The standard five-second workspace timeout produced timeouts
+in ingestion/encryption tests; the final longer-timeout run passed all tests.
+No UI code changed in this follow-up.
