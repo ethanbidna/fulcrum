@@ -111,3 +111,12 @@ The changed preview signature requires a separate macOS Keychain access check;
 the first credential read after this rebuild waited for system authorization.
 Do not count duplicate-launch validation as successful Gmail authorization or
 extraction acceptance.
+
+
+After the owner selected **Always Allow**, the updated preview's credential
+helper read succeeded. The prior unpaused background setting was restored,
+and Gmail completed a fresh source check with no scope error or pending retry.
+The Sources & Integrations screen still showed sync enabled. No credentials,
+message content, account identifiers or source IDs are included in this record.
+Earlier extraction failures and queued analysis remain separate from the
+verified Gmail authorization and source check; step 25 acceptance stays open.
