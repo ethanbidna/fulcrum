@@ -70,3 +70,44 @@ lint, TypeScript, core build and the compiled core's schema/FTS5/encryption
 self-test passed. The standard five-second workspace timeout produced timeouts
 in ingestion/encryption tests; the final longer-timeout run passed all tests.
 No UI code changed in this follow-up.
+
+
+## Duplicate preview processes
+
+A native sync investigation found two preview shells connected to one core.
+Their process-local wake counters alternated, restarting the wake grace period
+and preventing source work. Stopping the stale shell let the grace period end;
+the live source's checked timestamp advanced again. Failed extraction items
+remain a separate issue; resumed source checks do not establish model quality.
+
+The desktop now registers Tauri's pinned single-instance plugin before its
+other plugins and native system observer. A second launch focuses the existing
+window and exits. Credential helper modes still run before desktop startup.
+This guard covers copies sharing a bundle identifier; previews with different
+identifiers should not share a local profile.
+
+The native regression uses a debug executable and disposable profile:
+
+```sh
+FULCRUM_NATIVE_TEST_BINARY=/absolute/path/to/debug/fulcrum-desktop \
+  pnpm exec vitest run --project unit tools/workspace/native-single-instance.test.mjs
+```
+
+Build the debug frontend and native executable first. The native test is skipped
+without that explicit executable. It reproduced two surviving shells before the
+fix, then passed with the guard. All seven Rust tests passed. The debug launch
+check allows ten seconds for initial startup on a busy Mac; its second process
+must exit within five seconds. It does not use Google credentials or live mail.
+
+When upgrading from an older unguarded preview, quit its existing copies once
+before opening the updated bundle.
+
+
+The rebuilt ad-hoc preview also passed a packaged second-launch check: the
+second process exited successfully and one desktop shell remained. Deep/strict
+code-signature verification passed, and notices were regenerated for 375
+packages plus Node.js. This was a local ad-hoc build, not a notarized release.
+The changed preview signature requires a separate macOS Keychain access check;
+the first credential read after this rebuild waited for system authorization.
+Do not count duplicate-launch validation as successful Gmail authorization or
+extraction acceptance.
