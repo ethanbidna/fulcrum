@@ -26,6 +26,10 @@ jobs:
           npm ci --ignore-scripts
           npm run check
           npm test
+      - name: Check dashboard-free OAuth proof
+        run: |
+          node --test spikes/s4/managed-oauth/*.test.mjs
+          pnpm exec tsc --project spikes/s4/managed-oauth/tsconfig.json
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --project spikes/s3 --frozen
       - run: uv run --project spikes/s3 python spikes/s3/check_clients.py

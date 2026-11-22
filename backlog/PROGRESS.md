@@ -61,6 +61,26 @@ The documented `pnpm dev` entry now selects the ESM parser build, matching the c
 
 ## Owner to-do
 
+### S4 follow-up — managed OAuth experiment
+
+Draft PR: [#106](https://github.com/ethanbidna/fulcrum/pull/106).
+
+The owner requested another app handle source connections rather than making
+users register Google clients. The isolated Community Edition runtime is
+available on the test Mac at `http://localhost:18080`; hosted OAuth is enabled,
+and the public shared-app catalog includes Gmail. Follow
+[the local account/consent procedure](../docs/spikes/S4-results/managed-oauth.md#resume-this-local-test).
+Local account setup and owner consent are complete. The shared-app request
+contained only `gmail.readonly` and `email`, without custom client credentials.
+A manual three-message read of `S4 synthetic` succeeded before and after
+container restart, without another sign-in. The flow remains unpublished.
+A follow-up Fulcrum browser screen also provisions a fresh Community Edition
+instance's synthetic local identity, connects Google and reads three messages
+through APIs without opening the Activepieces dashboard or using its Enterprise
+embedding SDK. See the same report for findings and the isolated proof URL.
+Do not tick any Owner box yet: refresh after expiry, incremental catch-up,
+Fulcrum integration and production adoption remain unverified.
+
 ### Step 36 — P6 signed encryption acceptance
 
 Follow [the P6 owner procedure](../docs/reviews/P6.md) using the provisioned
