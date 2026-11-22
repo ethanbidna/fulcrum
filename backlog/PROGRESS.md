@@ -70,8 +70,10 @@ users register Google clients. The isolated Community Edition runtime is
 available on the test Mac at `http://localhost:18080`; hosted OAuth is enabled,
 and the public shared-app catalog includes Gmail. Follow
 [the local account/consent procedure](../docs/spikes/S4-results/managed-oauth.md#resume-this-local-test).
-The owner enters the new local password and later completes Google consent
-with synthetic-only mail. Do not tick any Owner box yet: Gmail retrieval,
+Local account setup is complete. The live Gmail UI opened Google sign-in for
+Activepieces with only `gmail.readonly` and `email`, without custom client
+credentials. The owner next completes Google consent with synthetic-only mail.
+Do not tick any Owner box yet: Gmail retrieval,
 refresh, catch-up and production adoption are not established by startup.
 
 ### Step 36 — P6 signed encryption acceptance

@@ -32,6 +32,12 @@ stays local and Gmail access remains read-only?
   local account creation rather than asking for a Google client ID/secret.
 - One startup `docker stats` sample reported 1.666 GiB container memory and
   123.47% CPU. This is not an idle measurement and excludes the VM overhead.
+- The owner completed local account setup. In the live browser UI, the default
+  Gmail connection offered Permissions without asking for a client ID or
+  secret. Deselecting send, compose and modify left `gmail.readonly` and
+  `email`. Connect opened Google's account chooser for Activepieces with
+  exactly those scopes and `https://secrets.activepieces.com/redirect` as
+  redirect. No mailbox authorization had completed at this observation.
 
 ## Evidence links
 
@@ -41,7 +47,7 @@ stays local and Gmail access remains read-only?
 
 ## Live checks
 
-Pending: local account creation, Gmail read-only consent through the shared app,
+Pending: Gmail read-only consent through the shared app,
 credential refresh, bounded synthetic retrieval, restart, incremental
 catch-up, memory, and separate retrieval/extraction timing. No successful
 Gmail connection or processing-speed improvement is claimed yet.
@@ -74,9 +80,10 @@ opening consent. Stop if the actual grant requires write access.
    authenticated screenshots into the repository.
 
 The loopback service is a temporary experiment, not installed into Fulcrum.
-The owner must complete account creation/consent before live retrieval can be
-tested. At the first handoff Chrome automation was blocked by another
-extension's open UI; the service itself remained reachable.
+The owner completed local account creation and resumed browser automation.
+The Google popup is now awaiting test-account sign-in and read-only consent
+before live retrieval can be tested. At the first handoff Chrome automation
+was blocked by another extension's open UI; the service remained reachable.
 
 ## Recommendation
 
