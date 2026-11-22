@@ -37,7 +37,21 @@ stays local and Gmail access remains read-only?
   secret. Deselecting send, compose and modify left `gmail.readonly` and
   `email`. Connect opened Google's account chooser for Activepieces with
   exactly those scopes and `https://secrets.activepieces.com/redirect` as
-  redirect. No mailbox authorization had completed at this observation.
+  redirect. The owner subsequently completed consent with the test mailbox.
+- The local Connections UI displayed the Gmail connection as Active. A live
+  label dropdown returned the synthetic label. A draft Manual Trigger → Gmail
+  Find Email flow (piece 0.19.0), filtered to `S4 synthetic` with Max Results
+  set to 3, returned Tested Successfully, Found Yes and Count 3. Success was
+  observed within 9 seconds of clicking Test Step, including browser/tool
+  overhead. This is not an isolated API latency or model-throughput benchmark.
+  The flow was not published and no inference or mail mutation was run.
+- After restarting the container, reloading the browser restored the connection,
+  draft flow, label and three-message limit. Retest Step performed another read
+  and again returned Count 3, with success visible within 7 seconds. No new
+  Google sign-in was required. This verifies restart persistence with the
+  existing credential, not refresh after token expiry.
+- A single post-test resource sample reported 1.766 GiB container memory and
+  22.87% CPU. It excludes VM overhead and is not a settled idle benchmark.
 
 ## Evidence links
 
@@ -47,10 +61,15 @@ stays local and Gmail access remains read-only?
 
 ## Live checks
 
-Pending: Gmail read-only consent through the shared app,
-credential refresh, bounded synthetic retrieval, restart, incremental
-catch-up, memory, and separate retrieval/extraction timing. No successful
-Gmail connection or processing-speed improvement is claimed yet.
+Successful: owner-completed shared-app consent, active local connection, label
+retrieval, a three-message synthetic read and a fresh read after container
+restart. The requested scopes were
+`gmail.readonly` and `email`; token contents and a token-reported grant were
+not inspected or exported.
+
+Pending: credential refresh after expiry, incremental catch-up,
+settled memory, and separate retrieval/extraction timing. No model-processing
+speed improvement or production readiness is claimed.
 
 Use only a throwaway mailbox containing synthetic messages. Keep accounts,
 tokens, execution payloads and local runtime data out of the repository.
@@ -81,11 +100,22 @@ opening consent. Stop if the actual grant requires write access.
 
 The loopback service is a temporary experiment, not installed into Fulcrum.
 The owner completed local account creation and resumed browser automation.
-The Google popup is now awaiting test-account sign-in and read-only consent
-before live retrieval can be tested. At the first handoff Chrome automation
-was blocked by another extension's open UI; the service remained reachable.
+The owner completed test-account consent and bounded reads succeeded before
+and after container restart. The local draft remains unpublished. At the
+first handoff Chrome automation was blocked by another extension's open UI;
+the service remained reachable.
 
 ## Recommendation
 
-Pending live results. Keep the production Gmail PRs and existing owner
-acceptance checks unchanged while testing this alternative.
+The shared-app/local-runtime arrangement is viable for a bounded Gmail read:
+Fulcrum needed no Google OAuth registration, and mail was retrieved by the
+local Activepieces runtime. This corrects the assumption that hosted OAuth
+necessarily requires cloud execution of mail reads. Credential exchange and
+refresh still depend on Activepieces' hosted service.
+
+Continue with a narrow local `SourceAdapter` bridge experiment before adopting
+this for production. Stock Find Email returns a bounded list, not Fulcrum's
+durable incremental ingestion contract. Pagination, expired-history recovery,
+dedupe, source rehydration, output retention and shared-app distribution terms
+still need decisions and tests. This does not resolve slow local extraction.
+Keep existing owner acceptance boxes and production decisions unchanged.

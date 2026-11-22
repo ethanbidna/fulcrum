@@ -14,7 +14,7 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 
 ## Next engineering work
 
-- [ ] Reopened S4: test [Activepieces-managed OAuth with local retrieval](../docs/spikes/S4-results/managed-oauth.md). Local account setup and shared-app Google sign-in request with only read-only/mail identity scopes verified; consent/retrieval pending. Existing Gmail PRs remain separate from this experiment.
+- [ ] Reopened S4: test [Activepieces-managed OAuth with local retrieval](../docs/spikes/S4-results/managed-oauth.md). Shared-app consent and three-message synthetic reads passed before/after container restart without custom Google credentials. Refresh after expiry, incremental catch-up and the Fulcrum bridge remain pending. Existing Gmail PRs remain separate from this experiment.
 
 - [x] Run the Gmail piece directly with synthetic responses and identify OAuth and pagination gaps. [Gmail library probe](../docs/spikes/S4-results/gmail-library.md)
 - [x] Prototype the read-only Gmail Activepieces piece with resumable pagination. [Piece and probe](../spikes/s4/gmail-piece/README.md)

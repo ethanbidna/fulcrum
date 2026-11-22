@@ -70,11 +70,12 @@ users register Google clients. The isolated Community Edition runtime is
 available on the test Mac at `http://localhost:18080`; hosted OAuth is enabled,
 and the public shared-app catalog includes Gmail. Follow
 [the local account/consent procedure](../docs/spikes/S4-results/managed-oauth.md#resume-this-local-test).
-Local account setup is complete. The live Gmail UI opened Google sign-in for
-Activepieces with only `gmail.readonly` and `email`, without custom client
-credentials. The owner next completes Google consent with synthetic-only mail.
-Do not tick any Owner box yet: Gmail retrieval,
-refresh, catch-up and production adoption are not established by startup.
+Local account setup and owner consent are complete. The shared-app request
+contained only `gmail.readonly` and `email`, without custom client credentials.
+A manual three-message read of `S4 synthetic` succeeded before and after
+container restart, without another sign-in. The flow remains unpublished.
+Do not tick any Owner box yet: refresh after expiry, incremental catch-up,
+Fulcrum integration and production adoption remain unverified.
 
 ### Step 36 — P6 signed encryption acceptance
 
