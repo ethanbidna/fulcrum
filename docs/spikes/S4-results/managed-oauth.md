@@ -119,3 +119,60 @@ durable incremental ingestion contract. Pagination, expired-history recovery,
 dedupe, source rehydration, output retention and shared-app distribution terms
 still need decisions and tests. This does not resolve slow local extraction.
 Keep existing owner acceptance boxes and production decisions unchanged.
+
+## Dashboard-free connection proof
+
+On November 21, the owner requested a live proof that the Activepieces
+dashboard need not appear. The isolated
+[implementation and procedure](../../../spikes/s4/managed-oauth/README.md)
+serve a Fulcrum React screen at `http://localhost:18081`. A fresh Community
+Edition instance with a separate empty data volume listens on loopback port
+18082. Earlier test containers/volumes are preserved and stopped.
+
+The following sequence succeeded without opening that instance's dashboard:
+
+1. The local server provisions a synthetic owner/project through the ordinary
+   first-user signup API with telemetry/newsletters disabled. Its random local
+   credentials/session remain in process memory, never sent to the browser.
+2. Connect Gmail asks the local authorization endpoint for only `gmail.readonly`
+   and `email`, using Activepieces' shared app. Only the Google popup appears.
+3. Google recognizes the test mailbox's existing read-only grant. Its details
+   show mail read access and account identity, with no mail mutation access.
+4. The hosted redirect sends the result to the Fulcrum popup opener. The proof
+   checks the redirect origin and popup identity, then consumes a single-use,
+   expiring local attempt to create the connection through the API.
+5. The local piece-options API returns labels; the screen offers only
+   `S4 synthetic`. Selecting it and Read test messages creates a fixed,
+   unpublished Find Email action limited to three messages.
+6. The proof tests that action, polls its run and validates all three messages
+   contain text/HTML rather than per-message error records. The screen reports
+   `Read 3 test messages. No messages were changed.` Only counts reach the UI.
+
+![Dashboard-free synthetic Gmail proof](dashboard-free-proof.jpg)
+
+Two findings shaped the implementation:
+
+- A second signup on an instance that already has an owner returns
+  `INVITATION_ONLY_SIGN_UP`. The clean-instance proof respects that restriction;
+  it does not enable public signup or bypass authentication. Production needs
+  an app-managed first-run identity and durable credential custody.
+- The builder saves test outputs into sample data through frontend operations.
+  A completed test run does not by itself populate the sample-data endpoint.
+  A failing regression reproduced this; the corrected proof reads the
+  completed run's output instead. Large offloaded outputs fail closed here.
+
+Validation: seven offline protocol/server tests pass, including callback
+origin/window binding, replay rejection, label/read limits, per-message error
+rejection and exact-origin JSON mutations. Strict proof/UI/workspace
+typechecks and lint pass. `npm run check:ui` passes all 58 stories with no
+accessibility violations and builds the workshop. The reference suite passes
+under supported Node 22.23.5: 116 pass, one existing skip, one existing TODO.
+The initial host Node 23 run failed existing S2/S7 checks; Node 23 is outside
+the repository's supported engine range.
+
+This proves the dashboard-free browser connection and bounded read path using
+Community Edition APIs, without the Enterprise embedding SDK. It does not
+prove a packaged Tauri system-browser callback, runtime installation/lifecycle,
+server-process restart with persistent local identity, token refresh after
+expiry, incremental ingestion, output retention or vendor approval for
+redistribution. The prototype is not enabled in the production app.

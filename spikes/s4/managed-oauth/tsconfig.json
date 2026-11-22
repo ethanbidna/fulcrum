@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["react", "react-dom", "vite/client"],
+    "allowJs": true
+  },
+  "include": ["entry.tsx", "reply.mjs"]
+}

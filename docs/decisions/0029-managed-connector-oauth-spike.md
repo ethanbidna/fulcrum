@@ -26,6 +26,20 @@ scope rather than assuming a read-only action implies read-only access.
 Record results in [the S4 managed OAuth report](../spikes/S4-results/managed-oauth.md).
 Separate authentication, retrieval, and model-processing measurements.
 
+## Dashboard-free follow-up
+
+The owner also authorized testing a Fulcrum-owned connection screen. A fresh
+Community Edition instance is provisioned through its normal local signup API;
+the proof generates the Google authorization URL, saves the connection, lists
+the synthetic label, creates an unpublished fixed read flow and reads its
+execution output through local APIs. No Enterprise embedding SDK, plan-gate
+changes or Activepieces dashboard is part of that flow.
+
+The live browser proof returned three synthetic messages. This establishes
+technical feasibility for the pinned version. Production packaging, durable
+local identity/Keychain handling and shared-app distribution support remain
+separate adoption requirements.
+
 ## Adoption gate
 
 This experiment does not supersede ADR-0027 or add a runtime to Fulcrum.
