@@ -61,6 +61,19 @@ The documented `pnpm dev` entry now selects the ESM parser build, matching the c
 
 ## Owner to-do
 
+### S4 follow-up — managed OAuth experiment
+
+Draft PR: [#106](https://github.com/ethanbidna/fulcrum/pull/106).
+
+The owner requested another app handle source connections rather than making
+users register Google clients. The isolated Community Edition runtime is
+available on the test Mac at `http://localhost:18080`; hosted OAuth is enabled,
+and the public shared-app catalog includes Gmail. Follow
+[the local account/consent procedure](../docs/spikes/S4-results/managed-oauth.md#resume-this-local-test).
+The owner enters the new local password and later completes Google consent
+with synthetic-only mail. Do not tick any Owner box yet: Gmail retrieval,
+refresh, catch-up and production adoption are not established by startup.
+
 ### Step 36 — P6 signed encryption acceptance
 
 Follow [the P6 owner procedure](../docs/reviews/P6.md) using the provisioned

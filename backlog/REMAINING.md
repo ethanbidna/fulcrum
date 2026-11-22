@@ -14,6 +14,8 @@ The detailed plan and owner procedures live in [PROGRESS.md](PROGRESS.md). Updat
 
 ## Next engineering work
 
+- [ ] Reopened S4: test [Activepieces-managed OAuth with local retrieval](../docs/spikes/S4-results/managed-oauth.md). Community runtime startup, hosted-OAuth flag and Gmail catalog entry verified; local account creation and live read-only consent/retrieval pending. Existing Gmail PRs remain separate from this experiment.
+
 - [x] Run the Gmail piece directly with synthetic responses and identify OAuth and pagination gaps. [Gmail library probe](../docs/spikes/S4-results/gmail-library.md)
 - [x] Prototype the read-only Gmail Activepieces piece with resumable pagination. [Piece and probe](../spikes/s4/gmail-piece/README.md)
 - [x] Connect the Gmail piece to `SourceAdapter` and resume through Fulcrum's SQLite queue. [Adapter probe](../spikes/s4/gmail-piece/README.md)
