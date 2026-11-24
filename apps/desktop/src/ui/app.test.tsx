@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { projectBoard } from '@fulcrum/domain';
+import type { WorkspaceState } from '@fulcrum/domain';
 import { App } from './app.js';
 import type { CoreTransport } from '../core-transport.js';
 import { destinationFromHash, initiativeFromHash, focusedNodeFromHash } from './navigation.js';
 afterEach(() => { cleanup(); window.location.hash = ''; vi.useRealTimers(); });
 function emptyBoard(questionCount = 3) { return { cards: [], categories: [], teams: [], objectives: [], questionCounts: {}, rail: { questionCount, nextAvailableActions: [], waitingOn: [], meaningfulChanges: [] } }; }
+const populatedBoard = () => projectBoard((JSON.parse(readFileSync('fixtures/states/portfolio.state.json', 'utf8')) as { state: WorkspaceState }).state, [], { now: '2026-11-08T20:00:00Z' });
 function session() {
   let changed = () => {};
   const stop = vi.fn();
@@ -21,6 +25,10 @@ test('four destinations, live quiet question count and canonical reads only', as
   expect(screen.getByLabelText('3 open questions').textContent).toBe('3');
   expect(f.transport.query).toHaveBeenCalledWith('portfolio.board', {});
   expect(f.transport.execute).not.toHaveBeenCalled();
+});
+test('the heading is not focused on first load, so no outline is drawn around it', async () => {
+  const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
+  expect(document.activeElement).not.toBe(screen.getByRole('heading', { level: 1 }));
 });
 test('navigation follows history, marks current location and focuses the heading', async () => {
   const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
@@ -104,8 +112,29 @@ test('focused routes preserve initiative identity and browser-back route shape',
 });
 
 test('command text survives a lost core connection', async () => {
-  const f = session(); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
+  const f = session(); f.transport.query.mockResolvedValue(populatedBoard()); render(<App platform={f.platform} />); await screen.findByText('Connected to local core');
   fireEvent.change(screen.getByRole('textbox',{name:'What would you like to change?'}),{target:{value:'Keep this synthetic request'}});
   f.transport.query.mockRejectedValue(new Error('CONNECTION_CLOSED')); act(()=>f.changed()); await screen.findByText('Local core unavailable');
   expect((screen.getByRole('textbox',{name:'What would you like to change?'}) as HTMLInputElement).value).toBe('Keep this synthetic request');
+});
+
+test('Connect a source opens a focused wizard without the app chrome', async () => {
+  window.location.hash = '#connect';
+  const f = session();
+  const administer = vi.fn(async (name: string) => name === 'gmail.status' ? { phase: 'disconnected' } : { completed: true, deviceId: 'd', deviceLabel: 'Mac', ingestionDeviceId: 'd', people: [], userEntityId: 'u' });
+  Object.assign(f.transport, { administer });
+  render(<App platform={f.platform} />);
+  expect(await screen.findByRole('heading', { name: 'Connect a source' })).toBeTruthy();
+  expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull();
+  expect(screen.getByRole('link', { name: /Back/ }).getAttribute('href')).toBe('#initiatives');
+});
+test('the command bar appears only once there is work to change', async () => {
+  const empty = session(); const first = render(<App platform={empty.platform} />);
+  await screen.findByText('Connected to local core');
+  expect(screen.queryByRole('region', { name: 'Command bar' })).toBeNull();
+  first.unmount();
+  const populated = session();
+  populated.transport.query.mockResolvedValue(populatedBoard());
+  render(<App platform={populated.platform} />);
+  expect(await screen.findByRole('region', { name: 'Command bar' })).toBeTruthy();
 });

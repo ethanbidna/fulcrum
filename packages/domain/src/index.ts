@@ -17,7 +17,7 @@ export { projectHistory } from './history-projections.js';
 export type { HistoryEntry, HistoryChange, HistoryFilter } from './history-projections.js';
 export { projectPortfolio, projectRail, projectBoard } from './projections.js';
 export type { PortfolioBoard, PortfolioCard, PortfolioRail, RailOptions, WaitingItem } from './projections.js';
-export type { QueryName, QueryArgs, QueryResults } from './queries.js';
+export type { QueryName, QueryArgs, QueryResults, FreshnessStatus } from './queries.js';
 export type { SearchScope, SearchHit, IndexProgress } from '@fulcrum/index/interfaces';
 
 export { projectInspection } from './inspector-projections.js';
@@ -47,8 +47,8 @@ export type { TimelineView, TimelineItem } from './timeline-projections.js';
 export { projectPriorities } from './priority-projections.js';
 export type { PriorityLink, PriorityRow } from './priority-projections.js';
 
-export type { LocalConfiguration, LocalBackup, BackupFrequency, AdministrationArgs, AdministrationResults, AdministrationName } from './administration-types.js';
+export type { GmailSettingsStatus, LocalConfiguration, LocalBackup, BackupFrequency, AdministrationArgs, AdministrationResults, AdministrationName } from './administration-types.js';
 
 export type { McpConfiguration, McpActivityEntry } from './administration-types.js';
-export { filterModelChoices } from './setup-types.js';
-export type { ModelChoice, OriginPreference, HardwareProfile, CompatibilityResult, AiProfile, AiSetupStatus, AiJob, WorkspaceSelection, StartupStatus } from './setup-types.js';
+export { filterModelChoices, localModelFit, SYSTEM_MEMORY_RESERVE_BYTES } from './setup-types.js';
+export type { LocalModelFit, ModelChoice, OriginPreference, HardwareProfile, CompatibilityResult, AiProfile, AiSetupStatus, AiJob, WorkspaceSelection, StartupStatus } from './setup-types.js';

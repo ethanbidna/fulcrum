@@ -11,7 +11,15 @@ export interface LocalConfiguration {
   backgroundPaused: boolean; onlyWhenPluggedIn: boolean; backgroundReason: string | null;
   ingestionEnabled: boolean; backupError: boolean; backupRetentionError?: boolean;
 }
+export type GmailSettingsStatus =
+  | { phase: 'unavailable' | 'disconnected' | 'connecting' | 'failed' }
+  | { phase: 'select'; account: string; labels: { id: string; label: string }[] }
+  | { phase: 'active'; account: string; label: { id: string; label: string } };
 export interface AdministrationArgs {
+  'gmail.status': Record<string, never>;
+  'gmail.connect': { account?: string; acknowledged: boolean };
+  'gmail.select': { id: string };
+  'gmail.disconnect': Record<string, never>;
   'mcp.status': Record<string, never>;
   'mcp.configure': Partial<McpConfiguration>;
   'mcp.activity': Record<string, never>;
@@ -33,6 +41,10 @@ export interface AdministrationArgs {
   'background.configure': {paused?: boolean; onlyWhenPluggedIn?: boolean};
 }
 export interface AdministrationResults {
+  'gmail.status': GmailSettingsStatus;
+  'gmail.connect': Record<string, never>;
+  'gmail.select': Record<string, never>;
+  'gmail.disconnect': Record<string, never>;
   'mcp.status': {access: McpConfiguration; initiatives: {id:string;title:string}[]; categories: {id:string;name:string}[]};
   'mcp.configure': McpConfiguration;
   'mcp.activity': McpActivityEntry[];
