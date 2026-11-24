@@ -17,6 +17,9 @@ ordinary use, ship the experience in Fulcrum, and cover all six sources.
 | Updated launched macOS app | Pending |
 | Managed automatic ingestion | Blocked by full-body run-log retention |
 
+Driver review: [PR #107](https://github.com/ethanbidna/fulcrum/pull/107), stacked
+on the dashboard-free proof in #106.
+
 The [S4 report](../spikes/S4-results/managed-oauth.md) retains the original
 versions, image digest, runtime setup, browser proof, failures, timings and
 limits. [ADR-0029](../decisions/0029-managed-connector-oauth-spike.md) authorizes
@@ -159,3 +162,13 @@ connector behavior is claimed from these tests.
 - [Pinned Dropbox authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/dropbox/src/lib/auth.ts)
 - [Pinned Calendar authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/google-calendar/src/lib/auth.ts)
 - [Granola supported API](https://docs.granola.ai/help-center/sharing/integrations/granola-api)
+
+The isolated review branch passes typecheck, lint and all 48 focused tests.
+The supported Node 22 reference run passes 116 tests, with one existing skip
+and one TODO. The broader combined-integration run passes 647 tests, skips
+one, and times out in the existing encrypted-core composition test at its
+five-second limit. The full workspace suite is not reported as green.
+
+The encryption suite passes independently on the review branch (10 tests)
+with a 15-second per-test timeout. This diagnoses the local timing limit; it
+does not turn the default-timeout full-suite run into a pass.

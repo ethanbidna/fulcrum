@@ -289,7 +289,8 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 ## Managed connector continuation — 2026-11-24
 
 The owner requested dashboard-free setup in the launched app and all six
-sources. The reusable connection driver and permission policies are implemented
+sources. The reusable connection driver and permission policies are in
+[PR #107](https://github.com/ethanbidna/fulcrum/pull/107), stacked on #106,
 with synthetic API tests. Desktop composition, live non-Gmail sign-in, packaging
 and managed ingestion remain pending. Full-body Activepieces run/activity logs
 block ingestion under the current retention contract. See the
