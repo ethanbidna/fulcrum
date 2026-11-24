@@ -7,6 +7,7 @@ Start with the [product spec](PRODUCT_SPEC.md) (authoritative), then [architectu
 - Runtime: [INGESTION.md](INGESTION.md) · [OPERATIONS.md](OPERATIONS.md) · [MCP.md](MCP.md)
 - Trust: [SECURITY_MODEL.md](SECURITY_MODEL.md) · [LICENSING.md](LICENSING.md)
 - Delivery: [ONBOARDING.md](ONBOARDING.md) · [RISKS.md](RISKS.md) · [SCENARIOS.md](SCENARIOS.md) · [../backlog/BACKLOG.md](../backlog/BACKLOG.md)
+- Integrations: [Managed Activepieces connections](integrations/ACTIVEPIECES.md)
 - Decisions: [decisions/](decisions)
 
 | ADR | Decision | Status |
