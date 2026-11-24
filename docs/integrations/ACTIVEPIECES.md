@@ -249,6 +249,11 @@ production sidecar self-tests passed after that fix.
 
 ## Browser and Settings continuation — November 24
 
+Review: [PR #109](https://github.com/ethanbidna/fulcrum/pull/109), stacked on
+#108. The local Storybook review contains 42 stories in four collections.
+Changed-story discovery supplied the IDs; the beta component graph did not
+resolve these source paths, so the full 102-story run is the coverage evidence.
+
 The desktop Sources & Integrations section, focused Connect a source page and
 first-run source step now share the six-source controls. New sign-in requests
 use `sources.connect`; direct `sources.begin`/`sources.complete` remain core

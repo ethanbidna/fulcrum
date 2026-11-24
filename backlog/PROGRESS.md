@@ -314,7 +314,8 @@ skipped. See the [integration record](../docs/integrations/ACTIVEPIECES.md).
 
 ### Managed connection UI continuation — 2026-11-24
 
-The next I2 unit adds an asynchronous system-browser handoff and shared
+The next I2 unit, [PR #109](https://github.com/ethanbidna/fulcrum/pull/109),
+adds an asynchronous system-browser handoff and shared
 six-source controls in Settings, the focused source page and first-run setup.
 Existing direct Gmail connections are preserved. Connection acknowledgement,
 key entry, cancellation, device handover and saved/unavailable states have
