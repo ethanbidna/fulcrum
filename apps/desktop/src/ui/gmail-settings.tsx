@@ -5,7 +5,7 @@ type Administer = <N extends AdministrationName>(name: N, args: AdministrationAr
 const POLL_MS = 1000;
 const ERROR = 'Gmail settings could not be updated. Try again.';
 
-export function GmailSettings({ administer, designated }: { administer: Administer; designated: boolean }) {
+export function GmailSettings({ administer, designated, mode = 'all' }: { administer: Administer; designated: boolean; mode?: 'all' | 'existing' }) {
   const [status, setStatus] = useState<GmailSettingsStatus>();
   const [error, setError] = useState('');
   const [label, setLabel] = useState('');
@@ -35,8 +35,9 @@ export function GmailSettings({ administer, designated }: { administer: Administ
     finally { setBusy(false); setAttempt(value => value + 1); }
   }
 
+  if (mode === 'existing' && (!status || !['select', 'active', 'connecting'].includes(status.phase))) return null;
   return <section aria-label="Gmail">
-    <h3>Gmail</h3>
+    <h3>{mode === 'existing' ? 'Existing Gmail connection' : 'Gmail'}</h3>
     {error && <><p role="alert">{error}</p><button className="secondary-button" onClick={() => { setError(''); setAttempt(value => value + 1); }}>Retry Gmail settings</button></>}
     {!status && !error && <p role="status">Loading Gmail settings…</p>}
     {status?.phase === 'unavailable' && <p>Gmail setup is unavailable for this workspace. Use the native app with a configured Google Desktop OAuth client.</p>}

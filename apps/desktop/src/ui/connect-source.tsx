@@ -1,111 +1,46 @@
 import { useEffect, useState } from 'react';
-import type { AdministrationArgs, AdministrationName, AdministrationResults, GmailSettingsStatus } from '@fulcrum/domain';
-import { Mark } from './fulcrum-activity.js';
+import type { AdministrationArgs, AdministrationName, AdministrationResults } from '@fulcrum/domain';
+import { ManagedSources } from './managed-sources.js';
+import { GmailSettings } from './gmail-settings.js';
 
 type Administer = <N extends AdministrationName>(name: N, args: AdministrationArgs[N]) => Promise<AdministrationResults[N]>;
 type Setup = AdministrationResults['workspace.setupStatus'];
 interface Props { administer: Administer; pollMs?: number }
 
-const DEFAULT_POLL_MS = 1000;
-const ERROR = 'That did not work. Try again.';
-const COMING_SOON = ['Slack', 'Google Drive', 'Granola'];
-
-export function ConnectSource({ administer, pollMs = DEFAULT_POLL_MS }: Props) {
-  const [gmail, setGmail] = useState<GmailSettingsStatus>();
+export function ConnectSource({ administer, pollMs }: Props) {
   const [setup, setSetup] = useState<Setup>();
-  const [chosen, setChosen] = useState(false);
-  const [handover, setHandover] = useState(false);
-  const [label, setLabel] = useState('');
+  const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [attempt, setAttempt] = useState(0);
-
+  const [handover, setHandover] = useState(false);
+  const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     let mounted = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    async function refresh() {
-      try {
-        const [status, workspace] = await Promise.all([administer('gmail.status', {}), administer('workspace.setupStatus', {})]);
-        if (!mounted) return;
-        setGmail(status); setSetup(workspace);
-        if (status.phase === 'connecting') timer = setTimeout(() => { void refresh(); }, pollMs);
-      } catch { if (mounted) setError(ERROR); }
-    }
-    void refresh();
-    return () => { mounted = false; clearTimeout(timer); };
-  }, [administer, attempt, pollMs]);
-
-  async function perform(operation: () => Promise<unknown>) {
-    setBusy(true); setError('');
-    try { await operation(); }
-    catch { setError(ERROR); }
-    finally { setBusy(false); setAttempt(value => value + 1); }
+    void administer('workspace.setupStatus', {}).then(value => { if (mounted) { setSetup(value); setError(false); } }).catch(() => { if (mounted) setError(true); });
+    return () => { mounted = false; };
+  }, [administer, refresh]);
+  const designated = setup?.ingestionDeviceId === setup?.deviceId;
+  const elsewhere = !!setup?.ingestionDeviceId && !designated;
+  async function designate() {
+    if (!setup || busy) return;
+    setBusy(true); setError(false);
+    try {
+      await administer('workspace.configure', { deviceLabel: setup.deviceLabel, ingestion: 'this_mac', handoverConfirmed: handover,
+        ...(setup.userEntityId ? { userEntityId: setup.userEntityId } : {}) });
+      setRefresh(value => value + 1);
+    } catch { setError(true); }
+    finally { setBusy(false); }
   }
-
-  const signIn = () => administer('gmail.connect', { acknowledged: true });
-  const designated = !!setup && setup.ingestionDeviceId === setup.deviceId;
-  const readsElsewhere = !!setup && setup.ingestionDeviceId !== null && !designated;
-
-  const body = () => {
-    if (error && !gmail) return <><p role="alert">{error}</p><button className="primary-button" onClick={() => { setError(''); setAttempt(value => value + 1); }}>Try again</button></>;
-    if (!gmail || !setup) return <p role="status">Loading…</p>;
-    if (gmail.phase === 'active') return <>
-      <Mark working />
-      <h2>Fulcrum is reading {gmail.label.label}</h2>
-      <p>It will propose initiatives and ask you only what it needs. Nothing becomes active until you approve it.</p>
-      <a className="primary-button" href="#initiatives">Go to Initiatives</a>
-    </>;
-    if (gmail.phase === 'select') {
-      const chosenLabel = label || gmail.labels[0]?.id || '';
-      return <form onSubmit={event => { event.preventDefault(); void perform(() => administer('gmail.select', { id: chosenLabel })); }}>
-      <h2>What should Fulcrum read?</h2>
-      <p>Signed in as {gmail.account}. Read-only: Fulcrum never sends, changes or deletes mail. Reading starts with the last 14 days.</p>
-      {gmail.labels.length ? <fieldset disabled={busy}><legend className="visually-hidden">Gmail label</legend>
-        {gmail.labels.map(option => <label key={option.id} className="check-label"><input type="radio" name="label" value={option.id} checked={chosenLabel === option.id} onChange={() => setLabel(option.id)} />{option.label}</label>)}
-      </fieldset> : <p>No labels are available. Create a label in Gmail, then start over.</p>}
-      {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy || !chosenLabel}>Start reading</button>
-      <button type="button" className="link-button" disabled={busy} onClick={() => { setLabel(''); void perform(() => administer('gmail.disconnect', {})); }}>Start over</button>
-    </form>;
-    }
-    if (gmail.phase === 'connecting') return <>
-      <Mark working />
-      <h2>Finish signing in</h2>
-      <p role="status">Finish signing in with Google in your browser. Fulcrum continues when you are done.</p>
-      <button className="link-button" disabled={busy} onClick={() => { void perform(() => administer('gmail.disconnect', {})); }}>Cancel sign-in</button>
-    </>;
-    if (!chosen) return <>
-      <h2>Choose a source</h2>
-      <p>Fulcrum reads it for you, proposes initiatives and asks only what it needs to know.</p>
-      {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Choose Gmail to try again.</p>}
-      {error && <p role="alert">{error}</p>}
-      <ul className="source-choices">
-        <li><button className="source-choice" disabled={busy} onClick={() => { if (designated && gmail.phase !== 'unavailable') void perform(signIn); else setChosen(true); }}><strong>Gmail</strong><span>Read mail from one label you pick</span></button></li>
-        {COMING_SOON.map(name => <li key={name} className="source-soon"><strong>{name}</strong><span>Coming soon</span></li>)}
-      </ul>
-    </>;
-    if (gmail.phase === 'unavailable') return <><h2>Gmail</h2><p>Gmail is not set up in this build. It needs the native app with a configured Google Desktop OAuth client.</p></>;
-    if (!designated) return <form onSubmit={event => {
-      event.preventDefault();
-      void perform(async () => {
-        await administer('workspace.configure', { deviceLabel: setup.deviceLabel, ingestion: 'this_mac', handoverConfirmed: handover, ...(setup.userEntityId ? { userEntityId: setup.userEntityId } : {}) });
-        await signIn();
-      });
-    }}>
-      <h2>Read Gmail on this Mac</h2>
-      <p>{readsElsewhere ? 'Another Mac currently reads your sources.' : 'One Mac reads your sources in the background so they are never read twice.'} Credentials stay on the Mac that reads.</p>
-      {readsElsewhere && <label className="check-label"><input type="checkbox" checked={handover} disabled={busy} onChange={event => setHandover(event.target.checked)} />I will reconnect credentials here and choose what to read.</label>}
-      {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy || readsElsewhere && !handover}>{readsElsewhere ? 'Move reading here and sign in with Google' : 'Sign in with Google'}</button>
-    </form>;
-    return <form onSubmit={event => { event.preventDefault(); void perform(signIn); }}>
-      <h2>Sign in with Google</h2>
-      <p>Google grants Fulcrum read access to your mailbox. You pick the one label it reads next.</p>
-      {gmail.phase === 'failed' && <p role="alert">Google sign-in did not finish. Try again.</p>}
-      {error && <p role="alert">{error}</p>}
-      <button className="primary-button" disabled={busy}>Sign in with Google</button>
-    </form>;
-  };
-
-  return <section className="connect-source" aria-label="Connect a source"><h1>Connect a source</h1>{body()}</section>;
+  return <section className="connect-source" aria-label="Connect a source"><h1>Connect a source</h1>
+    {error && <><p role="alert">Source setup could not be loaded or updated.</p><button className="secondary-button" onClick={() => setRefresh(value => value + 1)}>Retry source setup</button></>}
+    {!setup ? !error && <p role="status">Loading source setup…</p> : <>
+      {!designated && <form onSubmit={event => { event.preventDefault(); void designate(); }}>
+        <h2>Connect sources on this Mac</h2><p>{elsewhere ? 'Another Mac is designated for source ingestion.' : 'Choose which Mac will keep your source credentials.'} Moving this designation does not transfer credentials or start importing.</p>
+        {elsewhere && <label className="check-label"><input type="checkbox" checked={handover} disabled={busy} onChange={event => setHandover(event.target.checked)} />I will reconnect credentials here and choose what to read.</label>}
+        <button className="secondary-button" disabled={busy || elsewhere && !handover}>Use this Mac for source connections</button>
+      </form>}
+      <h2>Source connections</h2>
+      <ManagedSources administer={administer} designated={designated} {...(pollMs === undefined ? {} : { pollMs })} />
+      <GmailSettings mode="existing" administer={administer} designated={designated} />
+    </>}
+  </section>;
 }

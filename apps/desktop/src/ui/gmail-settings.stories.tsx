@@ -59,3 +59,11 @@ export const OtherMac: Story = { args: { designated: false } };
 export const Unavailable: Story = { args: { administer: withStatus({ phase: 'unavailable' }) } };
 export const SignInFailed: Story = { args: { administer: withStatus({ phase: 'failed' }) } };
 export const Loading: Story = { args: { administer: fn(() => new Promise(() => {})) as unknown as Administer } };
+
+export const ExistingConnectionOnly: Story = { args: { mode: 'existing', administer: withStatus({ phase: 'active', account, label }) }, play: async ({ canvas }) => {
+  await canvas.findByRole('heading', { name: 'Existing Gmail connection' });
+  await expect(canvas.queryByRole('button', { name: 'Sign in with Google' })).not.toBeInTheDocument();
+} };
+export const NoExistingConnection: Story = { args: { mode: 'existing', administer: withStatus({ phase: 'disconnected' }) }, play: async ({ canvas }) => {
+  await expect(canvas.queryByRole('button', { name: 'Sign in with Google' })).not.toBeInTheDocument();
+} };

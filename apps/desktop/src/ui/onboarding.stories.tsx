@@ -8,3 +8,18 @@ export const ReviewProposals:Story={beforeEach:()=>{fixture.setProposals(['Synth
 export const ExistingWorkspace:Story={beforeEach:()=>{fixture.setWorkspace({people:[{id:'08000000-0000-7000-8000-000000000002',label:'Synthetic owner'}],ingestionDeviceId:'09000000-0000-7000-8000-000000000002'});},render:args=><Onboarding {...args}platform={fixture.platform}initialTransport={fixture.transport}/>,play:async({canvas,userEvent})=>{const next=await canvas.findByRole('button',{name:'Continue to AI'});await expect(next).toBeDisabled();await userEvent.selectOptions(canvas.getByRole('combobox',{name:'Which person is you in this workspace?'}),'08000000-0000-7000-8000-000000000002');await userEvent.click(canvas.getByRole('radio',{name:'Use this Mac as the ingestion device'}));await expect(next).toBeDisabled();await userEvent.click(canvas.getByRole('checkbox',{name:'Move ingestion to this Mac; I will reconnect credentials and choose scopes here.'}));await expect(next).toBeEnabled();}};
 export const FolderFailure:Story={render:args=><Onboarding {...args}platform={{...fixture.platform,setup:{...fixture.platform.setup!,choose:fn(async()=>{throw new Error('Denied');})}}}/>,play:async({canvas,userEvent})=>{await userEvent.click(canvas.getByRole('button',{name:'Choose new workspace folder'}));await canvas.findByRole('alert');await expect(canvas.getByRole('button',{name:'Open an existing Fulcrum workspace'})).toBeEnabled();}};
 export const NativeStartup:Story={render:()=> <DesktopRoot platform={fixture.platform}/>};
+
+export const ConnectDuringSetup: Story = {
+  render: args => <Onboarding {...args} platform={fixture.platform} initialTransport={fixture.transport} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(await canvas.findByRole('button', { name: 'Continue to AI' }));
+    await canvas.findByText('Off');
+    await userEvent.click(await canvas.findByRole('button', { name: 'Continue without AI' }));
+    await userEvent.click(await canvas.findByRole('button', { name: 'Connect Gmail' }));
+    await userEvent.click(canvas.getByRole('checkbox', { name: 'I agree to connect Gmail through Activepieces.' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Continue to Gmail in browser' }));
+    await expect(fixture.administer).toHaveBeenCalledWith('sources.connect', { source: 'gmail', acknowledged: true });
+    await userEvent.click(await canvas.findByRole('button', { name: 'Cancel Gmail connection' }));
+    await expect(fixture.administer).toHaveBeenCalledWith('sources.cancel', { source: 'gmail' });
+  },
+};

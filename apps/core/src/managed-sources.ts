@@ -115,10 +115,17 @@ export class ManagedSourceSettings {
     await this.remember(source, null, false);
   }
 
-  async begin(input: unknown, acknowledged: unknown): Promise<ManagedAuthorization> {
+  admit(input: unknown, acknowledged: unknown): ManagedSourceId {
     const source = sourceId(input);
     this.requireConsent(acknowledged);
-    if (source === 'granola' || this.jobs.has(source)) throw new Error('MANAGED_SOURCE_CONNECTION_NOT_ALLOWED');
+    if (!this.options.client || this.closed || source === 'granola' || this.jobs.has(source) || this.operations.has(source)) throw new Error('MANAGED_SOURCE_CONNECTION_NOT_ALLOWED');
+    return source;
+  }
+
+  failed(input: unknown): void { this.phases.set(sourceId(input), 'failed'); }
+
+  async begin(input: unknown, acknowledged: unknown): Promise<ManagedAuthorization> {
+    const source = this.admit(input, acknowledged);
     return this.run(source, async () => {
       const job: Job = { cancelled: false, claiming: false };
       this.jobs.set(source, job); this.phases.set(source, 'connecting');

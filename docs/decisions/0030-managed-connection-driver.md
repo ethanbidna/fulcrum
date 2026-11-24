@@ -82,3 +82,7 @@ namespace-checked connection metadata lookup. Restore reports saved receipts
 without signing in. Connector network waits run outside the canonical write
 queue. Cancellation/shutdown invalidates attempts and cleans up late grants.
 No source reads, runtime installer or browser callback is adopted by this unit.
+
+The next connection-UI unit adds the temporary browser handoff and shared
+Settings/onboarding controls under [ADR-0031](0031-managed-browser-handoff.md).
+Runtime installation and managed ingestion remain separate gates.
