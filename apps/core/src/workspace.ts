@@ -1,12 +1,19 @@
 import path from 'node:path';
+import { ManagedConnections } from '@fulcrum/sources';
+import { ManagedSourceSettings } from './managed-sources.js';
+import { nativeManagedRuntimeSecrets } from './managed-runtime.js';
+import { GmailSettings } from './gmail-settings.js';
+import type { GmailClient } from '@fulcrum/sources';
 import { AiSetup } from './ai-setup.js';
 import { openAdministration } from './administration.js';
-import { BackgroundPolicy } from '@fulcrum/ingest';
-import type { BackgroundSettings } from '@fulcrum/ingest';
+import { BackgroundPolicy, proofFor } from '@fulcrum/ingest';
+import type { BackgroundSettings, ReconciliationPlan } from '@fulcrum/ingest';
 import { openIngestion } from './ingestion.js';
+import { completedSources, createSourceProcessor } from './source-processor.js';
 import type { WorkspaceIngestion } from './ingestion.js';
 import { CommandPlanner, CommandJobs } from './command-planner.js';
 
+import { StructuredModelRuntime } from '@fulcrum/llm';
 import type { JsonModelRuntime } from '@fulcrum/llm';
 import { LocalPreferences, LocalMcpActivity } from '@fulcrum/store';
 import { createMcpAccess, validateMcpAccess, MCP_DEFAULTS } from './mcp-access.js';
@@ -30,6 +37,9 @@ export interface WorkspaceOptions {
   encryption?: WorkspaceEncryption;
   aiSetup?:AiSetup;
   ingestion?: WorkspaceIngestion;
+  gmailClient?: GmailClient;
+  managedRuntime?: { origin: string };
+  managedSources?: ManagedSourceSettings;
   background?: Partial<BackgroundSettings>;
   backgroundUnavailableReason?: string;
   mcp?: McpAccess;
@@ -55,6 +65,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   let writable = !opened.readOnly;
   let knownEventIds = new Set<string>();
   let tail: Promise<unknown> = Promise.resolve();
+  let reconciliationPlan: ReconciliationPlan | undefined;
   const enqueue = <T>(operation: () => Promise<T>): Promise<T> => {
     if (closing) return Promise.reject(new Error('CORE_CLOSING'));
     const result = tail.then(operation); tail = result.catch(() => undefined); return result;
@@ -79,6 +90,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
       const validators = await loadStoreValidators(options.schemaDirectory);
       domain = new Domain(emptyState(read.manifest.workspaceId), read.events, {
         newId: randomUUID, questionId, now: () => new Date().toISOString(), deviceId: opened.deviceId, userEntityId: options.userEntityId,
+        reconciliationProof: command => (reconciliationPlan && proofFor(reconciliationPlan, command)) ?? {},
         readIndex: {
           search: async (text, scope) => {
             if (!index) throw new Error('INDEX_UNAVAILABLE');
@@ -145,7 +157,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     fingerprint = JSON.stringify([...knownEventIds]);
   };
   let closePromise: Promise<void> | undefined;
-  const executeCurrent = async (command: unknown, actor: 'user' | 'mcp') => {
+  const executeCurrent = async (command: unknown, actor: 'user' | 'mcp' | 'ai' | 'connector') => {
       const result = await domain.execute({ ...(command as Omit<CommandEnvelope, 'actor'>), actor });
       if (result.ok) {
         const changes = [result, ...await maintainQuestions()];
@@ -158,19 +170,78 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
   const executeAs = (command: unknown, actor: 'user' | 'mcp') => enqueue(async () => { await requireAvailable(); return executeCurrent(command, actor); });
   const aiProfile = options.encryption ? path.join(options.localDirectory, `ai-${opened.manifest.workspaceId}`) : options.localDirectory;
   const aiSetup = options.aiSetup ?? new AiSetup(aiProfile, options.credentialHelper);
+  // Hosted models use no local memory; a placeholder keeps the memory check from blocking them.
+  const HOSTED_MODEL_BYTES = 1;
+  const followModel = (profile: Awaited<ReturnType<AiSetup['profile']>>) => {
+    // A caller-supplied processor owns its resource profile.
+    if (options.ingestion?.process) return;
+    const modelBytes = profile.kind === 'local' ? profile.compatibility?.modelResidentBytes : profile.kind === 'hosted' ? HOSTED_MODEL_BYTES : undefined;
+    // Without a measured size the previous or configured limit stays.
+    if (modelBytes === undefined || modelBytes === null) return;
+    try { background.configure({ modelBytes }); } catch { /* an unusable size leaves the previous limit */ }
+  };
+  aiSetup.onProfileChange = followModel;
+  void aiSetup.profile().then(followModel, () => undefined);
   const planner = new CommandPlanner(() => domain, options.commandRuntime ?? aiSetup.runtime, Date.now, options.commandRuntime?async snapshot=>snapshot:(snapshot,request)=>aiSetup.context(snapshot,request));
   const jobs = new CommandJobs(planner);
   let ingestion: Awaited<ReturnType<typeof openIngestion>> | undefined;
-  try {
-    if (options.ingestion) ingestion = await openIngestion({ configuration: options.ingestion, policy: background, localDirectory: options.localDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId, userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
-  } catch (error) { stopWatching?.(); unsubscribe?.(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  const workspaceId = domain!.getSnapshot().workspaceId;
+  const gmailDirectory = path.join(options.localDirectory, `gmail-${workspaceId}`);
+  const withProcessing = (configuration: WorkspaceIngestion): WorkspaceIngestion => {
+    if (configuration.process || !configuration.adapters.length) return configuration;
+    const process = createSourceProcessor({
+      snapshot: () => domain.getSnapshot(), runtime: new StructuredModelRuntime(aiSetup.runtime), userEntityId: options.userEntityId,
+      selfAddresses: () => configuration.selfAddresses ?? [], now: () => new Date().toISOString(),
+      submit: (commands, { signal, plan }) => enqueue(async () => {
+        await requireAvailable();
+        signal.throwIfAborted();
+        reconciliationPlan = plan;
+        try {
+          for (const command of commands) {
+            signal.throwIfAborted();
+            const result = await executeCurrent(command, command.actor as 'ai' | 'connector') as CommandResult;
+            if (!result.ok) throw new Error(`SOURCE_COMMAND_REJECTED:${result.error.code}`);
+          }
+        } finally { reconciliationPlan = undefined; }
+      }),
+    });
+    return { ...configuration, process, recordedSources: () => completedSources(domain.getSnapshot(), domain.history()) };
+  };
+  const configureIngestion = async (requested?: WorkspaceIngestion) => {
+    // A configuration the host supplies directly never starts inference; one from Gmail settings does.
+    let configuration = requested ? withProcessing(requested) : options.ingestion;
+    const previous = ingestion;
+    if (!configuration && previous) configuration = { adapters: [], scopes: {} };
+    ingestion = undefined;
+    await previous?.close();
+    if (configuration) ingestion = await openIngestion({ configuration, policy: background,
+      localDirectory: options.ingestion ? options.localDirectory : gmailDirectory, workspaceDirectory: options.workspaceDirectory, deviceId: opened.deviceId,
+      userEntityId: options.userEntityId, snapshot: () => domain.getSnapshot() });
+  };
+  const gmail = new GmailSettings(new LocalPreferences(gmailDirectory),
+    options.encryption || options.ingestion || opened.readOnly ? undefined : options.gmailClient, options.credentialHelper,
+    workspaceId, () => domain.getSnapshot().state.settings.ingestionDeviceId === opened.deviceId, configureIngestion);
+  try { await configureIngestion(); }
+  catch (error) { stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  await gmail.restore().catch(() => undefined);
+  const managedPreferences = new LocalPreferences(path.join(options.localDirectory, `managed-${workspaceId}`));
+  const designated = () => domain.getSnapshot().state.settings.ingestionDeviceId === opened.deviceId;
+  let managedSources: ManagedSourceSettings;
+  try { managedSources = options.managedSources ?? new ManagedSourceSettings({ preferences: managedPreferences, designated,
+    ...(!opened.readOnly && options.managedRuntime && options.credentialHelper ? { client: new ManagedConnections({
+      origin: options.managedRuntime.origin, namespace: workspaceId,
+      secrets: nativeManagedRuntimeSecrets(options.credentialHelper),
+    }) } : {}) });
+    await managedSources.restore(); }
+  catch { managedSources = new ManagedSourceSettings({ preferences: managedPreferences, designated }); }
+
   let administration: Awaited<ReturnType<typeof openAdministration>>;
   try { administration = await openAdministration(options, opened.deviceId, () => domain, background, () => ingestion?.scheduler.enabled() ?? false, {
     status:()=>({access:structuredClone(mcpAccess),initiatives:domain.getSnapshot().state.initiatives.map(({id,title})=>({id,title})),categories:domain.getSnapshot().state.categories.map(({id,label})=>({id,name:label}))}),
     configure:async input=>{const next=validateMcpAccess(input);await preferences.write('mcp',next);for(const key of Object.keys(mcpAccess))delete (mcpAccess as unknown as Record<string,unknown>)[key];Object.assign(mcpAccess,next);return structuredClone(mcpAccess);},
     activity:()=>new LocalMcpActivity(options.localDirectory).recent(),
-  },aiSetup,async(userEntityId,label)=>{jobs.close();await store.renameDevice(label);options.userEntityId=userEntityId;options.deviceLabel=label;fingerprint='';await reload();await preferences.write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId,deviceLabel:label,workspaceId:domain.getSnapshot().workspaceId});}); }
-  catch (error) { jobs.close(); aiSetup.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  },aiSetup,async(userEntityId,label)=>{jobs.close();await store.renameDevice(label);options.userEntityId=userEntityId;options.deviceLabel=label;fingerprint='';await reload();await preferences.write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId,deviceLabel:label,workspaceId:domain.getSnapshot().workspaceId});},gmail,managedSources); }
+  catch (error) { await managedSources.close(); jobs.close(); aiSetup.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const BACKUP_CHECK_INTERVAL_MS = 60_000;
   const backupTimer = setInterval(() => { void enqueue(() => administration.tick()).catch(() => undefined); }, BACKUP_CHECK_INTERVAL_MS);
   backupTimer.unref();
@@ -187,7 +258,14 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     return domain.query(name as QueryName, args as QueryArgs[QueryName]); });
   const mcp = createMcpAccess(mcpAccess, { query: (name,args)=>enqueue(async()=>{await requireAvailable();return domain.queryMcp(name as QueryName,args as QueryArgs[QueryName],mcpAccess);}), execute: command => executeAs(command, 'mcp') }, options.localDirectory);
   return {
-    administer: (name, args) => enqueue(async () => { await requireAvailable(); return administration.request(name as import('@fulcrum/domain').AdministrationName, args as never); }),
+    administer: async (name, args) => {
+      // Connector requests mutate local settings, so network waits need not hold the canonical write queue.
+      if (name.startsWith('sources.')) {
+        await enqueue(requireAvailable);
+        return administration.request(name as import('@fulcrum/domain').AdministrationName, args as never);
+      }
+      return enqueue(async () => { await requireAvailable(); return administration.request(name as import('@fulcrum/domain').AdministrationName, args as never); });
+    },
     observeSystem: sample => { background.observe(sample as import('@fulcrum/ingest').SystemSample, Date.now()); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); },
     configureBackground: settings => { background.configure(settings as Partial<BackgroundSettings>); if (background.reason(Date.now(), 'sources')) ingestion?.scheduler.interrupt(); return background.status(Date.now()); },
     planCommand: request => enqueue(async () => { await requireAvailable(); return jobs.start(request); }),
@@ -206,7 +284,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     ingestionActive: () => ingestion?.scheduler.enabled() ?? false,
     close: () => {
       closing = true; clearInterval(backupTimer); jobs.close(); aiSetup.close(); stopWatching?.();
-      return closePromise ??= (async () => { await ingestion?.close(); await tail; unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
+      return closePromise ??= (async () => { await managedSources.close(); await gmail.close(); await tail; await ingestion?.close(); unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
     },
   };
 }

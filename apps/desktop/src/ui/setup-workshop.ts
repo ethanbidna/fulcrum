@@ -1,5 +1,5 @@
 import{fn}from'storybook/test';
-import type{AiSetupStatus,AiProfile,AiJob,OriginPreference,ModelChoice,PortfolioBoard,AdministrationResults}from'@fulcrum/domain';
+import{localModelFit}from'@fulcrum/domain';import type{AiSetupStatus,AiProfile,AiJob,OriginPreference,ModelChoice,PortfolioBoard,AdministrationResults}from'@fulcrum/domain';
 import type{CoreTransport}from'../core-transport.js';import type{Platform}from'../platform/platform.js';
 const GIB=1024**3;
 const common={license:'Synthetic fixture license',licenseUrl:'https://example.test/license',baseDeveloper:'Synthetic developer',baseDeveloperCountry:'US',originSource:'https://example.test/developer',dataPolicyUrl:'https://example.test/privacy',downloadBytes:2*GIB,memoryBytes:6*GIB,diskRequiredBytes:7*GIB,validation:'Synthetic fixture; no model was measured'};
@@ -14,7 +14,7 @@ export function setupWorkshop(){
  let hardware:AiSetupStatus['hardware']={architecture:'intel',availableMemoryBytes:16*GIB,totalMemoryBytes:32*GIB,availableDiskBytes:100*GIB,runtimeSupported:true,runtimeReason:null};
  let workspace:AdministrationResults['workspace.setupStatus']={completed:false,deviceId:'09000000-0000-7000-8000-000000000001',deviceLabel:'Synthetic Mac',ingestionDeviceId:null,people:[],userEntityId:'08000000-0000-7000-8000-000000000001'};
  const administer=fn(async(name:string,args:Record<string,unknown>)=>{
-  if(name==='ai.status')return{hardware,profile,preference,choices:syntheticChoices,suggestionId:'synthetic-local',runtimeDownloadBytes:200*1024**2,runtimeVersion:'Synthetic runtime',hostedSupported:true};
+  if(name==='ai.status')return{hardware,profile,preference,choices:syntheticChoices,suggestionId:syntheticChoices.find(choice=>choice.kind==='local'&&choice.id==='synthetic-local'&&localModelFit(choice,hardware)!=='too_large'&&hardware.availableDiskBytes!==null&&hardware.availableDiskBytes>=choice.diskRequiredBytes!)?.id??null,runtimeDownloadBytes:200*1024**2,runtimeVersion:'Synthetic runtime',hostedSupported:true};
   if(name==='ai.preferences'){preference=args.preference as OriginPreference;return preference;}
   if(name==='ai.start'){const choice=syntheticChoices.find(item=>item.id===args.choiceId)!;profile={kind:choice.kind,choiceId:choice.id,compatibility:{structuredOutput:true,latencyMs:250,processRssBytes:80*1024**2,modelResidentBytes:choice.kind==='local'?3*GIB:null,slow:false,at:'2026-11-10T12:00:00Z'}};job={phase:'ready',profile};return{id:'synthetic-setup-job'};}
   if(name==='ai.job')return job;
@@ -25,7 +25,8 @@ export function setupWorkshop(){
   if(name==='workspace.finishSetup'){completed=true;return{};}
   throw new Error('Synthetic unavailable action');
  })as NonNullable<CoreTransport['administer']>;
- const transport:CoreTransport={administer,query:fn(async(name:string)=>name==='portfolio.board'?structuredClone(EMPTY_BOARD):[])as CoreTransport['query'],execute:fn(async()=>({ok:true as const,eventId:'synthetic-event',ops:[],raisedQuestionIds:[],suggestedAssertionIds:[]})),subscribe:async()=>()=>{},close:fn()};
+ let proposals:{id:string;title:string}[]=[];
+ const transport:CoreTransport={administer,query:fn(async(name:string)=>name==='portfolio.board'?structuredClone(EMPTY_BOARD):name==='portfolio.list'?proposals.map(item=>({initiative:{...item}})):[])as CoreTransport['query'],execute:fn(async(command:{name:string;args:{id?:string}})=>{if(command.name==='initiative.approve'||command.name==='initiative.setLifecycle')proposals=proposals.filter(item=>item.id!==command.args.id);return{ok:true as const,eventId:'synthetic-event',ops:[],raisedQuestionIds:[],suggestedAssertionIds:[]};})as unknown as CoreTransport['execute'],subscribe:async()=>()=>{},close:fn()};
  const platform:Platform={connectCore:fn(async()=>transport),setup:{status:fn(async()=>({configured:false,locations:[{id:'documents' as const,label:'In Documents',available:true},{id:'dropbox' as const,label:'In Dropbox',available:false},{id:'drive' as const,label:'In Google Drive',available:false}]})),choose:fn(async(_location,mode)=>({token:'synthetic-selection',directory:'Synthetic Documents/Fulcrum',cloud:false,mode})),open:fn(async(_token,label)=>{workspace={...workspace,deviceLabel:label};})}};
- return{transport,platform,administer,setHardware:(value:Partial<typeof hardware>)=>{hardware={...hardware,...value};},setWorkspace:(value:Partial<typeof workspace>)=>{workspace={...workspace,...value};}};
+ return{transport,platform,administer,setProposals:(titles:string[])=>{proposals=titles.map((title,index)=>({id:`0a000000-0000-7000-8000-00000000000${index+1}`,title}));},setHardware:(value:Partial<typeof hardware>)=>{hardware={...hardware,...value};},setWorkspace:(value:Partial<typeof workspace>)=>{workspace={...workspace,...value};}};
 }

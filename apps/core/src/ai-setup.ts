@@ -1,14 +1,18 @@
+import { NativeProviderSecrets } from './provider-secrets.js';
+import type { ProviderSecrets } from './provider-secrets.js';
 import{randomUUID}from'node:crypto';import path from'node:path';
 import{LocalPreferences}from'@fulcrum/store';
-import{ManagedOllama,MODEL_CATALOG,OLLAMA_RELEASE,CATALOG_REVISION,requiredModelDisk,detectModelHardware,AnthropicJsonRuntime,NativeProviderSecrets}from'@fulcrum/llm';
-import type{JsonModelRuntime,ProviderSecrets,ModelProgress}from'@fulcrum/llm';
-import{filterModelChoices}from'@fulcrum/domain';
+import{ManagedOllama,MODEL_CATALOG,OLLAMA_RELEASE,CATALOG_REVISION,requiredModelDisk,detectModelHardware,AnthropicJsonRuntime}from'@fulcrum/llm';
+import type{JsonModelRuntime,ModelProgress}from'@fulcrum/llm';
+import{filterModelChoices,localModelFit}from'@fulcrum/domain';
 import type{OriginPreference,AiProfile,AiSetupStatus,AiJob,AdministrationArgs,CommandRequest,Domain}from'@fulcrum/domain';
 const COMPATIBILITY_SLOW_MS=30_000;const COMPATIBILITY_DEADLINE_MS=120_000;const MIN_BUDGET=1000;const MAX_BUDGET=10_000_000;
 const SYNTHETIC_TEST={system:'Return the requested JSON. This is a synthetic connection check with no work content.',input:'Return ok true.',schema:{type:'object',additionalProperties:false,required:['ok'],properties:{ok:{type:'boolean'}}}};
 type Snapshot=ReturnType<Domain['getSnapshot']>;
 interface SetupPorts{managed:ManagedOllama;secrets:ProviderSecrets;hardware:typeof detectModelHardware;hosted?: (key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>)=>JsonModelRuntime}
 export class AiSetup{
+ /** Called after a profile is saved, so limits that depend on the model can follow it. */
+ onProfileChange:((profile:AiProfile)=>void)|undefined;
  private readonly credentialsAvailable:boolean;private readonly preferences:LocalPreferences;private readonly ports:SetupPorts;private job:{id:string;state:AiJob;controller:AbortController}|undefined;private budgetTail:Promise<unknown>=Promise.resolve();private profileTail:Promise<unknown>=Promise.resolve();
  constructor(private readonly directory:string,helper?:string,ports?:SetupPorts){this.credentialsAvailable=ports!==undefined||process.platform==='darwin'&&!!helper;this.preferences=new LocalPreferences(directory);this.ports=ports??{managed:new ManagedOllama(path.join(directory,'managed-ai')),secrets:new NativeProviderSecrets(helper),hardware:detectModelHardware};}
  async profile():Promise<AiProfile>{
@@ -22,7 +26,7 @@ export class AiSetup{
   if(choice&&!filterModelChoices([{...choice,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null}],{...await this.originPreference(),search:''}).length)return{kind:'none'};
   return profile;
  }
- async status():Promise<AiSetupStatus>{const preference=await this.originPreference();const hardware=await this.ports.hardware(this.directory);const profile=await this.profile();const local=MODEL_CATALOG.filter(choice=>choice.kind==='local'&&hardware.availableMemoryBytes>=choice.memoryBytes!&&hardware.availableDiskBytes!==null&&hardware.availableDiskBytes>=requiredModelDisk(choice));return{hardware,profile,preference,runtimeDownloadBytes:OLLAMA_RELEASE.bytes,runtimeVersion:OLLAMA_RELEASE.version,hostedSupported:this.credentialsAvailable,...(this.job?{job:{id:this.job.id,state:this.job.state}}:{}),choices:MODEL_CATALOG.map(choice=>{const{digest:_digest,...metadata}=choice;void _digest;return{...metadata,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null};}),suggestionId:hardware.runtimeSupported?local[0]?.id??null:null};}
+ async status():Promise<AiSetupStatus>{const preference=await this.originPreference();const hardware=await this.ports.hardware(this.directory);const profile=await this.profile();const local=MODEL_CATALOG.filter(choice=>choice.kind==='local'&&localModelFit(choice,hardware)!=='too_large'&&hardware.availableDiskBytes!==null&&hardware.availableDiskBytes>=requiredModelDisk(choice));return{hardware,profile,preference,runtimeDownloadBytes:OLLAMA_RELEASE.bytes,runtimeVersion:OLLAMA_RELEASE.version,hostedSupported:this.credentialsAvailable,...(this.job?{job:{id:this.job.id,state:this.job.state}}:{}),choices:MODEL_CATALOG.map(choice=>{const{digest:_digest,...metadata}=choice;void _digest;return{...metadata,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null};}),suggestionId:hardware.runtimeSupported?local[0]?.id??null:null};}
  async originPreference():Promise<OriginPreference>{return this.validatePreference(await this.preferences.read('modelPreferences')??{homeCountry:'',domesticOnly:false,excludedCountries:[],search:''});}
  private validatePreference(value:unknown):OriginPreference{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Invalid model preferences.');const preference=value as OriginPreference;if(Object.keys(preference).some(key=>!['homeCountry','domesticOnly','excludedCountries','search'].includes(key))||typeof preference.homeCountry!=='string'||preference.homeCountry!==''&&!/^[A-Z]{2}$/.test(preference.homeCountry)||typeof preference.domesticOnly!=='boolean'||preference.domesticOnly&&!preference.homeCountry||typeof preference.search!=='string'||preference.search.length>100||!Array.isArray(preference.excludedCountries)||preference.excludedCountries.some(country=>typeof country!=='string'||!/^[A-Z]{2}$/.test(country)))throw new Error('Invalid model preferences.');return preference;}
  async savePreference(value:unknown){if(this.job?.state.phase==='running')throw new Error('Wait for setup or cancel it first.');const preference=this.validatePreference(value);const current=await this.profile();await this.preferences.write('modelPreferences',preference);const choice=MODEL_CATALOG.find(item=>item.id===current.choiceId);if(choice&&!filterModelChoices([{...choice,diskRequiredBytes:choice.kind==='local'?requiredModelDisk(choice):null}],{...preference,search:''}).length)await this.none();return preference;}
@@ -39,7 +43,7 @@ export class AiSetup{
  private async configure(args:AdministrationArgs['ai.start'],job:NonNullable<AiSetup['job']>){
   await this.saveProfile({kind:'none'},job);job.controller.signal.throwIfAborted();const choice=MODEL_CATALOG.find(choice=>choice.id===args.choiceId)!;const signal=job.controller.signal;let runtime:JsonModelRuntime;
   if(choice.kind==='local'){
-   const hardware=await this.ports.hardware(this.directory);if(!hardware.runtimeSupported||hardware.availableDiskBytes===null||hardware.availableDiskBytes<requiredModelDisk(choice)||hardware.availableMemoryBytes<choice.memoryBytes!)throw new Error('Not enough verified local disk capacity or unsupported runtime.');
+   const hardware=await this.ports.hardware(this.directory);if(!hardware.runtimeSupported||hardware.availableDiskBytes===null||hardware.availableDiskBytes<requiredModelDisk(choice)||localModelFit(choice,hardware)==='too_large')throw new Error('Not enough verified local disk capacity or unsupported runtime.');
    const progress=(value:ModelProgress)=>{job.state={phase:'running',...value};};
    await this.ports.managed.install(job.controller.signal,progress);await this.ports.managed.pull(choice,job.controller.signal,progress);runtime=await this.ports.managed.runtime(choice.model,signal);
   }else runtime=this.hosted(()=>Promise.resolve(args.apiKey!),tokens=>this.reserve(tokens,args.dailyTokenBudget!));
@@ -50,7 +54,7 @@ export class AiSetup{
   const profile:AiProfile={kind:choice.kind,choiceId:choice.id,revision:CATALOG_REVISION,compatibility,...(choice.kind==='local'?{digest:choice.digest!}:{initiativeIds:args.initiativeIds!,dailyTokenBudget:args.dailyTokenBudget!})};
   await this.saveProfile(profile,job);job.controller.signal.throwIfAborted();job.state={phase:'ready',profile};
  }
- private saveProfile(profile:AiProfile,job?:NonNullable<AiSetup['job']>):Promise<void>{const operation=this.profileTail.then(async()=>{job?.controller.signal.throwIfAborted();await this.preferences.write('ai',profile);});this.profileTail=operation.catch(()=>undefined);return operation;}
+ private saveProfile(profile:AiProfile,job?:NonNullable<AiSetup['job']>):Promise<void>{const operation=this.profileTail.then(async()=>{job?.controller.signal.throwIfAborted();await this.preferences.write('ai',profile);this.onProfileChange?.(profile);});this.profileTail=operation.catch(()=>undefined);return operation;}
  statusJob(id:string):AiJob{if(this.job?.id!==id)throw new Error('Setup is no longer available. Retry.');return structuredClone(this.job.state);}
  cancel(id:string){if(this.job?.id===id&&this.job.state.phase==='running'){this.job.controller.abort();this.ports.managed.stop();}}
  private hosted(key:()=>Promise<string>,reserve:(tokens:number)=>Promise<void>){return this.ports.hosted?.(key,reserve)??new AnthropicJsonRuntime('claude-haiku-4-5-20251001',key,reserve);}

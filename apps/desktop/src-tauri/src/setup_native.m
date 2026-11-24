@@ -23,14 +23,29 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
     @autoreleasepool {
         NSData *bytes = [[NSString stringWithUTF8String:input] dataUsingEncoding:NSUTF8StringEncoding];
         NSDictionary *request = [NSJSONSerialization JSONObjectWithData:bytes options:0 error:nil];
-        if (![request isKindOfClass:NSDictionary.class] || ![request[@"provider"] isEqual:@"anthropic"]) return NULL;
+        if (![request isKindOfClass:NSDictionary.class]) return NULL;
+        NSString *service;
+        NSString *account;
+        if ([request[@"provider"] isEqual:@"anthropic"]) {
+            service = @"Fulcrum.Provider.Anthropic";
+            account = @"api-key";
+        } else if ([request[@"provider"] isEqual:@"gmail"]) {
+            service = @"Fulcrum.Connector.Gmail";
+            id workspaceId = request[@"workspaceId"];
+            if (![workspaceId isKindOfClass:NSString.class] || ![[NSUUID alloc] initWithUUIDString:workspaceId]) return NULL;
+            account = [workspaceId lowercaseString];
+        } else if ([request[@"provider"] isEqual:@"activepieces"]) {
+            service = @"Fulcrum.Connector.Activepieces";
+            account = @"local-runtime";
+        } else return NULL;
         NSMutableDictionary *query = [@{(__bridge id)kSecClass:(__bridge id)kSecClassGenericPassword,
-            (__bridge id)kSecAttrService:@"Fulcrum.Provider.Anthropic", (__bridge id)kSecAttrAccount:@"api-key"} mutableCopy];
+            (__bridge id)kSecAttrService:service, (__bridge id)kSecAttrAccount:account} mutableCopy];
         NSString *operation = [NSString stringWithUTF8String:action];
         NSDictionary *result;
         if ([operation isEqual:@"get"]) {
             query[(__bridge id)kSecReturnData] = @YES;
             CFTypeRef value = NULL; OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &value);
+            if (status == errSecItemNotFound && [request[@"provider"] isEqual:@"activepieces"]) return strdup("{\"missing\":true}");
             if (status != errSecSuccess || !value) return NULL;
             NSData *data = CFBridgingRelease(value); NSString *key = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             if (!key) return NULL; result = @{@"key":key};

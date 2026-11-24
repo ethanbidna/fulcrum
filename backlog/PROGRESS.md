@@ -37,7 +37,7 @@ See [the remaining-work checklist](REMAINING.md) for the current follow-up queue
 | 22 | I3 extraction | done | n/a | #62 | Typed model-neutral runtime, Ollama driver, repair once, UTF-16 evidence spans, 48-case mock CI and bounded local smoke; quality/adoption and unattended reconciliation remain pending |
 | 23 | I4 native ContextIndex | done | n/a | #65 | Native SQLite alias/external-ID resolution, FTS and temporal retrieval; scenario 6 question dedupe/selection/undo and rebuild/core-failure tests; no Graphiti or unattended reconciliation |
 | 24 | I5 reconciler | done | n/a | #66 | Pure typed plans, exact matching, temporal claims, protected suggestions, contextual questions and run undo; synthetic Domain/S2 checks; no unattended consumer or model adoption |
-| 25 | I2 first real connector | todo | [ ] | #67 | S4 complete. Implement the read-only Gmail piece in the local core; see [prerequisite review](../docs/reviews/I2-prerequisites.md) |
+| 25 | I2 first real connector | todo | [ ] | #67, #98, #104, #105 | Draft implementation: Gmail OAuth, workspace Keychain entry and label opt-in wired to the local scheduler. Completion receipts and cancellation guards have synthetic restart coverage. Native duplicate-shell guard tested; updated preview credential read and fresh Gmail source check verified after owner Keychain approval. Extraction failures, full packaged acceptance and open-original fallback remain open |
 | 26 | U6 context view | done | n/a | #73 | Canonical aggregate/object evidence, provenance/claims/two clocks, safe links, stale-response guards and Storybook keyboard/accessibility checks; synthetic only |
 | 27 | U7 timeline | done | n/a | #75 | Optional canonical target-date/milestone timeline, explicit undated prerequisites, simple SVG plus accessible list; synthetic browser/domain checks |
 | 28 | A1 questions engine | done | n/a | #68 | Deterministic question lifecycle, deferral/evidence consolidation, newer-evidence obsolescence, production fold conflicts and atomic restore choices; synthetic core/replay checks; real two-Mac sync remains S1 |
@@ -297,3 +297,16 @@ block ingestion under the current retention contract. See the
 [integration record](../docs/integrations/ACTIVEPIECES.md) and
 [ADR-0030](../docs/decisions/0030-managed-connection-driver.md). Existing step
 statuses and Owner boxes are unchanged; this driver is not step 25 acceptance.
+
+
+### Managed desktop core continuation — 2026-11-24
+
+The next I2 unit, [PR #108](https://github.com/ethanbidna/fulcrum/pull/108),
+adds native runtime-identity storage, private runtime
+configuration, workspace-local receipt recovery and typed source administration.
+Slow connector requests do not hold the canonical write queue. All managed
+sources still report ingestion blocked; no runtime is installed and the launched
+app is not updated. Settings/browser callbacks and packaged acceptance remain
+pending. Step 25 and Owner boxes remain unchanged. The preceding driver PR #107
+passed CI and both unsigned runtime architecture checks; signed packaging was
+skipped. See the [integration record](../docs/integrations/ACTIVEPIECES.md).

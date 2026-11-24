@@ -16,3 +16,25 @@ test('region preferences persist and never silently relax for a setup request',a
 test('cancel/off during a pending model install cannot reactivate it later',async()=>{let release;await fixture(async f=>{const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});await vi.waitFor(()=>expect(f.ports.managed.install).toHaveBeenCalled());await f.setup.none();release();expect((await ready(f.setup,id)).phase).toBe('cancelled');expect(await f.setup.profile()).toEqual({kind:'none'});},{managed:{install:vi.fn(()=>new Promise(resolve=>{release=resolve;})),pull:async(_choice,signal)=>signal.throwIfAborted(),runtime:async()=>({generate:async()=>({ok:true})}),residentBytes:async()=>null,stop:vi.fn()}});});
 test('local compatibility is separate from acceptance and records the verified profile',async()=>fixture(async f=>{const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});const result=await ready(f.setup,id);expect(result.phase).toBe('ready');expect(result.profile).toMatchObject({kind:'local',digest:expect.stringMatching(/^sha256:/),revision:'2026-11-10',compatibility:{structuredOutput:true,modelResidentBytes:12345}});}));
 test('saving an origin exclusion disables an already active excluded model without a fallback',async()=>fixture(async f=>{const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});await ready(f.setup,id);expect((await f.setup.profile()).kind).toBe('local');await f.setup.savePreference({homeCountry:'',domesticOnly:false,excludedCountries:['CN'],search:''});expect(await f.setup.profile()).toEqual({kind:'none'});await expect(f.setup.runtime.generate({system:'Synthetic',input:'Synthetic',schema:{}})).rejects.toThrow('AI is off');}));
+const lowFree={...hardware,availableMemoryBytes:GIB,totalMemoryBytes:16*GIB};
+test('local fit uses total memory, so low momentary free memory neither hides nor blocks a model',async()=>fixture(async f=>{
+  const status=await f.setup.status();
+  expect(status.suggestionId).not.toBeNull();
+  const{id}=await f.setup.start({choiceId:status.suggestionId,licenseAccepted:true});
+  expect((await ready(f.setup,id)).phase).toBe('ready');
+},{hardware:async()=>lowFree}));
+const tiny={...hardware,availableMemoryBytes:GIB,totalMemoryBytes:4*GIB};
+test('a Mac whose total memory cannot hold the model plus the system reserve is refused',async()=>fixture(async f=>{
+  expect((await f.setup.status()).suggestionId).toBeNull();
+  const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});
+  expect((await ready(f.setup,id)).phase).toBe('failed');
+  expect(f.ports.managed.pull).not.toHaveBeenCalled();
+},{hardware:async()=>tiny}));
+test('an activated or cleared profile is announced so background limits can follow it',async()=>fixture(async f=>{
+  const seen=[];f.setup.onProfileChange=profile=>seen.push(profile);
+  const{id}=await f.setup.start({choiceId:'qwen3-4b',licenseAccepted:true});
+  expect((await ready(f.setup,id)).phase).toBe('ready');
+  expect(seen.at(-1)).toMatchObject({kind:'local',compatibility:{modelResidentBytes:12345}});
+  await f.setup.none();
+  expect(seen.at(-1)).toEqual({kind:'none'});
+}));

@@ -14,3 +14,9 @@ Review them on version changes; unknown versions fail.
   Tauri Apps Contributors project. MIT option selected for tauri-plugin 2.7.2.
 
 Other notice texts come directly from the installed exact-version packages.
+
+The pinned Activepieces framework and shared npm packages omit license
+metadata and text. Both publish the same source commit as their npm
+`gitHead`. The checked-in license is from that commit and applies MIT to
+the open-source package paths. The pinned `xmlhttprequest-ssl` tarball
+includes its MIT text and omits the SPDX field.

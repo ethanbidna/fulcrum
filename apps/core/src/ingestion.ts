@@ -8,6 +8,9 @@ export interface WorkspaceIngestion {
   adapters: SourceAdapter[];
   scopes: Record<string, string[]>;
   process?: IngestionOptions['process'];
+  recordedSources?: IngestionOptions['recordedSources'];
+  /** Addresses that identify the user as an author of source items. */
+  selfAddresses?: string[];
 }
 export async function openIngestion(options: {
   configuration: WorkspaceIngestion; localDirectory: string; workspaceDirectory: string; deviceId: string; userEntityId: string;
@@ -17,7 +20,7 @@ export async function openIngestion(options: {
   const scheduler = new IngestionScheduler({ queue, adapters: options.configuration.adapters, deviceId: options.deviceId,
     pauseReason: phase => options.policy.reason(Date.now(), phase), extractionStarted: () => options.policy.started(Date.now()),
     now: () => new Date().toISOString(), ingestionDeviceId: () => options.snapshot().state.settings.ingestionDeviceId ?? undefined,
-    recordedSources: () => options.snapshot().state.sources,
+    recordedSources: options.configuration.recordedSources ?? (() => options.snapshot().state.sources),
     relevance: () => ({ userId: options.userEntityId, terms: options.snapshot().state.initiatives.map(initiative => initiative.title), linkedThreadIds: [], excludedAuthorIds: [] }),
     ...(options.configuration.process ? { process: options.configuration.process } : {}),
   });

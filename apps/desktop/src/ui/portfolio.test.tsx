@@ -7,10 +7,17 @@ import { projectBoard } from '@fulcrum/domain';
 import type { WorkspaceState } from '@fulcrum/domain';
 import { PortfolioCardView } from './portfolio-card.js';
 import { Portfolio } from './portfolio.js';
+import type { FreshnessStatus } from '@fulcrum/domain';
+import type { CoreTransport } from '../core-transport.js';
 import { groupCards, sortCards, moveRanks } from './portfolio-model.js';
 const snapshot = JSON.parse(readFileSync('fixtures/states/portfolio.state.json', 'utf8')) as { state: WorkspaceState };
 const board = () => projectBoard(structuredClone(snapshot.state), [], { now: '2026-11-08T20:00:00Z' });
 afterEach(cleanup);
+const FRESHNESS = { checkedAt: null, pending: 0, failed: 0 } as const;
+function quiet(freshness: Partial<FreshnessStatus> & Pick<FreshnessStatus, 'state' | 'label'> = { state: 'disabled', label: 'No source scopes enabled' }, proposed: { id: string; title: string }[] = []) {
+  return vi.fn(async (name: string) => name === 'status.freshness' ? { ...FRESHNESS, ...freshness } : name === 'portfolio.list' ? proposed.map(item => ({ initiative: item })) : []) as unknown as CoreTransport['query'];
+}
+const empty = () => ({ ...board(), cards: [], questionCounts: {}, rail: { ...board().rail, questionCount: 0 } });
 for (const card of board().cards) test(`card snapshot: ${card.cardState.kind}`, () => {
   expect(renderToStaticMarkup(<PortfolioCardView card={card} categoryLabels={['Synthetic category']} questionCount={1} />)).toMatchSnapshot();
 });
@@ -34,7 +41,7 @@ test('manual movement handles missing and duplicate ranks without mutating cards
   expect(cards).toEqual(before);
 });
 test('board grouping/sort controls and context collapse work without writes', () => {
-  const execute = vi.fn(); render(<Portfolio board={board()} execute={execute} />);
+  const execute = vi.fn(); render(<Portfolio board={board()} execute={execute} query={quiet()} />);
   expect(screen.queryByText('Onboarding survey refresh')).toBeNull();
   fireEvent.change(screen.getByLabelText('Group by'), { target: { value: 'moscow' } });
   expect(screen.getByRole('region', { name: 'Must Do' })).toBeTruthy();
@@ -46,7 +53,7 @@ test('board grouping/sort controls and context collapse work without writes', ()
 });
 test('keyboard-accessible reorder sends one atomic command and exposes rejection', async () => {
   const execute = vi.fn().mockResolvedValue({ ok: false, error: { code: 'STALE_BASE', message: 'Order could not be saved' } });
-  render(<Portfolio board={board()} execute={execute} />);
+  render(<Portfolio board={board()} execute={execute} query={quiet()} />);
   fireEvent.click(screen.getByRole('button', { name: 'Move Vendor evaluation later' }));
   await screen.findByRole('alert');
   expect(execute).toHaveBeenCalledOnce(); expect(execute.mock.calls[0]![0].name).toBe('initiative.rerank');
@@ -55,7 +62,7 @@ test('keyboard-accessible reorder sends one atomic command and exposes rejection
 });
 test('new initiative is an explicit user command and failure preserves the draft', async () => {
   const execute = vi.fn().mockResolvedValue({ ok: false, error: { message: 'Synthetic rejection' } });
-  render(<Portfolio board={board()} execute={execute} />);
+  render(<Portfolio board={board()} execute={execute} query={quiet()} />);
   fireEvent.click(screen.getByRole('button', { name: 'New initiative' }));
   fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Synthetic outcome' } });
   fireEvent.click(screen.getByRole('button', { name: 'Create initiative' }));
@@ -69,7 +76,50 @@ test('recent changes name the question or initiative context', () => {
     { context: question.prompt, eventId: 'question-change', actor: 'user', at: '2026-11-08T20:00:00Z', deviceId: 'synthetic', command: { name: 'question.raise', args: {} }, changes: [{ kind: 'question', id: question.id, operation: 'create', before: null, after: question }], evidenceRefs: [] },
     { context: 'Vendor evaluation', eventId: 'edge-change', actor: 'user', at: '2026-11-08T20:00:00Z', deviceId: 'synthetic', command: { name: 'edge.create', args: {} }, changes: [{ kind: 'edge', id: edge.id, operation: 'create', before: null, after: edge }], evidenceRefs: [] },
   ];
-  render(<Portfolio board={value} execute={vi.fn()} />);
+  render(<Portfolio board={value} execute={vi.fn()} query={quiet()} />);
   expect(screen.getByText(`${question.prompt} · Question added`)).toBeTruthy();
   expect(screen.getByText('Vendor evaluation · Relationship added')).toBeTruthy();
+});
+
+test('with no sources the empty portfolio is a prompt to connect one, without manual controls', async () => {
+  render(<Portfolio board={empty()} execute={vi.fn()} query={quiet()} />);
+  expect(await screen.findByRole('heading', { name: 'Connect a source to get started' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Connect a source' }).getAttribute('href')).toBe('#connect');
+  expect(screen.queryByLabelText('Group by')).toBeNull();
+  expect(screen.queryByRole('button', { name: 'New initiative' })).toBeNull();
+  expect(screen.queryByRole('complementary', { name: 'Portfolio context' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'or add an initiative yourself' }));
+  expect(await screen.findByRole('form', { name: 'New initiative' })).toBeTruthy();
+});
+test('while sources are being read it shows animated progress, not an empty prompt', async () => {
+  const { container } = render(<Portfolio board={empty()} execute={vi.fn()} query={quiet({ state: 'catching-up', label: 'Catching up — 12 items', pending: 12 })} />);
+  expect(await screen.findByRole('heading', { name: 'Reading your sources…' })).toBeTruthy();
+  expect(screen.getByText('Catching up — 12 items')).toBeTruthy();
+  expect(container.querySelector('.activity-mark')?.getAttribute('data-working')).toBe('true');
+  expect(screen.queryByRole('link', { name: 'Connect a source' })).toBeNull();
+});
+test('when nothing needs the user it says so', async () => {
+  render(<Portfolio board={empty()} execute={vi.fn()} query={quiet({ state: 'current', label: 'Up to date as of today' })} />);
+  expect(await screen.findByRole('heading', { name: 'Watching your sources' })).toBeTruthy();
+  expect(screen.getByText(/Nothing needs you right now/)).toBeTruthy();
+});
+test('a populated portfolio keeps its controls and shows a one-line status', async () => {
+  render(<Portfolio board={board()} execute={vi.fn()} query={quiet({ state: 'current', label: 'Up to date' })} />);
+  expect(await screen.findByText('Up to date')).toBeTruthy();
+  expect(screen.getByLabelText('Group by')).toBeTruthy();
+});
+test('initiatives Fulcrum proposed are reviewed on the portfolio and nothing activates without a click', async () => {
+  const execute = vi.fn(async () => ({ ok: true }));
+  render(<Portfolio board={empty()} execute={execute as never} query={quiet({ state: 'current', label: 'Up to date' }, [{ id: '0a000000-0000-7000-8000-000000000001', title: 'Synthetic proposal' }])} />);
+  expect(await screen.findByText('Synthetic proposal')).toBeTruthy();
+  expect(execute).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Approve Synthetic proposal' }));
+  await waitFor(() => expect(execute).toHaveBeenCalledWith({ name: 'initiative.approve', args: { id: '0a000000-0000-7000-8000-000000000001' } }));
+  fireEvent.click(screen.getByRole('button', { name: 'Reject Synthetic proposal' }));
+  await waitFor(() => expect(execute).toHaveBeenCalledWith({ name: 'initiative.setLifecycle', args: { id: '0a000000-0000-7000-8000-000000000001', lifecycle: 'rejected' } }));
+});
+test('open questions are linked from the portfolio', async () => {
+  const value = { ...empty(), rail: { ...empty().rail, questionCount: 3 } };
+  render(<Portfolio board={value} execute={vi.fn()} query={quiet({ state: 'current', label: 'Up to date' })} />);
+  expect(await screen.findByRole('link', { name: '3 questions need your answer' })).toBeTruthy();
 });

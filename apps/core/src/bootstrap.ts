@@ -15,7 +15,7 @@ export async function startCore(options: WorkspaceOptions & { idleMs?: number },
     if (local.isSymbolicLink() || !local.isDirectory() || local.uid !== process.getuid?.()) throw new Error('LOCAL_DIRECTORY_UNSAFE');
   } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
   let backgroundUnavailableReason = options.backgroundUnavailableReason;
-  if (options.ingestion) {
+  if (options.ingestion || options.gmailClient) {
     backgroundUnavailableReason ??= await prepareBackgroundProcess() ?? undefined;
   }
   const host = await openWorkspaceHost({ ...options, ...(backgroundUnavailableReason ? { backgroundUnavailableReason } : {}) });

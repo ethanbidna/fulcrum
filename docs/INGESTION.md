@@ -20,7 +20,7 @@ flowchart LR
 
 ## 1. Pull (SourceAdapter)
 
-- Incremental by cursor per opted-in scope (mailbox label, channel, folder, meeting series). Cursors are machine-local.
+- Incremental by cursor per opted-in scope (whole mailbox excluding Spam and Trash, mailbox label, channel, folder, meeting series). Cursors are machine-local.
 - First connection offers a bounded backfill (default 14 days) — not unlimited history.
 - Respect rate limits; exponential backoff; resumable mid-page.
 - Required per item: `connector`, `remoteId`, `threadRemoteId?`, `permalink?`, `happenedAt`, author identity, text.

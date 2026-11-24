@@ -13,7 +13,8 @@ ordinary use, ship the experience in Fulcrum, and cover all six sources.
 | Reusable six-source connection driver | Implemented; synthetic API tests |
 | Shared catalog presence for five OAuth sources | Observed November 24; not live sign-in |
 | Granola API-key connection request | Synthetic API test only |
-| Native Keychain/runtime composition and settings | Pending |
+| Native Keychain and core administration | Implemented; synthetic runtime and substituted Security calls |
+| Browser callback, source settings and runtime installation | Pending |
 | Updated launched macOS app | Pending |
 | Managed automatic ingestion | Blocked by full-body run-log retention |
 
@@ -107,11 +108,11 @@ were read. The driver must not be exposed directly to untrusted source content.
 1. Own and package the local runtime; preserve its database/encryption keys
    outside the synced workspace. Disable telemetry. Validate startup, shutdown,
    idle memory and upgrade/recovery without requiring Terminal from users.
-2. Implement the secure-store interface with the native Keychain helper. Keep
-   local identity and connector secrets out of preferences, diagnostics and
-   workspace logs. Preserve existing direct Gmail credentials until explicit
-   replacement/disconnect.
-3. Bind administration methods to the driver. Use a temporary loopback browser
+2. The secure-store interface is implemented with the native Keychain helper.
+   Verify actual Keychain approval/denial with the packaged app. Keep connector
+   secrets out of preferences, diagnostics and workspace logs. Existing direct
+   Gmail credentials remain separate until explicit replacement/disconnect.
+3. Administration methods are bound to the driver. Add a temporary loopback browser
    helper for hosted popup replies, checking exact origin, popup, nonce, timeout
    and request origin. Close the listener and popup on every terminal path.
 4. Add all six settings/onboarding rows, accurate blocked/unavailable states,
@@ -156,6 +157,7 @@ connector behavior is claimed from these tests.
 
 ## Primary references
 
+- [Pinned connection metadata request contract](https://github.com/activepieces/activepieces/blob/0.93.0/packages/core/shared/src/lib/automation/app-connection/dto/read-app-connection-request.ts)
 - [Pinned connection request contract](https://github.com/activepieces/activepieces/blob/0.93.0/packages/core/shared/src/lib/automation/app-connection/dto/upsert-app-connection-request.ts)
 - [Pinned Slack authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/slack/src/lib/auth.ts)
 - [Pinned Drive authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/google-drive/src/lib/auth.ts)
@@ -172,3 +174,73 @@ five-second limit. The full workspace suite is not reported as green.
 The encryption suite passes independently on the review branch (10 tests)
 with a 15-second per-test timeout. This diagnoses the local timing limit; it
 does not turn the default-timeout full-suite run into a pass.
+
+
+## Native core continuation — November 24
+
+Review: [PR #108](https://github.com/ethanbidna/fulcrum/pull/108), stacked on
+#107 and the existing native foundations from #105.
+
+The core now composes the connection driver when an owned runtime configuration
+and the native credential helper are supplied. Missing or unsafe configuration
+leaves all six sources unavailable and the workspace usable. This unit does not
+install a runtime, expose setup in Settings or rebuild the launched app.
+
+The runtime owner will write private `managed-runtime.json` containing only an
+IPv4 loopback origin. There is no administration method for choosing an arbitrary
+server. The file is a composition seam for the installer, not an ordinary-user
+setup instruction. Runtime ownership and encryption-key/volume recovery still
+need the installation unit.
+
+One Keychain item, service `Fulcrum.Connector.Activepieces`, account
+`local-runtime`, holds the generated local login for this Mac. Connections use
+workspace-specific external IDs. Per-workspace identities would try to register
+a second owner on an already-provisioned instance. Missing credentials are
+reported separately from denied access; denial never becomes permission to
+replace an existing identity. The item uses device-only accessibility.
+
+Workspace-local `managed-sources.json` contains connection receipts and pending
+source IDs only. A pending marker is written before a grant can be saved.
+Bounded metadata lookup recovers a remote connection after an interrupted final
+receipt write. Lookup checks project, namespace, piece and project scope; its
+page limit fails closed. Authorization codes, API keys and runtime passwords
+are never written to that file.
+
+The authenticated administration API adds `sources.status`, `sources.begin`,
+`sources.complete`, `sources.granola`, `sources.verify`, `sources.cancel` and
+`sources.disconnect`. Begin requires explicit acknowledgement on the designated
+device. Status and restore do no network work. Restored receipts are `saved`,
+not `connected`, until checked against runtime metadata. That check is not
+proof of source read access, narrowed granted permissions or ingestion.
+
+These operations work on local connection settings outside the canonical write
+queue. A blocked connector request therefore does not block workspace reads or
+edits. No source-adapter actions, source-body reads or canonical domain writes
+are introduced. Every status retains `ingestion: blocked`.
+
+Cancellation invalidates late authorization URLs. If a grant arrives after
+cancellation, shutdown or ingestion-device handover, the core removes that
+connection before marking it disconnected. Failed/uncertain exchanges retain
+a pending marker for recovery. Graceful shutdown removes unclaimed attempts
+and waits for in-flight cleanup; storage failure cannot manufacture a successful
+disconnect. Existing direct Gmail ingestion is not migrated or erased.
+
+The native protocol test compiles the real Objective-C helper against substituted
+Security calls. It checks missing/denied responses, the shared runtime account,
+Gmail namespace isolation and device-only storage attributes without touching
+the user's Keychain. Both macOS architecture jobs run this test. Actual Keychain
+approval, hosted browser callbacks, live provider grants and an updated native
+bundle remain unverified in this unit.
+
+Core-unit validation: supported Node 22 ran 694 passing workspace tests with
+one existing skip (`--maxWorkers=1 --testTimeout=15000`), plus 116 passing
+reference tests, one reference skip and one TODO. The longer local timeout is
+explicit; this is not a claim about an unchanged default-timeout run. Schema
+generation checks, strict typecheck, lint and local documentation links pass.
+The local macOS production SEA core and MCP sidecars both package and pass
+schema, FTS5 and encryption self-tests. These sidecars are not an updated
+launched desktop bundle, an installer test or live managed-connector acceptance.
+
+Final review added failing-then-passing OAuth and Granola regressions for
+cancellation during receipt persistence. The final full suite and both
+production sidecar self-tests passed after that fix.

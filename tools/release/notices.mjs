@@ -16,12 +16,30 @@ export function auditLicense(expression){
 async function texts(directory){const files=await readdir(directory);const selected=files.filter(name=>/^(licen[sc]e|copying|notice|copyright)([.\-_]|$)/i.test(name));let result='';for(const name of selected.sort()){const file=path.join(directory,name);try{result+=`\n${name}\n${await readFile(file,'utf8')}\n`;}catch{/* Directories do not contain distributable notice text. */}}return result;}
 async function generate(){
  const entries=[];const overrideDirectory=path.join(root,'tools/release/licenses');const overrides=JSON.parse(await readFile(path.join(overrideDirectory,'overrides.json'),'utf8'));
- async function nativeText(metadata){const text=await texts(path.dirname(metadata.manifest_path));if(text.trim())return text;const override=overrides[`${metadata.name}@${metadata.version}`];if(!override)throw new Error(`LICENSE_TEXT_MISSING: ${metadata.name}`);const bytes=await readFile(path.join(overrideDirectory,override.file));if(createHash('sha256').update(bytes).digest('hex')!==override.sha256)throw new Error('LICENSE_OVERRIDE_CHANGED');return bytes.toString();}
+ async function reviewedText(override){
+  const bytes=await readFile(path.join(overrideDirectory,override.file));
+  if(createHash('sha256').update(bytes).digest('hex')!==override.sha256)throw new Error('LICENSE_OVERRIDE_CHANGED');
+  return bytes.toString();
+ }
+ async function nativeText(metadata){
+  const text=await texts(path.dirname(metadata.manifest_path));if(text.trim())return text;
+  const override=overrides[`${metadata.name}@${metadata.version}`];
+  if(!override)throw new Error(`LICENSE_TEXT_MISSING: ${metadata.name}`);
+  return reviewedText(override);
+ }
  const visited=new Set();
  async function visit(directory){
   directory=await realpath(directory);if(visited.has(directory))return;visited.add(directory);
   const metadata=JSON.parse(await readFile(path.join(directory,'package.json'),'utf8'));
-  if(!metadata.private){auditLicense(metadata.license);const text=await texts(directory);if(!text.trim())throw new Error(`LICENSE_TEXT_MISSING: ${metadata.name}`);entries.push({id:`npm ${metadata.name}@${metadata.version}`,license:metadata.license,text:`Source: https://registry.npmjs.org/${metadata.name}/-/${metadata.name.split('/').at(-1)}-${metadata.version}.tgz\n${text}`});}
+  if(!metadata.private){
+   const override=overrides[`${metadata.name}@${metadata.version}`];
+   const license=metadata.license??override?.license;
+   auditLicense(license);
+   const packagedText=await texts(directory);
+   const text=packagedText.trim()?packagedText:override?.file&&override.license===license?await reviewedText(override):'';
+   if(!text.trim())throw new Error(`LICENSE_TEXT_MISSING: ${metadata.name}`);
+   entries.push({id:`npm ${metadata.name}@${metadata.version}`,license,text:`Source: https://registry.npmjs.org/${metadata.name}/-/${metadata.name.split('/').at(-1)}-${metadata.version}.tgz\n${text}`});
+  }
   for(const name of Object.keys(metadata.dependencies??{})){
    let parent=directory,found;
    while(parent!==path.dirname(parent)){const candidate=path.join(parent,'node_modules',name);try{await readFile(path.join(candidate,'package.json'));found=candidate;break;}catch{parent=path.dirname(parent);}}
