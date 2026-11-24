@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LimaConnectorRuntime, validRuntimeKeys } from './lima.js';
-import { ACTIVEPIECES_VERSION, LIMA_VERSION, RUNTIME_RELEASES, vmConfiguration } from './catalog.js';
+import { ACTIVEPIECES_VERSION, LIMA_VERSION, REQUIRED_FREE_DISK_BYTES, RUNTIME_RELEASES, vmConfiguration } from './catalog.js';
 import { downloadLima, runCommand, privateJson, writePrivateJson, type RunCommand } from './io.js';
 
 const directories: string[] = [];
@@ -23,8 +23,9 @@ async function fixture() {
   const store = { read: vi.fn(async () => keys), write: vi.fn(async () => {}) };
   const run = vi.fn<RunCommand>(async () => '');
   const request = vi.fn<typeof fetch>(async () => Response.json({ CURRENT_VERSION: ACTIVEPIECES_VERSION, EDITION: 'ce', CLOUD_AUTH_ENABLED: true }));
-  const runtime = new LimaConnectorRuntime({ directory, stateDirectory, keys: store, architecture: 'x64', run, request });
-  return { directory, stateDirectory, record, store, run, request, runtime };
+  const freeDiskBytes = vi.fn(async () => REQUIRED_FREE_DISK_BYTES);
+  const runtime = new LimaConnectorRuntime({ directory, stateDirectory, keys: store, architecture: 'x64', run, request, freeDiskBytes });
+  return { directory, stateDirectory, record, store, run, request, freeDiskBytes, runtime };
 }
 
 describe('owned connector runtime', () => {
@@ -69,6 +70,19 @@ describe('owned connector runtime', () => {
     await writeFile(path.join(directory, `lima-${LIMA_VERSION}`, 'bin', 'limactl'), 'modified');
     await expect(runtime.start(new AbortController().signal, () => {})).rejects.toThrow('runtime_binary_changed');
     expect(run).not.toHaveBeenCalled();
+  });
+  it('does not execute a modified runtime binary when stopping', async () => {
+    const { runtime, run, directory, stateDirectory } = await fixture();
+    await mkdir(path.join(stateDirectory, 'v'));
+    await writeFile(path.join(directory, `lima-${LIMA_VERSION}`, 'bin', 'limactl'), 'modified');
+    await expect(runtime.stop()).rejects.toThrow('runtime_binary_changed');
+    expect(run).not.toHaveBeenCalled();
+  });
+  it('refuses insufficient disk before accessing keys or creating a VM', async () => {
+    const { runtime, freeDiskBytes, store, run } = await fixture();
+    freeDiskBytes.mockResolvedValueOnce(REQUIRED_FREE_DISK_BYTES - 1);
+    await expect(runtime.install(new AbortController().signal, () => {})).rejects.toThrow('runtime_disk_space');
+    expect(store.read).not.toHaveBeenCalled(); expect(run).not.toHaveBeenCalled();
   });
   it('does not adopt or overwrite an existing VM without its ownership record', async () => {
     const { runtime, directory, stateDirectory, store, run } = await fixture();

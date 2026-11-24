@@ -327,7 +327,8 @@ box or step 25 acceptance is completed. See
 
 ### Owned connector runtime continuation — 2026-11-24
 
-The next I2 unit adds the optional pinned Lima/containerd runtime driver,
+The next I2 unit, [PR #110](https://github.com/ethanbidna/fulcrum/pull/110),
+adds the optional pinned Lima/containerd runtime driver,
 private installation ownership records, separate native Keychain encryption
 keys and a developer lifecycle probe. Intel readiness/stop/restart passed in
 the fresh final profile and native-adapter harness; evidence is recorded in

@@ -16,7 +16,7 @@ const REQUEST_TIMEOUT_MS = 3000;
 const MAX_SOCKET_PATH_BYTES = 100;
 const MAX_FLAGS_BYTES = 128 * 1024;
 interface Installation { v: 1; architecture: RuntimeArchitecture; port: number; owner: string; keyDigest: string; binaryDigest: string }
-interface Options { directory: string; stateDirectory: string; keys: RuntimeKeyStore; architecture?: RuntimeArchitecture; request?: typeof fetch; run?: RunCommand }
+interface Options { directory: string; stateDirectory: string; keys: RuntimeKeyStore; freeDiskBytes?: (directory: string) => Promise<number>; architecture?: RuntimeArchitecture; request?: typeof fetch; run?: RunCommand }
 const digestKeys = (keys: RuntimeKeys) => createHash('sha256').update(keys.encryption + keys.jwt).digest('hex');
 export function validRuntimeKeys(value: unknown): value is RuntimeKeys {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -26,6 +26,10 @@ export function validRuntimeKeys(value: unknown): value is RuntimeKeys {
 }
 async function exists(file: string): Promise<boolean> {
   try { await lstat(file); return true; } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; }
+}
+async function freeDiskBytes(directory: string): Promise<number> {
+  const disk = await statfs(directory);
+  return Number(disk.bavail) * Number(disk.bsize);
 }
 async function availablePort(): Promise<number> {
   const server = createServer();
@@ -103,8 +107,8 @@ export class LimaConnectorRuntime implements ConnectorRuntime {
   async install(signal: AbortSignal, progress: (value: RuntimeProgress) => void): Promise<string> {
     return this.exclusive(async () => {
       await this.directories();
-      const disk = await statfs(this.options.directory);
-      if (Number(disk.bavail) * Number(disk.bsize) < REQUIRED_FREE_DISK_BYTES) throw new Error('runtime_disk_space');
+      const freeBytes = this.options.freeDiskBytes ? await this.options.freeDiskBytes(this.options.directory) : await freeDiskBytes(this.options.directory);
+      if (freeBytes < REQUIRED_FREE_DISK_BYTES) throw new Error('runtime_disk_space');
       let record = await this.record();
       if (!record && await exists(path.join(this.options.stateDirectory, VM_NAME))) throw new Error('unowned_runtime_instance');
       const keys = await this.ensureKeys(record);
@@ -186,7 +190,9 @@ export class LimaConnectorRuntime implements ConnectorRuntime {
     } catch { return false; }
   }
   private async stopOwned(): Promise<void> {
-    if (!await this.record() || !await exists(path.join(this.options.stateDirectory, VM_NAME))) return;
+    const record = await this.record();
+    if (!record || !await exists(path.join(this.options.stateDirectory, VM_NAME))) return;
+    if (await fileDigest(this.binary) !== record.binaryDigest) throw new Error('runtime_binary_changed');
     await this.command(['stop', VM_NAME], new AbortController().signal);
   }
   async stop(): Promise<void> { await this.exclusive(() => this.stopOwned()); }

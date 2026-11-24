@@ -53,7 +53,7 @@ ran. A fresh profile provided the final test without changing earlier data.
 
 The fresh final profile passed readiness, stop, restart readiness and final
 stop. The checked-in acceptance harness then repeated that cycle with the
-real Keychain adapter and returned `installed`, `initialHealthy` and
+real Keychain adapter on Node 22 and returned `installed`, `initialHealthy` and
 `restartHealthy` as true. No account signup, provider grant, action or flow was
 performed in either trial. The November 21 live Gmail evidence is unchanged.
 
@@ -69,11 +69,15 @@ Only the master copy is in Keychain; there is no claim that the guest never
 persists those values. Installation records contain fingerprints, not keys.
 
 Typecheck, lint and schema generation checks pass. The reference suite passes
-116 tests with one existing skip and one TODO. The unit suite passes 724
+116 tests with one existing skip and one TODO. The full unit run passed 725
 tests with one existing skip on Node 22, using the documented local
 `--maxWorkers=1 --testTimeout=15000` allowance. A regression test first reproduced a late
 readiness response being accepted after cancellation; startup now checks the
 signal again before reporting ready and stops the owned VM on that path.
+A final stop-integrity regression then reproduced executing a modified binary
+during explicit stop. The fix validates its fingerprint before execution; all
+18 runtime tests pass after it, and typecheck/lint/schema checks pass again.
+The full-suite count above precedes that final focused regression.
 
 ## Reproduction and safety boundaries
 
@@ -101,7 +105,8 @@ failed installation; unknown state fails closed and requires inspection.
 
 Synthetic tests cover architecture pins, no host mounts, loopback-only
 forwarding, generated-key shape, missing/mismatched keys, binary modification,
-unknown instance/container/volume rejection, cancellation cleanup, private
+unknown instance/container/volume rejection, low-disk admission, cancellation
+cleanup, private
 atomic files, symlink rejection, bounded downloads/commands/readiness,
 untrusted redirects and separate native Keychain accounts. The public runtime
 entry point is allowed only to core composition; desktop/domain/private-driver
