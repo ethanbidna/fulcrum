@@ -285,3 +285,14 @@ Codex can keep working on steps that don't depend on this (2–7) in the meantim
 - 2026-11-09 — Recurring audit through I3 / #62: one confirmed handover-dedupe schema mismatch filed as #63; no implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-09-product.md). Audit PR #64; owner checks and model adoption remain pending.
 
 - 2026-11-08 — First recurring audit through C4 / #47: no product-invariant violations identified in the implemented scope; no new issues or implementation fixes. See [audit evidence and limits](../docs/audits/2026-11-08-core.md). Audit PR #48; owner checks remain unchanged.
+
+## Managed connector continuation — 2026-11-24
+
+The owner requested dashboard-free setup in the launched app and all six
+sources. The reusable connection driver and permission policies are implemented
+with synthetic API tests. Desktop composition, live non-Gmail sign-in, packaging
+and managed ingestion remain pending. Full-body Activepieces run/activity logs
+block ingestion under the current retention contract. See the
+[integration record](../docs/integrations/ACTIVEPIECES.md) and
+[ADR-0030](../docs/decisions/0030-managed-connection-driver.md). Existing step
+statuses and Owner boxes are unchanged; this driver is not step 25 acceptance.
