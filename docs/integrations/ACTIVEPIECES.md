@@ -157,6 +157,7 @@ connector behavior is claimed from these tests.
 
 ## Primary references
 
+- [Pinned connection metadata request contract](https://github.com/activepieces/activepieces/blob/0.93.0/packages/core/shared/src/lib/automation/app-connection/dto/read-app-connection-request.ts)
 - [Pinned connection request contract](https://github.com/activepieces/activepieces/blob/0.93.0/packages/core/shared/src/lib/automation/app-connection/dto/upsert-app-connection-request.ts)
 - [Pinned Slack authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/slack/src/lib/auth.ts)
 - [Pinned Drive authentication](https://github.com/activepieces/activepieces/blob/0.93.0/packages/pieces/community/google-drive/src/lib/auth.ts)
@@ -176,6 +177,9 @@ does not turn the default-timeout full-suite run into a pass.
 
 
 ## Native core continuation — November 24
+
+Review: [PR #108](https://github.com/ethanbidna/fulcrum/pull/108), stacked on
+#107 and the existing native foundations from #105.
 
 The core now composes the connection driver when an owned runtime configuration
 and the native credential helper are supplied. Missing or unsafe configuration
@@ -228,7 +232,7 @@ the user's Keychain. Both macOS architecture jobs run this test. Actual Keychain
 approval, hosted browser callbacks, live provider grants and an updated native
 bundle remain unverified in this unit.
 
-Core-unit validation: supported Node 22 ran 692 passing workspace tests with
+Core-unit validation: supported Node 22 ran 694 passing workspace tests with
 one existing skip (`--maxWorkers=1 --testTimeout=15000`), plus 116 passing
 reference tests, one reference skip and one TODO. The longer local timeout is
 explicit; this is not a claim about an unchanged default-timeout run. Schema
@@ -236,3 +240,7 @@ generation checks, strict typecheck, lint and local documentation links pass.
 The local macOS production SEA core and MCP sidecars both package and pass
 schema, FTS5 and encryption self-tests. These sidecars are not an updated
 launched desktop bundle, an installer test or live managed-connector acceptance.
+
+Final review added failing-then-passing OAuth and Granola regressions for
+cancellation during receipt persistence. The final full suite and both
+production sidecar self-tests passed after that fix.

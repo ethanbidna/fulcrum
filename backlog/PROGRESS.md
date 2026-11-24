@@ -301,7 +301,8 @@ statuses and Owner boxes are unchanged; this driver is not step 25 acceptance.
 
 ### Managed desktop core continuation — 2026-11-24
 
-The next I2 unit adds native runtime-identity storage, private runtime
+The next I2 unit, [PR #108](https://github.com/ethanbidna/fulcrum/pull/108),
+adds native runtime-identity storage, private runtime
 configuration, workspace-local receipt recovery and typed source administration.
 Slow connector requests do not hold the canonical write queue. All managed
 sources still report ingestion blocked; no runtime is installed and the launched
