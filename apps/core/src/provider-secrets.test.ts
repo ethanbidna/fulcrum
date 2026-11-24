@@ -36,6 +36,16 @@ describe.skipIf(process.platform !== 'darwin')('native managed credential protoc
     expect(await second.getOptional()).toBe('synthetic-identity');
     await first.set('synthetic-value'); await second.remove();
   });
+  it('keeps encryption keys separate from the runtime login', async () => {
+    vi.stubEnv('FULCRUM_TEST_KEYCHAIN_STATE', 'missing');
+    const secrets = new NativeProviderSecrets(helper, 'activepieces-runtime');
+    expect(await secrets.getOptional()).toBeNull();
+    vi.stubEnv('FULCRUM_TEST_KEYCHAIN_STATE', 'denied');
+    await expect(secrets.getOptional()).rejects.toThrow('Keychain approval failed');
+    vi.stubEnv('FULCRUM_TEST_KEYCHAIN_STATE', 'present');
+    expect(await secrets.getOptional()).toBe('synthetic-runtime-keys');
+    await secrets.set('synthetic-value');
+  });
   it('does not expose that identity through the Gmail namespace', async () => {
     vi.stubEnv('FULCRUM_TEST_KEYCHAIN_STATE', 'present');
     await expect(new NativeProviderSecrets(helper, 'gmail', '01000000-0000-7000-8000-000000000001').get()).rejects.toThrow();

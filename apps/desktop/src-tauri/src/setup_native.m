@@ -37,6 +37,9 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
         } else if ([request[@"provider"] isEqual:@"activepieces"]) {
             service = @"Fulcrum.Connector.Activepieces";
             account = @"local-runtime";
+        } else if ([request[@"provider"] isEqual:@"activepieces-runtime"]) {
+            service = @"Fulcrum.Connector.Activepieces";
+            account = @"runtime-keys";
         } else return NULL;
         NSMutableDictionary *query = [@{(__bridge id)kSecClass:(__bridge id)kSecClassGenericPassword,
             (__bridge id)kSecAttrService:service, (__bridge id)kSecAttrAccount:account} mutableCopy];
@@ -45,7 +48,7 @@ char *fulcrum_provider_keychain(const char *action, const char *input) {
         if ([operation isEqual:@"get"]) {
             query[(__bridge id)kSecReturnData] = @YES;
             CFTypeRef value = NULL; OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &value);
-            if (status == errSecItemNotFound && [request[@"provider"] isEqual:@"activepieces"]) return strdup("{\"missing\":true}");
+            if (status == errSecItemNotFound && ([request[@"provider"] isEqual:@"activepieces"] || [request[@"provider"] isEqual:@"activepieces-runtime"])) return strdup("{\"missing\":true}");
             if (status != errSecSuccess || !value) return NULL;
             NSData *data = CFBridgingRelease(value); NSString *key = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             if (!key) return NULL; result = @{@"key":key};

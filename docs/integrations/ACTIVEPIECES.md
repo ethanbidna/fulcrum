@@ -15,7 +15,7 @@ ordinary use, ship the experience in Fulcrum, and cover all six sources.
 | Granola API-key connection request | Synthetic API test only |
 | Native Keychain and core administration | Implemented; synthetic runtime and substituted Security calls |
 | Browser callback and six-source Settings/onboarding | Implemented; synthetic callback and browser interaction checks |
-| Runtime installation and updated launched app | Pending |
+| Runtime driver / updated launched app | Intel lifecycle probe implemented; desktop adoption pending |
 | Updated launched macOS app | Pending |
 | Managed automatic ingestion | Blocked by full-body run-log retention |
 
@@ -315,3 +315,33 @@ blocker; the connection UI does not change that contract.
 The production desktop assets and local macOS SEA core/MCP sidecars also
 build successfully. Both sidecars pass schema, FTS5 and encryption self-tests.
 This does not install or launch a replacement native desktop bundle.
+
+## Owned-runtime driver continuation — November 24, 2026
+
+The next I2 unit adds an optional `ConnectorRuntime` implementation backed by
+pinned Lima, Ubuntu LTS, rootless containerd and the existing immutable
+Activepieces image. It installs without Docker Desktop or host-folder mounts,
+keeps its state outside synced workspaces, binds its service to loopback and
+preserves its volume and Keychain keys on stop/cancel/retry. Unknown ownership,
+missing keys and modified binaries fail closed. Runtime encryption/JWT keys
+have a separate device-only native Keychain account from the generated login.
+
+Intel install/readiness/stop/restart passed. A fresh final profile and the
+checked-in native-adapter harness also passed after adding the
+volume-owner/key-fingerprint check. Both profiles were stopped, and the earlier
+trial was preserved rather than deleted. See [the complete runtime evidence,
+pins, caveats and reproduction harness](../spikes/S4-results/managed-runtime.md)
+and [ADR-0032](../decisions/0032-owned-connector-runtime.md).
+
+This is the runtime driver, not adoption by the desktop composition. No new
+provider grant or source action ran. In-app runtime controls, first-owner
+bootstrap, an updated launched native bundle and ARM execution remain open.
+Full-body log retention still blocks managed ingestion. Step 25 and all Owner
+boxes remain unchanged.
+
+Validation: 724 unit tests pass on Node 22 with one existing skip using
+`--maxWorkers=1 --testTimeout=15000`. The reference suite passes 116 tests with
+one existing skip and one TODO; typecheck, lint, schema checks and the standalone
+probe build pass. The native protocol tests compile the Objective-C helper with
+substituted Security calls; the separate Intel lifecycle proof uses the real
+Keychain adapter. No UI components changed in this runtime-driver unit.

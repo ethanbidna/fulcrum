@@ -14,6 +14,7 @@ function isTypeOnly(node) {
 }
 
 function allowsPackage(source, target, subpath, node) {
+  if (source === 'core' && target === 'sources' && subpath === 'runtime') return true;
   if (subpath && subpath !== 'interfaces') return false;
   if (source === 'core' && ['domain', 'store', 'index', 'mcp', 'llm', 'sources', 'ingest', 'context'].includes(target)) return !subpath;
   if (target === 'schema') return !subpath && isTypeOnly(node);

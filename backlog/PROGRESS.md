@@ -324,3 +324,14 @@ installation, live grants and an updated launched app remain pending. No Owner
 box or step 25 acceptance is completed. See
 [ADR-0031](../docs/decisions/0031-managed-browser-handoff.md) and the
 [integration record](../docs/integrations/ACTIVEPIECES.md).
+
+### Owned connector runtime continuation — 2026-11-24
+
+The next I2 unit adds the optional pinned Lima/containerd runtime driver,
+private installation ownership records, separate native Keychain encryption
+keys and a developer lifecycle probe. Intel readiness/stop/restart passed in
+the fresh final profile and native-adapter harness; evidence is recorded in
+[the runtime results](../docs/spikes/S4-results/managed-runtime.md).
+The desktop does not install/start this service yet. In-app controls, local
+owner bootstrap, an updated launched bundle, ARM execution and the managed
+source-retention gate remain open. Step 25 and Owner boxes are unchanged.

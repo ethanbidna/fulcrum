@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LocalPreferences } from '@fulcrum/store';
-import { configuredManagedRuntime, KeychainManagedRuntimeSecrets } from './managed-runtime.js';
+import { configuredManagedRuntime, KeychainManagedRuntimeSecrets, KeychainRuntimeKeys } from './managed-runtime.js';
 
 const identity = { origin: 'http://127.0.0.1:18082', email: 'local@example.invalid', password: 'synthetic-password', provisioned: false };
 const directories: string[] = [];
@@ -55,5 +55,24 @@ describe('managed runtime configuration', () => {
     const { preferences: local } = await preferences();
     await local.write('managedRuntime', { origin });
     expect(await configuredManagedRuntime(local)).toBeUndefined();
+  });
+});
+
+describe('runtime encryption key storage', () => {
+  it('round-trips valid keys through the secure store', async () => {
+    let encoded: string | null = null;
+    const store = new KeychainRuntimeKeys({ getOptional: async () => encoded, set: async value => { encoded = value; } });
+    expect(await store.read()).toBeNull();
+    const keys = { encryption: 'a'.repeat(32), jwt: 'b'.repeat(64) };
+    await store.write(keys); expect(await store.read()).toEqual(keys);
+    encoded = JSON.stringify({ ...keys, token: 'extra' });
+    await expect(store.read()).rejects.toThrow('invalid_runtime_keys');
+  });
+  it('preserves denial and does not replace malformed keys', async () => {
+    const set = vi.fn(async () => {});
+    const store = new KeychainRuntimeKeys({ getOptional: async () => { throw new Error('denied'); }, set });
+    await expect(store.read()).rejects.toThrow('denied');
+    await expect(store.write({ encryption: 'short', jwt: 'short' })).rejects.toThrow('invalid_runtime_keys');
+    expect(set).not.toHaveBeenCalled();
   });
 });

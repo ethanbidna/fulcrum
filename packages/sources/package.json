@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./interfaces": "./src/interfaces.ts",
+    "./runtime": "./src/managed/runtime/index.ts",
     "./gmail": "./src/gmail/adapter.ts"
   },
   "dependencies": {
