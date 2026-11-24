@@ -9,6 +9,7 @@ async function violations(filePath, code) {
 
 describe('architecture import boundaries', () => {
   test.each([
+    ['apps/core/src/index.ts', "import { LimaConnectorRuntime } from '@fulcrum/sources/runtime';"],
     ['apps/core/src/index.ts', "import { SqliteContextIndex } from '@fulcrum/context';"],
     ['packages/ingest/src/index.ts', "import type { ContextIndex } from '@fulcrum/context/interfaces';"],
     ['apps/core/src/index.ts', "import { SqliteReadIndex } from '@fulcrum/index';"],
@@ -28,6 +29,9 @@ describe('architecture import boundaries', () => {
   });
 
   test.each([
+    ['apps/desktop/src/index.ts', "import { LimaConnectorRuntime } from '@fulcrum/sources/runtime';"],
+    ['packages/domain/src/index.ts', "import type { ConnectorRuntime } from '@fulcrum/sources/runtime';"],
+    ['apps/core/src/index.ts', "import { runCommand } from '@fulcrum/sources/runtime/io';"],
     ['packages/ingest/src/index.ts', "import { SqliteContextIndex } from '@fulcrum/context';"],
     ['apps/desktop/src/index.ts', "import { Store } from '@fulcrum/store';"],
     ['packages/mcp/src/index.ts', "export * from '@fulcrum/index';"],

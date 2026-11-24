@@ -11,14 +11,17 @@ extern void fulcrum_free_setup_string(char *);
 static BOOL expected_query(CFDictionaryRef raw) {
     NSDictionary *query = (__bridge NSDictionary *)raw;
     return [query[(__bridge id)kSecAttrService] isEqual:@"Fulcrum.Connector.Activepieces"]
-        && [query[(__bridge id)kSecAttrAccount] isEqual:@"local-runtime"];
+        && ( [query[(__bridge id)kSecAttrAccount] isEqual:@"local-runtime"]
+          || [query[(__bridge id)kSecAttrAccount] isEqual:@"runtime-keys"]);
 }
 OSStatus SecItemCopyMatching(CFDictionaryRef query, CFTypeRef *result) {
     if (!expected_query(query)) return errSecParam;
     const char *state = getenv("FULCRUM_TEST_KEYCHAIN_STATE");
     if (state && strcmp(state, "denied") == 0) return errSecInteractionNotAllowed;
     if (!state || strcmp(state, "missing") == 0) return errSecItemNotFound;
-    *result = CFBridgingRetain([@"synthetic-identity" dataUsingEncoding:NSUTF8StringEncoding]);
+    NSDictionary *attributes = (__bridge NSDictionary *)query;
+    NSString *value = [attributes[(__bridge id)kSecAttrAccount] isEqual:@"runtime-keys"] ? @"synthetic-runtime-keys" : @"synthetic-identity";
+    *result = CFBridgingRetain([value dataUsingEncoding:NSUTF8StringEncoding]);
     return errSecSuccess;
 }
 OSStatus SecItemUpdate(CFDictionaryRef query, CFDictionaryRef rawAttributes) {

@@ -11,3 +11,4 @@ export type { ManagedConnection, ManagedRuntimeIdentity, ManagedRuntimeSecrets }
 export { MANAGED_SOURCE_IDS, MANAGED_SOURCE_POLICIES } from './managed/policy.js';
 export type { ManagedSourceId } from './managed/policy.js';
 export { receiveManagedCode } from './managed/browser.js';
+export * from './managed/runtime/index.js';

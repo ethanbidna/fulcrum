@@ -81,6 +81,10 @@ Rules (enforced by lint import boundaries once the monorepo exists):
 | `packages/ingest` | `domain` commands, driver interfaces | write workspace files directly |
 | drivers | Node APIs, their own third-party libs | `domain` internals |
 
+Core may also import the declared `@fulcrum/sources/runtime` public entry point
+for optional runtime lifecycle composition. This grants no driver internals or
+desktop/domain access; see [ADR-0032](decisions/0032-owned-connector-runtime.md).
+
 The C6 implementation and development-only transport boundary are described in
 [ADR-0014](decisions/0014-core-transports.md). The production core has no TCP
 listener; its separate browser-development build is not a release artifact.

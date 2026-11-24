@@ -2,7 +2,7 @@ import{spawn}from'node:child_process';
 const SECRET_BYTES=8192;const KEYCHAIN_TIMEOUT_MS=15_000;
 export interface ProviderSecrets{get():Promise<string>;set(key:string):Promise<void>;remove():Promise<void>}
 export class NativeProviderSecrets implements ProviderSecrets{
- constructor(private readonly helper:string|undefined, private readonly provider:'anthropic'|'gmail'|'activepieces'='anthropic', private readonly workspaceId?:string){}
+ constructor(private readonly helper:string|undefined, private readonly provider:'anthropic'|'gmail'|'activepieces'|'activepieces-runtime'='anthropic', private readonly workspaceId?:string){}
  private request(action:'get'|'set'|'remove',key?:string):Promise<{key?:string;missing?:boolean}>{
   if(process.platform!=='darwin'||!this.helper)return Promise.reject(new Error('Native Keychain helper unavailable.'));
   return new Promise((resolve,reject)=>{
@@ -14,7 +14,7 @@ export class NativeProviderSecrets implements ProviderSecrets{
  }
  async getOptional(){
   const value=await this.request('get');
-  if(value.missing===true&&this.provider==='activepieces'&&value.key===undefined)return null;
+  if(value.missing===true&&(this.provider==='activepieces'||this.provider==='activepieces-runtime')&&value.key===undefined)return null;
   if(value.missing!==undefined||typeof value.key!=='string'||!value.key)throw new Error('Invalid Keychain response.');
   return value.key;
  }
