@@ -51,3 +51,25 @@ test('missing runtime leaves the app usable and never provisions a connector acc
     expect(host.ingestionActive!()).toBe(false);
   } finally { await host.close(); await rm(root, { recursive: true, force: true }); }
 }, 15_000);
+
+test('runtime setup is asynchronous, strictly typed and leaves canonical reads available', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'fulcrum-runtime-admin-'));
+  let finish!: () => void;
+  const runtime = { installed: vi.fn(async () => false), install: vi.fn(async () => { await new Promise<void>(resolve => { finish = resolve; }); return 'http://127.0.0.1:18089'; }), start: vi.fn(), stop: vi.fn(async () => {}), healthy: vi.fn(async () => true) };
+  const connect = vi.fn();
+  const host = await openWorkspaceHost({ workspaceDirectory: path.join(root, 'workspace'), localDirectory: path.join(root, 'local'), userEntityId: USER_ID,
+    deviceLabel: 'Synthetic Mac', create: true, connectorRuntime: runtime, managedConnectionClient: connect });
+  try {
+    const status = await host.administer!('status', {}) as { deviceId: string };
+    await host.execute({ name: 'settings.setIngestionDevice', args: { ingestionDeviceId: status.deviceId }, actor: 'user' });
+    await expect(host.administer!('sources.runtime.start', { acknowledged: false })).rejects.toThrow();
+    await expect(host.administer!('sources.runtime.start', { acknowledged: true, origin: 'http://example.invalid' })).rejects.toThrow('INVALID_ADMINISTRATION_REQUEST');
+    expect(await host.administer!('sources.runtime.start', { acknowledged: true })).toEqual({});
+    await vi.waitFor(() => expect(runtime.install).toHaveBeenCalled());
+    expect(await host.query('portfolio.list', {})).toEqual([]);
+    expect(await host.administer!('sources.runtime.status', {})).toMatchObject({ phase: 'installing' });
+    await host.administer!('sources.runtime.stop', {}); finish();
+    await vi.waitFor(async () => expect(await host.administer!('sources.runtime.status', {})).toMatchObject({ phase: 'not_installed' }));
+    expect(connect).not.toHaveBeenCalled(); expect(host.ingestionActive!()).toBe(false);
+  } finally { finish?.(); await host.close(); await rm(root, { recursive: true, force: true }); }
+}, 15_000);

@@ -193,7 +193,12 @@ export class LimaConnectorRuntime implements ConnectorRuntime {
     const record = await this.record();
     if (!record || !await exists(path.join(this.options.stateDirectory, VM_NAME))) return;
     if (await fileDigest(this.binary) !== record.binaryDigest) throw new Error('runtime_binary_changed');
-    await this.command(['stop', VM_NAME], new AbortController().signal);
+    const signal = new AbortController().signal;
+    const state = JSON.parse(await this.command(['list', '--json', VM_NAME], signal)) as { name?: string; status?: string };
+    if (state.name !== VM_NAME) throw new Error('invalid_runtime_state');
+    if (state.status === 'Stopped') return;
+    if (state.status !== 'Running') throw new Error('runtime_stop_unavailable');
+    await this.command(['stop', VM_NAME], signal);
   }
   async stop(): Promise<void> { await this.exclusive(() => this.stopOwned()); }
 }

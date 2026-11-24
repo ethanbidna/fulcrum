@@ -7,7 +7,7 @@ const SIGN_IN_TIMEOUT_MS = 5 * 60_000;
 const MAX_API_KEY_LENGTH = 4096;
 class CancelledAuthorization extends Error {}
 const MAX_CODE_LENGTH = 8192;
-type ConnectionClient = Pick<ManagedConnections, 'begin' | 'complete' | 'connectGranola' | 'lookup' | 'disconnect' | 'cancel'>;
+export type ConnectionClient = Pick<ManagedConnections, 'begin' | 'complete' | 'connectGranola' | 'lookup' | 'disconnect' | 'cancel'>;
 type Preferences = Pick<LocalPreferences, 'read' | 'write'>;
 interface Job { cancelled: boolean; claiming: boolean; attemptId?: string; expires?: number }
 interface Options { preferences: Preferences; client?: ConnectionClient; designated(): boolean; now?: () => number }
@@ -31,9 +31,11 @@ export class ManagedSourceSettings {
   private readonly operations = new Map<ManagedSourceId, Promise<unknown>>();
   private writes: Promise<void> = Promise.resolve();
   private closed = false;
+  private paused = false;
+  private client: ConnectionClient | undefined;
   private readonly now: () => number;
 
-  constructor(private readonly options: Options) { this.now = options.now ?? Date.now; }
+  constructor(private readonly options: Options) { this.now = options.now ?? Date.now; this.client = options.client; }
 
   async restore(): Promise<void> {
     const saved = await this.options.preferences.read('managedSources');
@@ -53,12 +55,12 @@ export class ManagedSourceSettings {
   status(): ManagedSourceStatus[] {
     for (const [source, job] of this.jobs) {
       if (job.expires !== undefined && job.expires <= this.now() && !this.operations.has(source)) {
-        if (job.attemptId) this.options.client?.cancel(job.attemptId);
+        if (job.attemptId) this.client?.cancel(job.attemptId);
         this.jobs.delete(source); this.phases.set(source, 'failed');
       }
     }
     return MANAGED_SOURCE_IDS.map(source => ({ source, ingestion: 'blocked',
-      phase: !this.options.client || this.closed ? 'unavailable' : this.phases.get(source) ?? 'disconnected' }));
+      phase: !this.client || this.closed || this.paused ? 'unavailable' : this.phases.get(source) ?? 'disconnected' }));
   }
 
   private persist(): Promise<void> {
@@ -69,9 +71,9 @@ export class ManagedSourceSettings {
   }
 
   private run<T>(source: ManagedSourceId, operation: () => Promise<T>): Promise<T> {
-    if (!this.options.client || this.closed || this.operations.has(source)) return Promise.reject(new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE'));
+    if (!this.client || this.closed || this.paused || this.operations.has(source)) return Promise.reject(new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE'));
     const running = Promise.resolve().then(() => {
-      if (this.closed) throw new CancelledAuthorization();
+      if (this.closed || this.paused) throw new CancelledAuthorization();
       return operation();
     }).catch(error => {
       if (!(error instanceof CancelledAuthorization)) this.phases.set(source, 'failed');
@@ -93,7 +95,7 @@ export class ManagedSourceSettings {
   }
 
   private async cancelJob(source: ManagedSourceId, job: Job): Promise<void> {
-    if (job.attemptId) this.options.client!.cancel(job.attemptId);
+    if (job.attemptId) this.client!.cancel(job.attemptId);
     this.jobs.delete(source);
     this.pending.delete(source);
     await this.persist();
@@ -101,7 +103,7 @@ export class ManagedSourceSettings {
   }
 
   private shouldCancel(job: Job): boolean {
-    return job.cancelled || this.closed || !this.options.designated();
+    return job.cancelled || this.closed || this.paused || !this.options.designated();
   }
 
   private async acceptGrant(source: ManagedSourceId, receipt: ManagedConnection, job: Job): Promise<void> {
@@ -111,14 +113,14 @@ export class ManagedSourceSettings {
     }
     if (!this.shouldCancel(job)) return;
     this.phases.set(source, 'cancelling');
-    await this.options.client!.disconnect(source, receipt.id);
+    await this.client!.disconnect(source, receipt.id);
     await this.remember(source, null, false);
   }
 
   admit(input: unknown, acknowledged: unknown): ManagedSourceId {
     const source = sourceId(input);
     this.requireConsent(acknowledged);
-    if (!this.options.client || this.closed || source === 'granola' || this.jobs.has(source) || this.operations.has(source)) throw new Error('MANAGED_SOURCE_CONNECTION_NOT_ALLOWED');
+    if (!this.client || this.closed || this.paused || source === 'granola' || this.jobs.has(source) || this.operations.has(source)) throw new Error('MANAGED_SOURCE_CONNECTION_NOT_ALLOWED');
     return source;
   }
 
@@ -131,17 +133,17 @@ export class ManagedSourceSettings {
       this.jobs.set(source, job); this.phases.set(source, 'connecting');
       try {
         this.pending.add(source); await this.persist();
-        const found = await this.options.client!.lookup(source);
-        if (job.cancelled || this.closed || !this.options.designated()) { await this.cancelJob(source, job); throw new CancelledAuthorization(); }
+        const found = await this.client!.lookup(source);
+        if (job.cancelled || this.closed || this.paused || !this.options.designated()) { await this.cancelJob(source, job); throw new CancelledAuthorization(); }
         if (found) {
           await this.remember(source, found.connection, found.active);
           this.jobs.delete(source);
           if (!found.active) throw new Error('inactive_connection');
           return { phase: 'connected' };
         }
-        const attempt = await this.options.client!.begin(source);
+        const attempt = await this.client!.begin(source);
         job.attemptId = attempt.attemptId; job.expires = this.now() + SIGN_IN_TIMEOUT_MS;
-        if (job.cancelled || this.closed || !this.options.designated()) { await this.cancelJob(source, job); throw new CancelledAuthorization(); }
+        if (job.cancelled || this.closed || this.paused || !this.options.designated()) { await this.cancelJob(source, job); throw new CancelledAuthorization(); }
         return { phase: 'authorization', ...attempt };
       } catch (error) {
         if (!job.attemptId) this.jobs.delete(source);
@@ -159,7 +161,7 @@ export class ManagedSourceSettings {
     return this.run(source, async () => {
       job.claiming = true;
       try {
-        const receipt = await this.options.client!.complete(attemptId, code);
+        const receipt = await this.client!.complete(attemptId, code);
         await this.acceptGrant(source, receipt, job);
       } finally { this.jobs.delete(source); }
     });
@@ -173,10 +175,10 @@ export class ManagedSourceSettings {
       this.jobs.set('granola', job); this.phases.set('granola', 'connecting');
       try {
         this.pending.add('granola'); await this.persist();
-        const found = await this.options.client!.lookup('granola');
-        if (job.cancelled || this.closed || !this.options.designated()) { await this.cancelJob('granola', job); return; }
+        const found = await this.client!.lookup('granola');
+        if (job.cancelled || this.closed || this.paused || !this.options.designated()) { await this.cancelJob('granola', job); return; }
         if (found) { await this.remember('granola', found.connection, found.active); return; }
-        const receipt = await this.options.client!.connectGranola(apiKey);
+        const receipt = await this.client!.connectGranola(apiKey);
         await this.acceptGrant('granola', receipt, job);
       } finally { this.jobs.delete('granola'); }
     });
@@ -186,7 +188,7 @@ export class ManagedSourceSettings {
     const source = sourceId(input);
     if (this.jobs.has(source) || !this.connections.has(source) && !this.pending.has(source)) throw new Error('MANAGED_SOURCE_VERIFICATION_NOT_ALLOWED');
     return this.run(source, async () => {
-      const found = await this.options.client!.lookup(source);
+      const found = await this.client!.lookup(source);
       await this.remember(source, found?.connection ?? null, found?.active ?? false);
     });
   }
@@ -206,18 +208,28 @@ export class ManagedSourceSettings {
     await this.cancel(source);
     await this.operations.get(source)?.catch(() => undefined);
     return this.run(source, async () => {
-      const found = await this.options.client!.lookup(source);
-      if (found) await this.options.client!.disconnect(source, found.connection.id);
+      const found = await this.client!.lookup(source);
+      if (found) await this.client!.disconnect(source, found.connection.id);
       await this.remember(source, null, false);
     });
   }
 
-  async close(): Promise<void> {
-    this.closed = true;
+  suspend(): void {
+    this.paused = true;
     for (const job of this.jobs.values()) {
       job.cancelled = true;
-      if (job.attemptId) this.options.client?.cancel(job.attemptId);
+      if (job.attemptId) this.client?.cancel(job.attemptId);
     }
+  }
+
+  resume(client: ConnectionClient): void {
+    if (this.closed || this.operations.size || this.jobs.size) throw new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE');
+    this.client = client; this.paused = false;
+    for (const source of this.connections.keys()) this.phases.set(source, 'saved');
+  }
+
+  async pause(): Promise<void> {
+    this.suspend();
     await Promise.allSettled(this.operations.values());
     let changed = false;
     for (const [source, job] of this.jobs) {
@@ -226,5 +238,8 @@ export class ManagedSourceSettings {
     this.jobs.clear();
     if (changed) await this.persist().catch(() => undefined);
     await this.writes;
+    this.client = undefined;
   }
+
+  async close(): Promise<void> { this.closed = true; await this.pause(); }
 }

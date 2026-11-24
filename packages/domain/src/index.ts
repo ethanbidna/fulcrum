@@ -54,3 +54,5 @@ export { filterModelChoices, localModelFit, SYSTEM_MEMORY_RESERVE_BYTES } from '
 export type { LocalModelFit, ModelChoice, OriginPreference, HardwareProfile, CompatibilityResult, AiProfile, AiSetupStatus, AiJob, WorkspaceSelection, StartupStatus } from './setup-types.js';
 
 export type { ManagedSourceId, ManagedSourceStatus, ManagedAuthorization } from './administration-types.js';
+
+export type { ConnectionRuntimeStatus } from './administration-types.js';

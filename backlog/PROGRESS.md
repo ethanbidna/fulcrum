@@ -336,3 +336,33 @@ the fresh final profile and native-adapter harness; evidence is recorded in
 The desktop does not install/start this service yet. In-app controls, local
 owner bootstrap, an updated launched bundle, ARM execution and the managed
 source-retention gate remain open. Step 25 and Owner boxes are unchanged.
+
+
+### In-app runtime controls continuation — 2026-11-24
+
+The next I2 unit adds acknowledged asynchronous install/start/stop/cancel in
+Settings, focused source setup and onboarding, plus native owner bootstrap,
+client suspension/restart and saved receipt recovery. Source importing remains
+blocked. Tests pass: 742 unit, 116 reference, 119 Storybook checks and seven
+native Rust tests, with existing skips/TODO unchanged. The local Intel preview
+opens with bundled assets/core and an untracked updater-config overlay from
+PR #100. Native readiness is waiting on owner Keychain approval; see the
+[native record](../docs/spikes/S4-results/runtime-controls.md). No Owner box or
+step 25 acceptance is completed by this continuation.
+
+Owner check for this unit:
+
+1. Review/merge PR #100 (updater startup configuration) and the managed connector
+   stack in dependency order. The local overlay is only for preview testing.
+2. Open the current local Fulcrum preview. Go to Settings → Sources &
+   Integrations. Choose Start connection service (or acknowledge the download
+   and choose Download and set up connections on a clean installation).
+3. Approve Fulcrum's macOS Keychain prompt for `Fulcrum.Connector.Activepieces`
+   / `runtime-keys`. Enter a password only in macOS, never in chat. If it expires,
+   start again. The desktop automation tool cannot operate that prompt.
+4. Record whether service ready appears, then check Stop → Stopped → Start →
+   Ready, and enabled restoration after core restart. Verify saved connections
+   require an explicit check. Record phases/counts only in the native record;
+   do not commit real account names, credentials, device paths or screenshots.
+5. Do not tick step 25's Owner box yet: source-scope, ingestion/retention and
+   packaged provider acceptance remain separate checks.

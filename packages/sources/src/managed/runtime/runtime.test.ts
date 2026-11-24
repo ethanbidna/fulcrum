@@ -8,6 +8,7 @@ import { ACTIVEPIECES_VERSION, LIMA_VERSION, REQUIRED_FREE_DISK_BYTES, RUNTIME_R
 import { downloadLima, runCommand, privateJson, writePrivateJson, type RunCommand } from './io.js';
 
 const directories: string[] = [];
+const RUNNING_VM = JSON.stringify({ name: 'v', status: 'Running' });
 const keys = { encryption: 'a'.repeat(32), jwt: 'b'.repeat(64) };
 const digest = (value: string) => createHash('sha256').update(value).digest('hex');
 afterEach(async () => { await Promise.all(directories.splice(0).map(directory => rm(directory, { recursive: true, force: true }))); });
@@ -21,7 +22,7 @@ async function fixture() {
   const record = { v: 1, architecture: 'x64', port: 18089, owner: '01000000-0000-7000-8000-000000000001', keyDigest: digest(keys.encryption + keys.jwt), binaryDigest: digest('synthetic-binary') };
   await writePrivateJson(path.join(directory, 'installation.json'), record);
   const store = { read: vi.fn(async () => keys), write: vi.fn(async () => {}) };
-  const run = vi.fn<RunCommand>(async () => '');
+  const run = vi.fn<RunCommand>(async (_binary, args) => args.includes('list') ? RUNNING_VM : '');
   const request = vi.fn<typeof fetch>(async () => Response.json({ CURRENT_VERSION: ACTIVEPIECES_VERSION, EDITION: 'ce', CLOUD_AUTH_ENABLED: true }));
   const freeDiskBytes = vi.fn(async () => REQUIRED_FREE_DISK_BYTES);
   const runtime = new LimaConnectorRuntime({ directory, stateDirectory, keys: store, architecture: 'x64', run, request, freeDiskBytes });
@@ -71,6 +72,13 @@ describe('owned connector runtime', () => {
     await expect(runtime.start(new AbortController().signal, () => {})).rejects.toThrow('runtime_binary_changed');
     expect(run).not.toHaveBeenCalled();
   });
+  it('treats an already stopped VM as a successful stop', async () => {
+    const { runtime, run, stateDirectory } = await fixture(); await mkdir(path.join(stateDirectory, 'v'));
+    run.mockResolvedValueOnce(JSON.stringify({ name: 'v', status: 'Stopped' }));
+    await runtime.stop();
+    expect(run.mock.calls).toHaveLength(1);
+    expect(run.mock.calls[0]?.[1]).toEqual(['--log-level=error', 'list', '--json', 'v']);
+  });
   it('does not execute a modified runtime binary when stopping', async () => {
     const { runtime, run, directory, stateDirectory } = await fixture();
     await mkdir(path.join(stateDirectory, 'v'));
@@ -93,21 +101,21 @@ describe('owned connector runtime', () => {
   it('refuses a foreign container and stops the VM after startup fails', async () => {
     const { runtime, run, stateDirectory } = await fixture();
     await mkdir(path.join(stateDirectory, 'v'));
-    run.mockImplementation(async (_binary, args) => args.includes('ps') ? 'fulcrum-connections\n' : args.includes('inspect') ? '{}' : '');
+    run.mockImplementation(async (_binary, args) => args.includes('ps') ? 'fulcrum-connections\n' : args.includes('inspect') ? '{}' : args.includes('list') ? RUNNING_VM : '');
     await expect(runtime.start(new AbortController().signal, () => {})).rejects.toThrow('unowned_runtime_container');
     expect(run.mock.calls.at(-1)?.[1]).toEqual(['--log-level=error', 'stop', 'v']);
     expect(run.mock.calls.some(([, args]) => args.includes('run') || args.includes('rm'))).toBe(false);
   });
   it('refuses a data volume without matching ownership and key labels', async () => {
     const { runtime, run, stateDirectory } = await fixture(); await mkdir(path.join(stateDirectory, 'v'));
-    run.mockImplementation(async (_binary, args) => args.includes('volume') && args.includes('ls') ? 'fulcrum-data\n' : args.includes('inspect') ? '{}' : '');
+    run.mockImplementation(async (_binary, args) => args.includes('volume') && args.includes('ls') ? 'fulcrum-data\n' : args.includes('inspect') ? '{}' : args.includes('list') ? RUNNING_VM : '');
     await expect(runtime.start(new AbortController().signal, () => {})).rejects.toThrow('unowned_runtime_volume');
     expect(run.mock.calls.some(([, args]) => args.includes('pull'))).toBe(false);
   });
   it('stops the owned VM when startup is cancelled', async () => {
     const { runtime, run, stateDirectory } = await fixture(); await mkdir(path.join(stateDirectory, 'v'));
     const controller = new AbortController();
-    run.mockImplementation(async (_binary, args) => { if (args.includes('pull')) controller.abort(); return ''; });
+    run.mockImplementation(async (_binary, args) => { if (args.includes('pull')) controller.abort(); return args.includes('list') ? RUNNING_VM : ''; });
     await expect(runtime.start(controller.signal, () => {})).rejects.toThrow();
     expect(run.mock.calls.at(-1)?.[1]).toContain('stop');
   });

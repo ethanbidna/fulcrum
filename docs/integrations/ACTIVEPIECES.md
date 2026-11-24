@@ -15,7 +15,7 @@ ordinary use, ship the experience in Fulcrum, and cover all six sources.
 | Granola API-key connection request | Synthetic API test only |
 | Native Keychain and core administration | Implemented; synthetic runtime and substituted Security calls |
 | Browser callback and six-source Settings/onboarding | Implemented; synthetic callback and browser interaction checks |
-| Runtime driver / updated launched app | Intel lifecycle probe implemented; desktop adoption pending |
+| Runtime driver / updated launched app | In-app controls built and launched locally; live readiness awaits native Keychain approval |
 | Updated launched macOS app | Pending |
 | Managed automatic ingestion | Blocked by full-body run-log retention |
 
@@ -355,3 +355,33 @@ Final review extended binary-integrity checking to explicit stop as well as
 startup. Its test first reproduced execution of a changed binary; all 18
 runtime tests pass after the fix, with typecheck, lint and schema checks
 passing again. The full-suite count above precedes that last regression.
+
+
+## In-app runtime controls — November 24, 2026
+
+The production native core now composes the owned v1 runtime behind explicit
+install/start/stop administration. Settings, focused source setup and onboarding
+share resource acknowledgement, progress, cancellation and six-source controls.
+Owner sign-in must initialize through Keychain before sources become available.
+Stop suspends clients, cancels browser waiting and settles late grants before
+stopping the service; receipts survive for explicit verification after restart.
+No source actions, flow creation, scope selection or managed importing is enabled.
+See [ADR-0033](../decisions/0033-in-app-connection-runtime.md) and the
+[complete native results](../spikes/S4-results/runtime-controls.md).
+
+Validation: 742 unit tests and 116 reference tests pass on Node 22, with the
+existing skips/TODO preserved. All 119 Storybook CLI checks pass with no
+accessibility violations; UI types/static build, source types/lint/schema,
+seven native Rust tests, production assets and both SEA self-tests pass.
+A live repeated-stop defect found during native testing has a reproducing
+regression and a verified fix against the real VM.
+
+The local Intel preview was built, ad-hoc signed, verified and launched with
+bundled production assets/core. The normal native build still needs the
+existing updater configuration in PR #100; an untracked local overlay was used
+for the preview after owner-only merge rules blocked merging that prerequisite.
+No repository updater fix or merge was duplicated. The native source screen is
+present, but service readiness/owner bootstrap awaits the owner's Keychain
+approval. The desktop tool cannot operate SecurityAgent. Credentials and old
+volumes were not reset, copied around that prompt or deleted. Signed release,
+clean-user install, ARM VM execution and new provider grants remain open.

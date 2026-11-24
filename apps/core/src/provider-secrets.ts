@@ -1,5 +1,5 @@
 import{spawn}from'node:child_process';
-const SECRET_BYTES=8192;const KEYCHAIN_TIMEOUT_MS=15_000;
+const SECRET_BYTES=8192;const KEYCHAIN_TIMEOUT_MS=60_000;
 export interface ProviderSecrets{get():Promise<string>;set(key:string):Promise<void>;remove():Promise<void>}
 export class NativeProviderSecrets implements ProviderSecrets{
  constructor(private readonly helper:string|undefined, private readonly provider:'anthropic'|'gmail'|'activepieces'|'activepieces-runtime'='anthropic', private readonly workspaceId?:string){}

@@ -11,12 +11,13 @@ interface Job { controller: AbortController; done: Promise<void> }
 export class ManagedSourceBrowser {
   private readonly jobs = new Map<ManagedSourceId, Job>();
   private closed = false;
+  private paused = false;
   constructor(private readonly settings: ManagedSourceSettings, private readonly receive: ReceiveCode = receiveManagedCode,
     private readonly openBrowser: (url: URL) => Promise<unknown> = url => open('/usr/bin/open', [url.href])) {}
 
   start(source: unknown, acknowledged: unknown): void {
     const id = this.settings.admit(source, acknowledged);
-    if (this.closed || this.jobs.has(id)) throw new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE');
+    if (this.closed || this.paused || this.jobs.has(id)) throw new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE');
     const controller = new AbortController();
     const done = this.connect(id, controller.signal).finally(() => { this.jobs.delete(id); });
     this.jobs.set(id, { controller, done });
@@ -41,8 +42,10 @@ export class ManagedSourceBrowser {
     await this.settings.cancel(source);
   }
   async disconnect(source: unknown): Promise<void> { await this.cancel(source); await this.settings.disconnect(source); }
-  async close(): Promise<void> {
-    this.closed = true;
+  resume(): void { if (this.closed) throw new Error('MANAGED_SOURCE_BUSY_OR_UNAVAILABLE'); this.paused = false; }
+  async close(): Promise<void> { this.closed = true; await this.pause(); }
+  async pause(): Promise<void> {
+    this.paused = true;
     for (const [source, job] of this.jobs) { job.controller.abort(); await this.settings.cancel(source).catch(() => undefined); }
     await Promise.allSettled([...this.jobs.values()].map(job => job.done));
   }

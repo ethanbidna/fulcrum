@@ -33,6 +33,7 @@ export const ConnectInBrowser: Story = {
   play: async ({ canvas, userEvent, args }) => {
     const button = await canvas.findByRole('button', { name: 'Connect Gmail' });
     button.focus(); await userEvent.keyboard('{Enter}');
+    await canvas.findByText(/hosted authorization service/);
     const continueButton = canvas.getByRole('button', { name: 'Continue to Gmail in browser' });
     await expect(continueButton).toBeDisabled();
     await expect(args.administer).not.toHaveBeenCalled();
