@@ -170,6 +170,21 @@ describe('managed source settings', () => {
     expect(test.settings.status().every(status => status.phase === 'unavailable')).toBe(true);
     await expect(test.settings.begin('gmail', true)).rejects.toThrow();
   });
+  it.each(['gmail', 'granola'] as const)('removes the grant when %s is cancelled during receipt persistence', async source => {
+    const test = await fixture();
+    if (source === 'gmail') await test.settings.begin('gmail', true);
+    const started = deferred<void>(); const finish = deferred<void>();
+    const write = test.preferences.write.bind(test.preferences);
+    vi.spyOn(test.preferences, 'write').mockImplementation(async (name, value) => {
+      if ((value as { connections: unknown[] }).connections.length) { started.resolve(undefined); await finish.promise; }
+      await write(name, value);
+    });
+    const connecting = source === 'gmail' ? test.settings.complete('synthetic-attempt', 'code') : test.settings.granola('synthetic-key', true);
+    await started.promise; await test.settings.cancel(source); finish.resolve(undefined); await connecting;
+    expect(test.client.disconnect).toHaveBeenCalledWith(source, receipt(source).id);
+    expect(test.phase(source)).toBe('disconnected');
+    expect(await test.preferences.read('managedSources')).toEqual({ connections: [], pending: [] });
+  });
   it('does not start provisioning when close precedes the queued operation', async () => {
     const test = await fixture();
     const beginning = test.settings.begin('gmail', true);

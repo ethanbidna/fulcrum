@@ -100,6 +100,21 @@ export class ManagedSourceSettings {
     this.phases.set(source, this.connections.has(source) ? 'saved' : 'disconnected');
   }
 
+  private shouldCancel(job: Job): boolean {
+    return job.cancelled || this.closed || !this.options.designated();
+  }
+
+  private async acceptGrant(source: ManagedSourceId, receipt: ManagedConnection, job: Job): Promise<void> {
+    if (!this.shouldCancel(job)) {
+      try { await this.remember(source, receipt, true); }
+      catch (error) { if (!this.shouldCancel(job)) throw error; }
+    }
+    if (!this.shouldCancel(job)) return;
+    this.phases.set(source, 'cancelling');
+    await this.options.client!.disconnect(source, receipt.id);
+    await this.remember(source, null, false);
+  }
+
   async begin(input: unknown, acknowledged: unknown): Promise<ManagedAuthorization> {
     const source = sourceId(input);
     this.requireConsent(acknowledged);
@@ -138,12 +153,7 @@ export class ManagedSourceSettings {
       job.claiming = true;
       try {
         const receipt = await this.options.client!.complete(attemptId, code);
-        if (job.cancelled || this.closed || !this.options.designated()) {
-          await this.options.client!.disconnect(source, receipt.id);
-          await this.cancelJob(source, job);
-          return;
-        }
-        await this.remember(source, receipt, true);
+        await this.acceptGrant(source, receipt, job);
       } finally { this.jobs.delete(source); }
     });
   }
@@ -160,11 +170,7 @@ export class ManagedSourceSettings {
         if (job.cancelled || this.closed || !this.options.designated()) { await this.cancelJob('granola', job); return; }
         if (found) { await this.remember('granola', found.connection, found.active); return; }
         const receipt = await this.options.client!.connectGranola(apiKey);
-        if (job.cancelled || this.closed || !this.options.designated()) {
-          await this.options.client!.disconnect('granola', receipt.id);
-          await this.cancelJob('granola', job); return;
-        }
-        await this.remember('granola', receipt, true);
+        await this.acceptGrant('granola', receipt, job);
       } finally { this.jobs.delete('granola'); }
     });
   }
