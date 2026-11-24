@@ -14,7 +14,8 @@ ordinary use, ship the experience in Fulcrum, and cover all six sources.
 | Shared catalog presence for five OAuth sources | Observed November 24; not live sign-in |
 | Granola API-key connection request | Synthetic API test only |
 | Native Keychain and core administration | Implemented; synthetic runtime and substituted Security calls |
-| Browser callback, source settings and runtime installation | Pending |
+| Browser callback and six-source Settings/onboarding | Implemented; synthetic callback and browser interaction checks |
+| Runtime installation and updated launched app | Pending |
 | Updated launched macOS app | Pending |
 | Managed automatic ingestion | Blocked by full-body run-log retention |
 
@@ -244,3 +245,68 @@ launched desktop bundle, an installer test or live managed-connector acceptance.
 Final review added failing-then-passing OAuth and Granola regressions for
 cancellation during receipt persistence. The final full suite and both
 production sidecar self-tests passed after that fix.
+
+
+## Browser and Settings continuation — November 24
+
+The desktop Sources & Integrations section, focused Connect a source page and
+first-run source step now share the six-source controls. New sign-in requests
+use `sources.connect`; direct `sources.begin`/`sources.complete` remain core
+protocol operations. A core-owned browser coordinator opens a temporary local
+helper page, receives the hosted popup reply, and completes through the existing
+settings service. The native webview never receives the code or runtime token.
+
+The helper asks for a user gesture before opening the provider popup. It
+validates the exact hosted reply origin and exact popup reference, decodes once,
+and sends a bounded JSON reply to the private local path. The local listener
+checks Host, Origin, path, method, content type and field allowlist. Completion
+is single-use; timeouts, cancellation, browser-launch failure and core shutdown
+close the listener. The page uses no-store, no-referrer, a script nonce and
+frame denial. It has no runtime credential, arbitrary proxy or action runner.
+A browser popup blocker is explained locally and can be retried without opening
+an Activepieces dashboard.
+
+Connection work returns immediately through administration, preserving normal
+workspace editing while consent is open. Settings cancellation aborts the helper
+and invalidates the settings attempt; a late code cannot become a new grant.
+Unexpected browser failure produces a retryable source status without exposing
+upstream error details. Runtime endpoints and credentials remain core-owned.
+
+Each source form explains requested permissions and credential custody, then
+requires acknowledgement. The Granola field is masked, length-bounded, and
+removed on submit/cancel; no key is saved to browser storage or canonical data.
+Cancelling setup restores keyboard focus to the source button. Moving a
+previously designated device requires confirmation and never opens consent as
+a side effect. Checked/saved connections are distinct from importing, which is
+explicitly off. Label/channel/folder/calendar selection is not offered yet.
+
+The existing direct Gmail connection remains visible when already connected,
+waiting for consent or awaiting label choice. New connection entry points no
+longer require a Google Desktop client. This does not migrate credentials,
+erase source scopes or disable an already-active legacy ingestion path.
+
+Synthetic tests exercised the local callback using HTTP without contacting a
+provider, and exercised popup-message validation with a simulated browser.
+The core coordinator was tested with injected browser callbacks. Browser
+stories exercise actual React components with synthetic administration callbacks;
+no story signs in to a provider or uses a real key. The helper HTML is tested as
+a protocol page, rather than importing presentation modules into a driver.
+
+Validation: 701 workspace tests pass on Node 22 with the documented local
+`--maxWorkers=1 --testTimeout=15000` allowance; the reference suite passes 116
+with one existing skip and one TODO. The complete Storybook CLI suite passes
+102 stories with no accessibility violations; strict UI typecheck and static
+build pass. Initial heading-order findings were fixed; a setup story was corrected
+to wait for the AI step to finish loading before continuing. Typecheck and lint
+pass. A synthetic Settings screenshot is stored in
+[S4 results](../spikes/S4-results/managed-settings.jpg).
+
+Live provider consent was not repeated in this unit. There is still no installed
+owned connector runtime or updated launched app. Runtime installation/resource
+handling, actual Keychain prompts, granted-scope inspection, source-scope controls
+and automatic ingestion remain open. Full source-body retention is still a
+blocker; the connection UI does not change that contract.
+
+The production desktop assets and local macOS SEA core/MCP sidecars also
+build successfully. Both sidecars pass schema, FTS5 and encryption self-tests.
+This does not install or launch a replacement native desktop bundle.

@@ -69,3 +69,18 @@ export const EncryptedBackupRestore:Story={
   await expect(privacy).toHaveBeenCalledWith('restore',initial.backups[0]!.id);
  },
 };
+
+export const ManagedSourcesInSettings: Story = {
+  beforeEach: () => { current = { ...structuredClone(initial), ingestionDeviceId: initial.deviceId }; window.location.hash = '#settings/sources'; },
+  args: { administer: fn(async (name: string) => {
+    if (name === 'status') return current;
+    if (name === 'sources.status') return (['gmail', 'slack', 'granola', 'google_drive', 'dropbox', 'google_calendar'] as const).map(source => ({ source, phase: 'disconnected', ingestion: 'blocked' }));
+    if (name === 'gmail.status') return { phase: 'unavailable' };
+    return {};
+  }) as NonNullable<CoreTransport['administer']> },
+  play: async ({ canvas }) => {
+    await canvas.findByRole('button', { name: 'Connect Gmail' });
+    await expect(canvas.getAllByRole('button', { name: /^Connect / })).toHaveLength(6);
+    await expect(canvas.queryByText(/configured Google Desktop OAuth client/)).not.toBeInTheDocument();
+  },
+};

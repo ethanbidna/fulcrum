@@ -84,6 +84,8 @@ Rules (enforced by lint import boundaries once the monorepo exists):
 The C6 implementation and development-only transport boundary are described in
 [ADR-0014](decisions/0014-core-transports.md). The production core has no TCP
 listener; its separate browser-development build is not a release artifact.
+The temporary managed OAuth browser handoff is a narrowly scoped exception,
+bounded to one sign-in attempt ([ADR-0031](decisions/0031-managed-browser-handoff.md)).
 
 The **domain** is pure: given current state and a command, it returns either a rejection or a list of field-level ops plus derived questions. That makes every rule unit-testable with fixtures and keeps the AI path and the human path identical.
 

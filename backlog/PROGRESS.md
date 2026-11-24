@@ -310,3 +310,16 @@ app is not updated. Settings/browser callbacks and packaged acceptance remain
 pending. Step 25 and Owner boxes remain unchanged. The preceding driver PR #107
 passed CI and both unsigned runtime architecture checks; signed packaging was
 skipped. See the [integration record](../docs/integrations/ACTIVEPIECES.md).
+
+
+### Managed connection UI continuation — 2026-11-24
+
+The next I2 unit adds an asynchronous system-browser handoff and shared
+six-source controls in Settings, the focused source page and first-run setup.
+Existing direct Gmail connections are preserved. Connection acknowledgement,
+key entry, cancellation, device handover and saved/unavailable states have
+synthetic browser coverage. Importing and scope selection stay off; runtime
+installation, live grants and an updated launched app remain pending. No Owner
+box or step 25 acceptance is completed. See
+[ADR-0031](../docs/decisions/0031-managed-browser-handoff.md) and the
+[integration record](../docs/integrations/ACTIVEPIECES.md).

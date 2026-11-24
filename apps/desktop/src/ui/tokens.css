@@ -431,3 +431,14 @@ select { max-width: 100%; }
 .source-choice span, .source-soon span { color: var(--text-secondary); }
 .source-soon { border-style: dashed; background: transparent; }
 .source-soon strong { color: var(--text-secondary); }
+
+.managed-sources { display: flex; flex-direction: column; gap: var(--space-4); }
+.managed-source-list { list-style: none; margin: 0; padding: 0; }
+.managed-source-list > li { border-top: 1px solid var(--line); padding: var(--space-4) 0; }
+.managed-source-row { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-4); flex-wrap: wrap; }
+.managed-source-row h3, .managed-source-row p { margin: 0; }
+.managed-source-row p { color: var(--text-secondary); margin-top: var(--space-1); }
+.managed-source-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.managed-source-form { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); padding: var(--space-4) 0; max-width: 42rem; }
+.managed-source-form p { margin: 0; }
+.managed-source-form > label:not(.check-label) { display: flex; flex-direction: column; gap: var(--space-2); width: min(100%, 28rem); }

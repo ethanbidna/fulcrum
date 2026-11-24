@@ -24,6 +24,7 @@ export interface ManagedSourceStatus {
 export type ManagedAuthorization = { phase: 'authorization'; attemptId: string; authorizationUrl: string } | { phase: 'connected' };
 export interface AdministrationArgs {
   'sources.status': Record<string, never>;
+  'sources.connect': { source: ManagedSourceId; acknowledged: boolean };
   'sources.begin': { source: ManagedSourceId; acknowledged: boolean };
   'sources.complete': { attemptId: string; code: string };
   'sources.granola': { apiKey: string; acknowledged: boolean };
@@ -57,6 +58,7 @@ export interface AdministrationArgs {
 }
 export interface AdministrationResults {
   'sources.status': ManagedSourceStatus[];
+  'sources.connect': Record<string, never>;
   'sources.begin': ManagedAuthorization;
   'sources.complete': Record<string, never>;
   'sources.granola': Record<string, never>;

@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { ManagedConnections } from '@fulcrum/sources';
+import { ManagedSourceBrowser } from './managed-browser.js';
 import { ManagedSourceSettings } from './managed-sources.js';
 import { nativeManagedRuntimeSecrets } from './managed-runtime.js';
 import { GmailSettings } from './gmail-settings.js';
@@ -235,13 +236,14 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     await managedSources.restore(); }
   catch { managedSources = new ManagedSourceSettings({ preferences: managedPreferences, designated }); }
 
+  const managedBrowser = new ManagedSourceBrowser(managedSources);
   let administration: Awaited<ReturnType<typeof openAdministration>>;
   try { administration = await openAdministration(options, opened.deviceId, () => domain, background, () => ingestion?.scheduler.enabled() ?? false, {
     status:()=>({access:structuredClone(mcpAccess),initiatives:domain.getSnapshot().state.initiatives.map(({id,title})=>({id,title})),categories:domain.getSnapshot().state.categories.map(({id,label})=>({id,name:label}))}),
     configure:async input=>{const next=validateMcpAccess(input);await preferences.write('mcp',next);for(const key of Object.keys(mcpAccess))delete (mcpAccess as unknown as Record<string,unknown>)[key];Object.assign(mcpAccess,next);return structuredClone(mcpAccess);},
     activity:()=>new LocalMcpActivity(options.localDirectory).recent(),
-  },aiSetup,async(userEntityId,label)=>{jobs.close();await store.renameDevice(label);options.userEntityId=userEntityId;options.deviceLabel=label;fingerprint='';await reload();await preferences.write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId,deviceLabel:label,workspaceId:domain.getSnapshot().workspaceId});},gmail,managedSources); }
-  catch (error) { await managedSources.close(); jobs.close(); aiSetup.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
+  },aiSetup,async(userEntityId,label)=>{jobs.close();await store.renameDevice(label);options.userEntityId=userEntityId;options.deviceLabel=label;fingerprint='';await reload();await preferences.write('activeWorkspace',{workspaceDirectory:options.workspaceDirectory,userEntityId,deviceLabel:label,workspaceId:domain.getSnapshot().workspaceId});},gmail,managedSources,managedBrowser); }
+  catch (error) { await managedBrowser.close(); await managedSources.close(); jobs.close(); aiSetup.close(); stopWatching?.(); unsubscribe?.(); await ingestion?.close(); await context?.close(); await index?.close(); await store.close(); throw error; }
   const BACKUP_CHECK_INTERVAL_MS = 60_000;
   const backupTimer = setInterval(() => { void enqueue(() => administration.tick()).catch(() => undefined); }, BACKUP_CHECK_INTERVAL_MS);
   backupTimer.unref();
@@ -284,7 +286,7 @@ export async function openWorkspaceHost(options: WorkspaceOptions): Promise<Core
     ingestionActive: () => ingestion?.scheduler.enabled() ?? false,
     close: () => {
       closing = true; clearInterval(backupTimer); jobs.close(); aiSetup.close(); stopWatching?.();
-      return closePromise ??= (async () => { await managedSources.close(); await gmail.close(); await tail; await ingestion?.close(); unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
+      return closePromise ??= (async () => { await managedBrowser.close(); await managedSources.close(); await gmail.close(); await tail; await ingestion?.close(); unsubscribe?.(); try { await store.close(); } finally { await context?.close(); await index?.close(); listeners.clear(); } })();
     },
   };
 }
