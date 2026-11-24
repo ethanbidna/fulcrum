@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Check native managed credential protocol
+        run: pnpm exec vitest run --project unit apps/core/src/provider-secrets.test.ts
       - run: rustup toolchain install stable --profile minimal
       - run: node tools/release/sea.mjs release-output
       - run: node tools/release/notices.mjs release-output/THIRD_PARTY_NOTICES.txt

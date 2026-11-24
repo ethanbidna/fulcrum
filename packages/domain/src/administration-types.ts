@@ -15,7 +15,22 @@ export type GmailSettingsStatus =
   | { phase: 'unavailable' | 'disconnected' | 'connecting' | 'failed' }
   | { phase: 'select'; account: string; labels: { id: string; label: string }[] }
   | { phase: 'active'; account: string; label: { id: string; label: string } };
+export type ManagedSourceId = 'gmail' | 'slack' | 'granola' | 'google_drive' | 'dropbox' | 'google_calendar';
+export interface ManagedSourceStatus {
+  source: ManagedSourceId;
+  phase: 'unavailable' | 'disconnected' | 'connecting' | 'saved' | 'connected' | 'failed' | 'cancelling';
+  ingestion: 'blocked';
+}
+export type ManagedAuthorization = { phase: 'authorization'; attemptId: string; authorizationUrl: string } | { phase: 'connected' };
 export interface AdministrationArgs {
+  'sources.status': Record<string, never>;
+  'sources.begin': { source: ManagedSourceId; acknowledged: boolean };
+  'sources.complete': { attemptId: string; code: string };
+  'sources.granola': { apiKey: string; acknowledged: boolean };
+  'sources.verify': { source: ManagedSourceId };
+  'sources.cancel': { source: ManagedSourceId };
+  'sources.disconnect': { source: ManagedSourceId };
+
   'gmail.status': Record<string, never>;
   'gmail.connect': { account?: string; acknowledged: boolean };
   'gmail.select': { id: string };
@@ -41,6 +56,14 @@ export interface AdministrationArgs {
   'background.configure': {paused?: boolean; onlyWhenPluggedIn?: boolean};
 }
 export interface AdministrationResults {
+  'sources.status': ManagedSourceStatus[];
+  'sources.begin': ManagedAuthorization;
+  'sources.complete': Record<string, never>;
+  'sources.granola': Record<string, never>;
+  'sources.verify': Record<string, never>;
+  'sources.cancel': Record<string, never>;
+  'sources.disconnect': Record<string, never>;
+
   'gmail.status': GmailSettingsStatus;
   'gmail.connect': Record<string, never>;
   'gmail.select': Record<string, never>;

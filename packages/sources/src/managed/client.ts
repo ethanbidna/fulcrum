@@ -8,6 +8,8 @@ const REQUEST_TIMEOUT_MS = 30_000;
 const SIGN_IN_TIMEOUT_MS = 5 * 60_000;
 const MAX_CODE_LENGTH = 8192;
 const MAX_API_KEY_LENGTH = 4096;
+const CONNECTION_PAGE_SIZE = 100;
+const MAX_CONNECTION_PAGES = 10;
 const MAX_JSON_BYTES = 512 * 1024;
 
 export interface ManagedRuntimeIdentity {
@@ -208,6 +210,34 @@ export class ManagedConnections {
       throw new Error('source_connection_not_active');
     }
     return { id: requiredString(result.id), source, ingestion: 'blocked' };
+  }
+
+  async lookup(source: ManagedSourceId): Promise<{ connection: ManagedConnection; active: boolean } | null> {
+    const policy = MANAGED_SOURCE_POLICIES[source];
+    if (!policy) throw new Error('invalid_source');
+    await this.initialize();
+    let cursor: string | undefined;
+    const seen = new Set<string>();
+    for (let page = 0; page < MAX_CONNECTION_PAGES; page++) {
+      const query = new URLSearchParams({ projectId: this.session!.projectId, pieceName: policy.pieceName,
+        displayName: `Fulcrum ${source}`, scope: 'PROJECT', limit: String(CONNECTION_PAGE_SIZE),
+        ...(cursor === undefined ? {} : { cursor }) });
+      const result = record(await this.request(`/app-connections?${query}`));
+      if (!Array.isArray(result.data) || result.data.length > CONNECTION_PAGE_SIZE) throw new Error('invalid_runtime_response');
+      const matches = result.data.map(record).filter(connection => connection.externalId === this.externalId(source));
+      if (matches.length > 1) throw new Error('source_connection_mismatch');
+      const connection = matches[0];
+      if (connection) {
+        if (connection.pieceName !== policy.pieceName || connection.projectId !== this.session!.projectId
+          || connection.scope !== 'PROJECT') throw new Error('source_connection_mismatch');
+        return { connection: { id: requiredString(connection.id), source, ingestion: 'blocked' }, active: connection.status === 'ACTIVE' };
+      }
+      if (result.next === null || result.next === undefined) return null;
+      cursor = requiredString(result.next);
+      if (seen.has(cursor)) throw new Error('invalid_runtime_response');
+      seen.add(cursor);
+    }
+    throw new Error('connection_lookup_limit');
   }
 
   async disconnect(source: ManagedSourceId, id: string): Promise<void> {

@@ -52,3 +52,5 @@ export type { GmailSettingsStatus, LocalConfiguration, LocalBackup, BackupFreque
 export type { McpConfiguration, McpActivityEntry } from './administration-types.js';
 export { filterModelChoices, localModelFit, SYSTEM_MEMORY_RESERVE_BYTES } from './setup-types.js';
 export type { LocalModelFit, ModelChoice, OriginPreference, HardwareProfile, CompatibilityResult, AiProfile, AiSetupStatus, AiJob, WorkspaceSelection, StartupStatus } from './setup-types.js';
+
+export type { ManagedSourceId, ManagedSourceStatus, ManagedAuthorization } from './administration-types.js';

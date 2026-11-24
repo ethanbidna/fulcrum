@@ -141,6 +141,37 @@ describe('managed connections', () => {
     await expect(test.client.disconnect('gmail', 'synthetic-connection')).rejects.toThrow('source_connection_mismatch');
     expect(test.fetcher.mock.calls.at(-1)?.[1]?.method).toBe('GET');
   });
+  it('recovers only this workspace connection through bounded metadata lookup', async () => {
+    const test = fixture(identity);
+    await test.client.begin('gmail');
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [{ id: 'other', externalId: 'another-workspace' }], next: 'page-2' }));
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [{ id: 'own', externalId: 'fulcrum-synthetic-workspace-gmail', pieceName: '@activepieces/piece-gmail', projectId: session.projectId, scope: 'PROJECT', status: 'ACTIVE', value: 'must-not-return' }], next: null }));
+    expect(await test.client.lookup('gmail')).toEqual({ connection: { id: 'own', source: 'gmail', ingestion: 'blocked' }, active: true });
+    const request = String(test.fetcher.mock.calls.at(-1)?.[0]);
+    expect(new URL(request).searchParams.get('cursor')).toBe('page-2');
+    expect(new URL(request).searchParams.get('pieceName')).toBe('@activepieces/piece-gmail');
+  });
+  it.each([{ projectId: 'foreign-project' }, { pieceName: '@activepieces/piece-slack' }, { scope: 'PLATFORM' }])('rejects recovered metadata from a different owner %o', async mismatch => {
+    const test = fixture(identity); await test.client.begin('gmail');
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [{ id: 'own', externalId: 'fulcrum-synthetic-workspace-gmail', pieceName: '@activepieces/piece-gmail', projectId: session.projectId, scope: 'PROJECT', status: 'ACTIVE', ...mismatch }], next: null }));
+    await expect(test.client.lookup('gmail')).rejects.toThrow('source_connection_mismatch');
+  });
+  it('fails closed at the metadata page limit instead of assuming no connection exists', async () => {
+    const test = fixture(identity); await test.client.begin('gmail');
+    for (let page = 0; page < 10; page++) test.fetcher.mockResolvedValueOnce(test.response({ data: [], next: `page-${page}` }));
+    await expect(test.client.lookup('gmail')).rejects.toThrow('connection_lookup_limit');
+  });
+  it('returns null only after the metadata result ends', async () => {
+    const test = fixture(identity); await test.client.begin('gmail');
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [], next: null }));
+    expect(await test.client.lookup('gmail')).toBeNull();
+  });
+  it('rejects a repeated metadata cursor', async () => {
+    const test = fixture(identity); await test.client.begin('gmail');
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [], next: 'repeat' }));
+    test.fetcher.mockResolvedValueOnce(test.response({ data: [], next: 'repeat' }));
+    await expect(test.client.lookup('gmail')).rejects.toThrow('invalid_runtime_response');
+  });
   it('stores a Granola API key only in the local connection request', async () => {
     const test = fixture();
     const connected = await test.client.connectGranola('synthetic-granola-key');

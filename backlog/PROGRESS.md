@@ -297,3 +297,15 @@ block ingestion under the current retention contract. See the
 [integration record](../docs/integrations/ACTIVEPIECES.md) and
 [ADR-0030](../docs/decisions/0030-managed-connection-driver.md). Existing step
 statuses and Owner boxes are unchanged; this driver is not step 25 acceptance.
+
+
+### Managed desktop core continuation — 2026-11-24
+
+The next I2 unit adds native runtime-identity storage, private runtime
+configuration, workspace-local receipt recovery and typed source administration.
+Slow connector requests do not hold the canonical write queue. All managed
+sources still report ingestion blocked; no runtime is installed and the launched
+app is not updated. Settings/browser callbacks and packaged acceptance remain
+pending. Step 25 and Owner boxes remain unchanged. The preceding driver PR #107
+passed CI and both unsigned runtime architecture checks; signed packaging was
+skipped. See the [integration record](../docs/integrations/ACTIVEPIECES.md).

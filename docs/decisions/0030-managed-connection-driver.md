@@ -66,3 +66,19 @@ or future service availability.
 Evidence, source pins and acceptance gates are maintained in the
 [integration record](../integrations/ACTIVEPIECES.md). No persisted workspace
 schema changes are part of this decision.
+
+
+## Native core composition
+
+The November 24 continuation implements the secure-store interface and
+administration composition, while leaving desktop adoption pending. Use one
+machine-local runtime login in Keychain, with workspace-specific connection
+external IDs and local receipts. Treat missing credentials differently from
+access denial. A private installer-owned loopback configuration enables the
+composition; there is no arbitrary-server control in the administration API.
+
+Persist pending-source markers before grant exchange and recover through bounded,
+namespace-checked connection metadata lookup. Restore reports saved receipts
+without signing in. Connector network waits run outside the canonical write
+queue. Cancellation/shutdown invalidates attempts and cleans up late grants.
+No source reads, runtime installer or browser callback is adopted by this unit.
