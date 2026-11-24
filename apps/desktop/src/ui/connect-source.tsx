@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { AdministrationArgs, AdministrationName, AdministrationResults } from '@fulcrum/domain';
-import { ManagedSources } from './managed-sources.js';
+import { SourceConnections } from './source-connections.js';
 import { GmailSettings } from './gmail-settings.js';
 
 type Administer = <N extends AdministrationName>(name: N, args: AdministrationArgs[N]) => Promise<AdministrationResults[N]>;
@@ -39,7 +39,7 @@ export function ConnectSource({ administer, pollMs }: Props) {
         <button className="secondary-button" disabled={busy || elsewhere && !handover}>Use this Mac for source connections</button>
       </form>}
       <h2>Source connections</h2>
-      <ManagedSources administer={administer} designated={designated} {...(pollMs === undefined ? {} : { pollMs })} />
+      <SourceConnections administer={administer} designated={designated} {...(pollMs === undefined ? {} : { pollMs })} />
       <GmailSettings mode="existing" administer={administer} designated={designated} />
     </>}
   </section>;

@@ -53,3 +53,19 @@ test('a browser failure leaves a retryable status and consumes no grant', async 
   await vi.waitFor(() => expect(test.phase()).toBe('failed'));
   expect(test.client.complete).not.toHaveBeenCalled(); await browser.close(); await test.settings.close();
 });
+
+test('service pause closes a waiting browser and permits fresh consent after restart', async () => {
+  const test = fixture();
+  const receive = vi.fn(async (options: Parameters<typeof import('@fulcrum/sources').receiveManagedCode>[0]) => new Promise<string>((_resolve, reject) => {
+    options.signal.addEventListener('abort', () => reject(new Error('synthetic-cancel')), { once: true });
+  }));
+  const browser = new ManagedSourceBrowser(test.settings, receive);
+  try {
+    browser.start('gmail', true); await vi.waitFor(() => expect(receive).toHaveBeenCalledTimes(1));
+    test.settings.suspend(); await browser.pause(); await test.settings.pause();
+    expect(test.client.complete).not.toHaveBeenCalled(); expect(test.phase()).toBe('unavailable');
+    test.settings.resume(test.client); browser.resume(); receive.mockResolvedValueOnce('synthetic-code');
+    browser.start('gmail', true); await vi.waitFor(() => expect(test.phase()).toBe('connected'));
+    expect(test.client.complete).toHaveBeenCalledTimes(1);
+  } finally { await browser.close(); await test.settings.close(); }
+});

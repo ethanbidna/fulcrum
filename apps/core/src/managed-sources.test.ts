@@ -204,3 +204,28 @@ describe('managed source settings', () => {
     await expect(test.settings.restore()).rejects.toThrow('INVALID_MANAGED_SETTINGS');
   });
 });
+
+describe('runtime client lifecycle', () => {
+  it('preserves receipts across pause and verifies through the replacement client', async () => {
+    const test = await fixture();
+    await test.preferences.write('managedSources', { connections: [receipt()], pending: [] }); await test.settings.restore();
+    await test.settings.pause(); expect(test.phase()).toBe('unavailable');
+    expect(() => test.settings.admit('gmail', true)).toThrow();
+    const replacement = { ...test.client, lookup: vi.fn(async () => ({ connection: receipt(), active: true })) };
+    test.settings.resume(replacement); expect(test.phase()).toBe('saved');
+    await test.settings.verify('gmail'); expect(replacement.lookup).toHaveBeenCalledWith('gmail');
+    expect(test.client.lookup).not.toHaveBeenCalled();
+    await test.settings.close(); expect(() => test.settings.resume(replacement)).toThrow();
+  });
+  it('disconnects a late Granola grant before dropping the runtime client', async () => {
+    const test = await fixture(); const waiting = deferred<ManagedConnection>();
+    test.client.connectGranola.mockReturnValueOnce(waiting.promise);
+    const connecting = test.settings.granola('synthetic-key', true);
+    await vi.waitFor(() => expect(test.client.connectGranola).toHaveBeenCalled());
+    const paused = test.settings.pause(); waiting.resolve(receipt('granola'));
+    await connecting; await paused;
+    expect(test.client.disconnect).toHaveBeenCalledWith('granola', receipt('granola').id);
+    expect(await test.preferences.read('managedSources')).toEqual({ connections: [], pending: [] });
+    expect(test.phase()).toBe('unavailable');
+  });
+});

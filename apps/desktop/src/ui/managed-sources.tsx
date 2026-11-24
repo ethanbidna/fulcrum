@@ -108,7 +108,7 @@ function SourceConnectionForm({ source, disabled, connect, cancel }: {
     const key = apiKey; setApiKey(''); connect(granola ? key : undefined);
   }}>
     <p>{source.permission} Connecting does not start importing.</p>
-    <p>{granola ? 'Activepieces stores this key in its encrypted local connection store.' : 'Activepieces handles authorization-code exchange and renewal. Source credentials are stored in its encrypted local connection store.'}</p>
+    <p>{granola ? 'Activepieces stores this key in its encrypted local connection store.' : 'Activepieces uses a hosted authorization service to exchange and renew credentials; that service can see them. Encrypted credentials are also stored on this Mac.'}</p>
     {granola && <label>Granola API key<input type="password" maxLength={MAX_API_KEY_LENGTH} autoComplete="off" value={apiKey} disabled={disabled} onChange={event => setApiKey(event.target.value)} /></label>}
     <label className="check-label"><input type="checkbox" checked={acknowledged} disabled={disabled} onChange={event => setAcknowledged(event.target.checked)} />I agree to connect {source.name} through Activepieces.</label>
     <div className="managed-source-actions"><button className="secondary-button" disabled={disabled || !acknowledged || granola && !apiKey.trim()}>{granola ? 'Save Granola connection' : `Continue to ${source.name} in browser`}</button>

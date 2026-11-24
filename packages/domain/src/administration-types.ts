@@ -22,7 +22,18 @@ export interface ManagedSourceStatus {
   ingestion: 'blocked';
 }
 export type ManagedAuthorization = { phase: 'authorization'; attemptId: string; authorizationUrl: string } | { phase: 'connected' };
+export interface ConnectionRuntimeStatus {
+  phase: 'checking' | 'not_installed' | 'stopped' | 'installing' | 'starting' | 'ready' | 'stopping' | 'failed' | 'unavailable';
+  installed: boolean;
+  message: string;
+  completedBytes: number | null;
+  totalBytes: number | null;
+}
 export interface AdministrationArgs {
+  'sources.runtime.status': Record<string, never>;
+  'sources.runtime.start': { acknowledged: boolean };
+  'sources.runtime.stop': Record<string, never>;
+
   'sources.status': Record<string, never>;
   'sources.connect': { source: ManagedSourceId; acknowledged: boolean };
   'sources.begin': { source: ManagedSourceId; acknowledged: boolean };
@@ -57,6 +68,10 @@ export interface AdministrationArgs {
   'background.configure': {paused?: boolean; onlyWhenPluggedIn?: boolean};
 }
 export interface AdministrationResults {
+  'sources.runtime.status': ConnectionRuntimeStatus;
+  'sources.runtime.start': Record<string, never>;
+  'sources.runtime.stop': Record<string, never>;
+
   'sources.status': ManagedSourceStatus[];
   'sources.connect': Record<string, never>;
   'sources.begin': ManagedAuthorization;

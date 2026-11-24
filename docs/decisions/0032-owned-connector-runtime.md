@@ -73,3 +73,6 @@ Synthetic lifecycle/security tests and the Intel installation evidence are
 recorded in [S4 runtime results](../spikes/S4-results/managed-runtime.md).
 ARM execution, native app composition, launch/signing and all new provider
 grants remain separate checks. No persisted workspace schema changes.
+
+The desktop continuation is defined by [ADR-0033](0033-in-app-connection-runtime.md).
+Its native permission and acceptance limits remain separate from driver proof.

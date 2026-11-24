@@ -6,20 +6,17 @@ import os from 'node:os';
 import { unlockConfiguredWorkspace } from './workspace-keys.js';
 import { copyEncryptedWorkspace } from './workspace-copy-entry.js';
 import { configuredGmailClient } from './gmail-client.js';
-import { LocalPreferences } from '@fulcrum/store';
-import { configuredManagedRuntime } from './managed-runtime.js';
 import { startCore } from './bootstrap.js';
 const schemaDirectory = new URL('./schemas/v1/', import.meta.url);
 const localDirectory = path.join(os.homedir(), 'Library', 'Application Support', 'Fulcrum');
 async function main() {
   const { recoverWorkspace, ...options } = parseCoreArguments(process.argv.slice(2));
   const encryption = options.create ? undefined : await unlockConfiguredWorkspace(options.workspaceDirectory, localDirectory, schemaDirectory, recoverWorkspace === true);
-  const managedRuntime = await configuredManagedRuntime(new LocalPreferences(localDirectory));
   const gmailClient = await configuredGmailClient(localDirectory);
   const server = await startCore({ ...options, localDirectory, schemaDirectory,
     ...(encryption ? { encryption } : {}),
     ...(gmailClient ? { gmailClient } : {}),
-    ...(managedRuntime ? { managedRuntime } : {}),
+    manageConnectors: true,
     onIndexProgress: progress => { process.stdout.write(`${JSON.stringify({type:'index-progress', ...progress})}\n`); },
   }).catch(error => { encryption?.close(); throw error; });
   const stop = () => { void server.close().catch(() => { process.exitCode = 1; }); };

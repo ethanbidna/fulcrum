@@ -23,3 +23,20 @@ export const ConnectDuringSetup: Story = {
     await expect(fixture.administer).toHaveBeenCalledWith('sources.cancel', { source: 'gmail' });
   },
 };
+
+export const InstallConnectionsDuringSetup: Story = {
+  beforeEach: () => { fixture.setRuntime('not_installed'); },
+  render: args => <Onboarding {...args} platform={fixture.platform} initialTransport={fixture.transport} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(await canvas.findByRole('button', { name: 'Continue to AI' }));
+    await canvas.findByText('Off'); await userEvent.click(canvas.getByRole('button', { name: 'Continue without AI' }));
+    const install = await canvas.findByRole('button', { name: 'Download and set up connections' }); await expect(install).toBeDisabled();
+    await userEvent.click(canvas.getByRole('checkbox', { name: 'I agree to download and run the local connection service.' }));
+    await userEvent.click(install); await canvas.findByText('Connection service ready. Importing is off.');
+    await expect(fixture.administer).toHaveBeenCalledWith('sources.runtime.start', { acknowledged: true });
+    await userEvent.click(await canvas.findByRole('button', { name: 'Connect Slack' }));
+    await userEvent.click(canvas.getByRole('checkbox', { name: 'I agree to connect Slack through Activepieces.' }));
+    await userEvent.click(canvas.getByRole('button', { name: 'Continue to Slack in browser' }));
+    await expect(fixture.administer).toHaveBeenCalledWith('sources.connect', { source: 'slack', acknowledged: true });
+  },
+};

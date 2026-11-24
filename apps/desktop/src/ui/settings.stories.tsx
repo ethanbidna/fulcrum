@@ -74,6 +74,7 @@ export const ManagedSourcesInSettings: Story = {
   beforeEach: () => { current = { ...structuredClone(initial), ingestionDeviceId: initial.deviceId }; window.location.hash = '#settings/sources'; },
   args: { administer: fn(async (name: string) => {
     if (name === 'status') return current;
+    if (name === 'sources.runtime.status') return { phase: 'ready', installed: true, message: 'Connection service ready. Importing is off.', completedBytes: null, totalBytes: null };
     if (name === 'sources.status') return (['gmail', 'slack', 'granola', 'google_drive', 'dropbox', 'google_calendar'] as const).map(source => ({ source, phase: 'disconnected', ingestion: 'blocked' }));
     if (name === 'gmail.status') return { phase: 'unavailable' };
     return {};

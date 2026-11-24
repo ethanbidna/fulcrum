@@ -6,7 +6,7 @@ import './tokens.css';
 
 type Administer = React.ComponentProps<typeof ConnectSource>['administer'];
 function serve(phase: ManagedSourceStatus['phase'], ingestionDeviceId: string | null = 'dev-1', gmail: GmailSettingsStatus = { phase: 'unavailable' }) {
-  return fn(async (name: string) => name === 'gmail.status' ? gmail : name === 'sources.status'
+  return fn(async (name: string) => name === 'sources.runtime.status' ? { phase: 'ready', installed: true, message: 'Connection service ready. Importing is off.', completedBytes: null, totalBytes: null } : name === 'gmail.status' ? gmail : name === 'sources.status'
     ? (['gmail', 'slack', 'granola', 'google_drive', 'dropbox', 'google_calendar'] as const).map(source => ({ source, phase, ingestion: 'blocked' }))
     : name === 'workspace.setupStatus' ? { completed: true, deviceId: 'dev-1', deviceLabel: 'Synthetic Mac', ingestionDeviceId, people: [], userEntityId: 'u-1' } : {}) as Administer;
 }
